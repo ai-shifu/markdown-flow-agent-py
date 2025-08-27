@@ -81,35 +81,4 @@ __all__ = [
     "replace_variables_in_text",
 ]
 
-
-# Version information - dynamically retrieved from git tags
-def _get_version():
-    """Get version from git tags or package metadata."""
-    try:
-        # First try to get from git tags (for development)
-        import subprocess
-
-        result = subprocess.run(
-            ["git", "describe", "--tags", "--abbrev=0"],
-            capture_output=True,
-            text=True,
-            cwd=__file__.rsplit("/", 2)[0],  # Go to project root
-        )
-        if result.returncode == 0:
-            return result.stdout.strip().lstrip("v")
-    except Exception:
-        pass
-
-    try:
-        # Fallback to package metadata (for installed packages)
-        from importlib.metadata import version
-
-        return version("markdown-flow")
-    except Exception:
-        pass
-
-    # Final fallback
-    return "0.0.0-dev"
-
-
-__version__ = _get_version()
+__version__ = "0.2.3"
