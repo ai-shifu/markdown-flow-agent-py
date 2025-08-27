@@ -1,3 +1,18 @@
+## v0.2.4 (2025-09-18)
+
+### Feat
+
+- add multi-select interaction support with `||` separator syntax
+- implement BUTTONS_MULTI_SELECT and BUTTONS_MULTI_WITH_TEXT interaction types
+- add intelligent separator detection with fault tolerance
+- enhance variable system to support list[str] values alongside str values
+
+### BREAKING CHANGE
+
+- user_input parameter type changed from `str` to `dict[str, list[str]]`
+- variables parameter now supports `dict[str, str | list[str]]` for multi-select values
+- UserInput.content field changed from `str` to `dict[str, list[str]]`
+
 ## v0.3.0 (2025-09-03)
 
 ### Fix

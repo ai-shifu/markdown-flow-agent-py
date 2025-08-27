@@ -83,6 +83,10 @@ What's your preferred programming language?
 
 ?[%{{language}} Python | JavaScript | Go | Other...]
 
+Select your skills (multi-select):
+
+?[%{{skills}} Python||JavaScript||Go||Rust]
+
 ?[Continue | Skip]
 """
 
@@ -93,6 +97,18 @@ for block in blocks:
     if block.block_type == BlockType.INTERACTION:
         # Process user interaction
         print(f"Interaction: {block.content}")
+
+# Process user input 
+user_input = {
+    'language': ['Python'],                    # Single selection
+    'skills': ['Python', 'JavaScript', 'Go']  # Multi-selection
+}
+
+result = await mf.process(
+    block_index=1,  # Process skills interaction
+    user_input=user_input,
+    mode=ProcessMode.COMPLETE
+)
 ```
 
 ## 📖 API Reference
@@ -276,6 +292,12 @@ class InteractionType(NamedTuple):
 # BUTTONS_WITH_TEXT: Buttons with fallback text input
 "?[%{{preference}} Option A | Option B | Please specify...]"
 
+# BUTTONS_MULTI_SELECT: Multi-select buttons
+"?[%{{skills}} Python||JavaScript||Go||Rust]"
+
+# BUTTONS_MULTI_WITH_TEXT: Multi-select with text fallback
+"?[%{{frameworks}} React||Vue||Angular||Please specify others...]"
+
 # NON_ASSIGNMENT_BUTTON: Display buttons without variable assignment
 "?[Continue | Cancel | Go Back]"
 ```
@@ -331,7 +353,7 @@ class Block:
     block_type: BlockType
     index: int
 
-@dataclass  
+@dataclass
 class LLMResult:
     content: str
     metadata: Optional[Dict] = None
@@ -344,6 +366,67 @@ from markdown_flow import (
     Block, LLMResult, Variables,
     BlockType, InteractionType, ProcessMode
 )
+```
+
+## 🔄 Migration Guide
+
+### Parameter Format Upgrade
+
+The new version introduces multi-select interaction support with improvements to the `user_input` parameter format.
+
+#### Old Format
+
+```python
+# Single string input
+user_input = "Python"
+
+# Process interaction
+result = await mf.process(
+    block_index=1,
+    user_input=user_input,
+    mode=ProcessMode.COMPLETE
+)
+```
+
+#### New Format
+
+```python
+# Dictionary format with list values
+user_input = {
+    'language': ['Python'],                    # Single selection as list
+    'skills': ['Python', 'JavaScript', 'Go']  # Multi-selection
+}
+
+# Process interaction
+result = await mf.process(
+    block_index=1,
+    user_input=user_input,
+    mode=ProcessMode.COMPLETE
+)
+```
+
+#### New Multi-Select Syntax
+
+```markdown
+<!-- Single select (traditional) -->
+?[%{{language}} Python|JavaScript|Go]
+
+<!-- Multi-select (new) -->
+?[%{{skills}} Python||JavaScript||Go||Rust]
+
+<!-- Multi-select with text fallback -->
+?[%{{frameworks}} React||Vue||Angular||Please specify others...]
+```
+
+#### Variable Types
+
+```python
+# Variables now support both string and list values
+variables = {
+    'name': 'John',                           # str (traditional)
+    'skills': ['Python', 'JavaScript'],      # list[str] (new)
+    'experience': 'Senior'                    # str (traditional)
+}
 ```
 
 ## 🧩 Advanced Examples
