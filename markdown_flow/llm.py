@@ -27,7 +27,7 @@ class LLMResult:
 
     content: str = ""  # Final content
     prompt: str | None = None  # Used prompt
-    variables: dict[str, str] | None = None  # Extracted variables
+    variables: dict[str, str | list[str]] | None = None  # Extracted variables
     metadata: dict[str, Any] | None = None  # Metadata
 
     def __bool__(self):

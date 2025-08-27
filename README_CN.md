@@ -83,6 +83,10 @@ document = """
 
 ?[%{{language}} Python | JavaScript | Go | 其他...]
 
+选择你的技能（多选）：
+
+?[%{{skills}} Python||JavaScript||Go||Rust]
+
 ?[继续 | 跳过]
 """
 
@@ -93,6 +97,18 @@ for block in blocks:
     if block.block_type == BlockType.INTERACTION:
         # 处理用户交互
         print(f"交互：{block.content}")
+
+# 处理用户输入
+user_input = {
+    'language': ['Python'],                    # 单选
+    'skills': ['Python', 'JavaScript', 'Go']  # 多选
+}
+
+result = await mf.process(
+    block_index=1,  # 处理技能交互
+    user_input=user_input,
+    mode=ProcessMode.COMPLETE
+)
 ```
 
 ## 📖 API 参考
@@ -276,6 +292,12 @@ class InteractionType(NamedTuple):
 # BUTTONS_WITH_TEXT：按钮与备用文本输入
 "?[%{{preference}} 选项 A | 选项 B | 请指定...]"
 
+# BUTTONS_MULTI_SELECT：多选按钮
+"?[%{{skills}} Python||JavaScript||Go||Rust]"
+
+# BUTTONS_MULTI_WITH_TEXT：多选带文本备选
+"?[%{{frameworks}} React||Vue||Angular||请指定其他...]"
+
 # NON_ASSIGNMENT_BUTTON：显示按钮但不分配变量
 "?[继续 | 取消 | 返回]"
 ```
@@ -331,7 +353,7 @@ class Block:
     block_type: BlockType
     index: int
 
-@dataclass  
+@dataclass
 class LLMResult:
     content: str
     metadata: Optional[Dict] = None
@@ -344,6 +366,67 @@ from markdown_flow import (
     Block, LLMResult, Variables,
     BlockType, InteractionType, ProcessMode
 )
+```
+
+## 🔄 迁移指南
+
+### 参数格式升级
+
+新版本引入了多选交互支持，对 `user_input` 参数格式进行了改进。
+
+#### 旧格式
+
+```python
+# 单个字符串输入
+user_input = "Python"
+
+# 处理交互
+result = await mf.process(
+    block_index=1,
+    user_input=user_input,
+    mode=ProcessMode.COMPLETE
+)
+```
+
+#### 新格式
+
+```python
+# 字典格式，值为列表
+user_input = {
+    'language': ['Python'],                    # 单选作为列表
+    'skills': ['Python', 'JavaScript', 'Go']  # 多选
+}
+
+# 处理交互
+result = await mf.process(
+    block_index=1,
+    user_input=user_input,
+    mode=ProcessMode.COMPLETE
+)
+```
+
+#### 新的多选语法
+
+```markdown
+<!-- 单选（传统） -->
+?[%{{language}} Python|JavaScript|Go]
+
+<!-- 多选（新增） -->
+?[%{{skills}} Python||JavaScript||Go||Rust]
+
+<!-- 多选带文本备选 -->
+?[%{{frameworks}} React||Vue||Angular||请指定其他...]
+```
+
+#### 变量类型
+
+```python
+# 变量现在同时支持字符串和列表值
+variables = {
+    'name': 'John',                           # str（传统）
+    'skills': ['Python', 'JavaScript'],      # list[str]（新增）
+    'experience': 'Senior'                    # str（传统）
+}
 ```
 
 ## 🧩 高级示例

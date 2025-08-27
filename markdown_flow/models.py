@@ -16,14 +16,14 @@ class UserInput:
     Simplified user input data class.
 
     Attributes:
-        content (str): User input content
+        content (dict[str, list[str]]): User input content as variable name to values mapping
         input_type (InputType): Input method, defaults to text input
-        variable_name (str): Target variable name, defaults to 'user_input'
+        is_multi_select (bool): Whether this contains multi-select input, defaults to False
     """
 
-    content: str
+    content: dict[str, list[str]]
     input_type: InputType = InputType.TEXT
-    variable_name: str = "user_input"
+    is_multi_select: bool = False
 
 
 @dataclass

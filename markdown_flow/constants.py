@@ -32,6 +32,7 @@ COMPILED_INTERACTION_CONTENT_RECONSTRUCT_REGEX = re.compile(
 COMPILED_BRACKETS_CLEANUP_REGEX = re.compile(r"[\[\]()]")
 COMPILED_VARIABLE_REFERENCE_CLEANUP_REGEX = re.compile(r"%\{\{[^}]*\}\}")
 COMPILED_WHITESPACE_CLEANUP_REGEX = re.compile(r"\s+")
+COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
 
 # Document parsing constants (using shared INTERACTION_PATTERN defined above)
 
@@ -148,7 +149,7 @@ INPUT_EMPTY_ERROR = "输入不能为空"
 
 # System error messages
 UNSUPPORTED_PROMPT_TYPE_ERROR = "不支持的提示词类型: {prompt_type}"
-BLOCK_INDEX_OUT_OF_RANGE_ERROR = "块索引 {index} 超出范围，总共有 {len(blocks)} 个块"
+BLOCK_INDEX_OUT_OF_RANGE_ERROR = "Block index {index} is out of range; total={total}"
 LLM_PROVIDER_REQUIRED_ERROR = "需要设置 LLMProvider 才能调用 LLM"
 INTERACTION_PARSE_ERROR = "交互格式解析失败: {error}"
 

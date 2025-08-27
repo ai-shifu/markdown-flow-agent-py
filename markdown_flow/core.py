@@ -4,6 +4,7 @@ Markdown-Flow Core Business Logic
 Refactored MarkdownFlow class with built-in LLM processing capabilities and unified process interface.
 """
 
+import json
 import re
 from collections.abc import AsyncGenerator
 from copy import copy
@@ -27,7 +28,6 @@ from .constants import (
     INTERACTION_PATTERN_SPLIT,
     INTERACTION_RENDER_INSTRUCTIONS,
     LLM_PROVIDER_REQUIRED_ERROR,
-    OPTION_SELECTION_ERROR_TEMPLATE,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
 )
 from .enums import BlockType
@@ -159,7 +159,7 @@ class MarkdownFlow:
         """Get block at specified index."""
         blocks = self.get_all_blocks()
         if index < 0 or index >= len(blocks):
-            raise BlockIndexError(BLOCK_INDEX_OUT_OF_RANGE_ERROR.format(index=index, len=len(blocks)))
+            raise BlockIndexError(BLOCK_INDEX_OUT_OF_RANGE_ERROR.format(index=index, total=len(blocks)))
         return blocks[index]
 
     def extract_variables(self) -> list[str]:
@@ -181,8 +181,8 @@ class MarkdownFlow:
         block_index: int,
         mode: ProcessMode = ProcessMode.COMPLETE,
         context: list[dict[str, str]] | None = None,
-        variables: dict[str, str] | None = None,
-        user_input: str | None = None,
+        variables: dict[str, str | list[str]] | None = None,
+        user_input: dict[str, list[str]] | None = None,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """
         Unified block processing interface.
@@ -227,7 +227,7 @@ class MarkdownFlow:
         block_index: int,
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
-        variables: dict[str, str] | None,
+        variables: dict[str, str | list[str]] | None,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process content block."""
         # Build messages
@@ -253,7 +253,7 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _process_preserved_content(self, block_index: int, variables: dict[str, str] | None) -> LLMResult:
+    async def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
         """Process preserved content block, output as-is without LLM call."""
         block = self.get_block(block_index)
 
@@ -265,7 +265,7 @@ class MarkdownFlow:
 
         return LLMResult(content=content)
 
-    async def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str] | None = None) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    async def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] | None = None) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process interaction content rendering."""
         block = self.get_block(block_index)
 
@@ -343,19 +343,22 @@ class MarkdownFlow:
     async def _process_interaction_input(
         self,
         block_index: int,
-        user_input: str,
+        user_input: dict[str, list[str]],
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
-        variables: dict[str, str] | None = None,
+        variables: dict[str, str | list[str]] | None = None,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process interaction user input."""
         block = self.get_block(block_index)
         target_variable = block.variables[0] if block.variables else "user_input"
 
         # Basic validation
-        if not user_input.strip():
+        if not user_input or not any(values for values in user_input.values()):
             error_msg = INPUT_EMPTY_ERROR
             return await self._render_error(error_msg, mode)
+
+        # Get the target variable value from user_input
+        target_values = user_input.get(target_variable, [])
 
         # Apply variable replacement to interaction content
         processed_content = replace_variables_in_text(block.content, variables or {})
@@ -371,59 +374,134 @@ class MarkdownFlow:
         interaction_type = parse_result.get("type")
 
         # Process user input based on interaction type
-        if interaction_type == InteractionType.BUTTONS_ONLY:
-            # Button-only: ?[%{{var}} A|B] or ?[%{{var}} A//1|B//2]
+        if interaction_type in [
+            InteractionType.BUTTONS_ONLY,
+            InteractionType.BUTTONS_WITH_TEXT,
+            InteractionType.BUTTONS_MULTI_SELECT,
+            InteractionType.BUTTONS_MULTI_WITH_TEXT,
+        ]:
+            # All button types: validate user input against available buttons
             return await self._process_button_validation(
                 parse_result,
-                user_input,
+                target_values,
                 target_variable,
                 mode,
-                block_index,
-                allow_text_input=False,
-            )
-
-        if interaction_type == InteractionType.BUTTONS_WITH_TEXT:
-            # Buttons with text: ?[%{{var}} A|B|...question]
-            return await self._process_button_validation(
-                parse_result,
-                user_input,
-                target_variable,
-                mode,
-                block_index,
-                allow_text_input=True,
+                interaction_type,
             )
 
         if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
             # Non-assignment buttons: ?[Continue] or ?[Continue|Cancel]
-            # Since these buttons don't assign any variables, any user input should complete the interaction
-            user_input_stripped = user_input.strip()
-
+            # These buttons don't assign variables, any input completes the interaction
             return LLMResult(
                 content="",  # Empty content indicates interaction complete
                 variables={},  # Non-assignment buttons don't set variables
                 metadata={
                     "interaction_type": "non_assignment_button",
-                    "user_input": user_input_stripped,
+                    "user_input": user_input,
                 },
             )
 
         # Text-only input type: ?[%{{sys_user_nickname}}...question]
-        # Check if LLM validation is needed
-        validation_config = self.get_interaction_validation_config(block_index)
-
-        if validation_config and not validation_config.enable_custom_validation:
-            # Custom validation explicitly disabled, return variables directly
+        # For text-only inputs, directly use the target variable values
+        if target_values:
             return LLMResult(
-                content="",  # Empty content indicates successful variable extraction
-                variables={target_variable: user_input.strip()},
+                content="",
+                variables={target_variable: target_values},
+                metadata={
+                    "interaction_type": "text_only",
+                    "target_variable": target_variable,
+                    "values": target_values,
+                },
             )
-        # Default enable LLM validation (even without configuration)
-        return await self._process_llm_validation(block_index, user_input, target_variable, mode)
+        error_msg = f"No input provided for variable '{target_variable}'"
+        return await self._render_error(error_msg, mode)
+
+    async def _process_button_validation(
+        self,
+        parse_result: dict[str, Any],
+        target_values: list[str],
+        target_variable: str,
+        mode: ProcessMode,
+        interaction_type: InteractionType,
+    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+        """
+        Simplified button validation with new input format.
+
+        Args:
+            parse_result: InteractionParser result containing buttons list
+            target_values: User input values for the target variable
+            target_variable: Target variable name
+            mode: Processing mode
+            interaction_type: Type of interaction
+        """
+        buttons = parse_result.get("buttons", [])
+        is_multi_select = interaction_type in [
+            InteractionType.BUTTONS_MULTI_SELECT,
+            InteractionType.BUTTONS_MULTI_WITH_TEXT,
+        ]
+        allow_text_input = interaction_type in [
+            InteractionType.BUTTONS_WITH_TEXT,
+            InteractionType.BUTTONS_MULTI_WITH_TEXT,
+        ]
+
+        if not target_values:
+            if allow_text_input:
+                # Allow empty input for buttons+text mode
+                return LLMResult(
+                    content="",
+                    variables={target_variable: []},
+                    metadata={
+                        "interaction_type": str(interaction_type),
+                        "empty_input": True,
+                    },
+                )
+            # Pure button mode requires input
+            button_displays = [btn["display"] for btn in buttons]
+            error_msg = f"Please select from: {', '.join(button_displays)}"
+            return await self._render_error(error_msg, mode)
+
+        # Validate input values against available buttons
+        valid_values = []
+        invalid_values = []
+
+        for value in target_values:
+            matched = False
+            for button in buttons:
+                if value in [button["display"], button["value"]]:
+                    valid_values.append(button["value"])  # Use actual value
+                    matched = True
+                    break
+
+            if not matched:
+                if allow_text_input:
+                    # Allow custom text in buttons+text mode
+                    valid_values.append(value)
+                else:
+                    invalid_values.append(value)
+
+        # Check for validation errors
+        if invalid_values and not allow_text_input:
+            button_displays = [btn["display"] for btn in buttons]
+            error_msg = f"Invalid options: {', '.join(invalid_values)}. Please select from: {', '.join(button_displays)}"
+            return await self._render_error(error_msg, mode)
+
+        # Success: return validated values
+        return LLMResult(
+            content="",
+            variables={target_variable: valid_values},
+            metadata={
+                "interaction_type": str(interaction_type),
+                "is_multi_select": is_multi_select,
+                "valid_values": valid_values,
+                "invalid_values": invalid_values,
+                "total_input_count": len(target_values),
+            },
+        )
 
     async def _process_llm_validation(
         self,
         block_index: int,
-        user_input: str,
+        user_input: dict[str, list[str]],
         target_variable: str,
         mode: ProcessMode,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
@@ -443,17 +521,19 @@ class MarkdownFlow:
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 # Fallback processing, return variables directly
-                return LLMResult(content="", variables={target_variable: user_input.strip()})
+                return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
             llm_response = await self._llm_provider.complete(messages)
 
             # Parse validation response and convert to LLMResult
-            parsed_result = parse_validation_response(llm_response, user_input, target_variable)
+            # Use joined target values for fallback; avoids JSON string injection
+            orig_input_str = ", ".join(user_input.get(target_variable, []))
+            parsed_result = parse_validation_response(llm_response, orig_input_str, target_variable)
             return LLMResult(content=parsed_result["content"], variables=parsed_result["variables"])
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
-                return LLMResult(content="", variables={target_variable: user_input.strip()})
+                return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
             async def stream_generator():
                 full_response = ""
@@ -461,7 +541,9 @@ class MarkdownFlow:
                     full_response += chunk
 
                 # Parse complete response and convert to LLMResult
-                parsed_result = parse_validation_response(full_response, user_input, target_variable)
+                # Use joined target values for fallback; avoids JSON string injection
+                orig_input_str = ", ".join(user_input.get(target_variable, []))
+                parsed_result = parse_validation_response(full_response, orig_input_str, target_variable)
                 yield LLMResult(
                     content=parsed_result["content"],
                     variables=parsed_result["variables"],
@@ -469,65 +551,10 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _process_button_validation(
-        self,
-        parse_result: dict[str, Any],
-        user_input: str,
-        target_variable: str,
-        mode: ProcessMode,
-        block_index: int,
-        allow_text_input: bool = False,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
-        """
-        Process button validation logic with display/value separation support.
-
-        Args:
-            parse_result: InteractionParser result containing buttons list
-            user_input: User input
-            target_variable: Target variable name
-            mode: Processing mode
-            block_index: Block index
-            allow_text_input: Whether to allow text input (buttons+text mode)
-        """
-        buttons = parse_result.get("buttons", [])
-        user_input_stripped = user_input.strip()
-
-        # First check if user input matches any button
-        for button in buttons:
-            # Check display value and actual value
-            if user_input_stripped in [button["display"], button["value"]]:
-                # Use actual value as variable value
-                return LLMResult(
-                    content="",  # Empty content indicates successful variable extraction
-                    variables={target_variable: button["value"]},
-                    metadata={
-                        "button_clicked": button,
-                        "user_input_display": button["display"],
-                        "user_input_value": button["value"],
-                    },
-                )
-
-        # User input doesn't match any button
-        if not allow_text_input:
-            # Pure button mode, return error
-            button_displays = [btn["display"] for btn in buttons]
-            error_msg = OPTION_SELECTION_ERROR_TEMPLATE.format(options=", ".join(button_displays))
-            return await self._render_error(error_msg, mode)
-        # Button+text mode, use LLM to process text input
-        button_options = [btn["display"] for btn in buttons]
-        return await self._process_llm_validation_with_options(
-            block_index,
-            user_input,
-            target_variable,
-            button_options,  # Pass display values for LLM understanding
-            parse_result.get("question", ""),
-            mode,
-        )
-
     async def _process_llm_validation_with_options(
         self,
         block_index: int,
-        user_input: str,
+        user_input: dict[str, list[str]],
         target_variable: str,
         options: list[str],
         question: str,
@@ -551,17 +578,19 @@ class MarkdownFlow:
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 # Fallback processing, return variables directly
-                return LLMResult(content="", variables={target_variable: user_input.strip()})
+                return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
             llm_response = await self._llm_provider.complete(messages)
 
             # Parse validation response and convert to LLMResult
-            parsed_result = parse_validation_response(llm_response, user_input, target_variable)
+            # Use joined target values for fallback; avoids JSON string injection
+            orig_input_str = ", ".join(user_input.get(target_variable, []))
+            parsed_result = parse_validation_response(llm_response, orig_input_str, target_variable)
             return LLMResult(content=parsed_result["content"], variables=parsed_result["variables"])
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
-                return LLMResult(content="", variables={target_variable: user_input.strip()})
+                return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
             async def stream_generator():
                 full_response = ""
@@ -570,7 +599,9 @@ class MarkdownFlow:
                     # For validation scenario, don't output chunks in real-time, only final result
 
                 # Process final response
-                parsed_result = parse_validation_response(full_response, user_input, target_variable)
+                # Use joined target values for fallback; avoids JSON string injection
+                orig_input_str = ", ".join(user_input.get(target_variable, []))
+                parsed_result = parse_validation_response(full_response, orig_input_str, target_variable)
 
                 # Return only final parsing result
                 yield LLMResult(
@@ -612,7 +643,7 @@ class MarkdownFlow:
     def _build_content_messages(
         self,
         block_index: int,
-        variables: dict[str, str] | None,
+        variables: dict[str, str | list[str]] | None,
     ) -> list[dict[str, str]]:
         """Build content block messages."""
         block = self.get_block(block_index)
@@ -660,7 +691,7 @@ class MarkdownFlow:
 
         return messages
 
-    def _build_validation_messages(self, block_index: int, user_input: str, target_variable: str) -> list[dict[str, str]]:
+    def _build_validation_messages(self, block_index: int, user_input: dict[str, list[str]], target_variable: str) -> list[dict[str, str]]:
         """Build validation messages."""
         block = self.get_block(block_index)
         config = self.get_interaction_validation_config(block_index)
@@ -668,7 +699,8 @@ class MarkdownFlow:
         if config and config.validation_template:
             # Use custom validation template
             validation_prompt = config.validation_template
-            validation_prompt = validation_prompt.replace("{sys_user_input}", user_input)
+            user_input_str = json.dumps(user_input, ensure_ascii=False)
+            validation_prompt = validation_prompt.replace("{sys_user_input}", user_input_str)
             validation_prompt = validation_prompt.replace("{block_content}", block.content)
             validation_prompt = validation_prompt.replace("{target_variable}", target_variable)
             system_message = DEFAULT_VALIDATION_SYSTEM_MESSAGE
@@ -690,7 +722,8 @@ class MarkdownFlow:
             )
 
             # Replace template variables
-            validation_prompt = validation_template.replace("{sys_user_input}", user_input)
+            user_input_str = json.dumps(user_input, ensure_ascii=False)
+            validation_prompt = validation_template.replace("{sys_user_input}", user_input_str)
             validation_prompt = validation_prompt.replace("{block_content}", block.content)
             validation_prompt = validation_prompt.replace("{target_variable}", target_variable)
             system_message = DEFAULT_VALIDATION_SYSTEM_MESSAGE
@@ -704,17 +737,18 @@ class MarkdownFlow:
 
     def _build_validation_messages_with_options(
         self,
-        user_input: str,
+        user_input: dict[str, list[str]],
         target_variable: str,
         options: list[str],
         question: str,
     ) -> list[dict[str, str]]:
         """Build validation messages with button options (third case)."""
         # Use validation template from constants
+        user_input_str = json.dumps(user_input, ensure_ascii=False)
         validation_prompt = BUTTONS_WITH_TEXT_VALIDATION_TEMPLATE.format(
             question=question,
             options=", ".join(options),
-            user_input=user_input,
+            user_input=user_input_str,
             target_variable=target_variable,
         )
 

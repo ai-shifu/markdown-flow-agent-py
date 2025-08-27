@@ -74,7 +74,7 @@ The project follows a clean, modular architecture with clear separation of conce
 
 1. **Document Level**: Splits content using `---` separators and `?[]` interaction patterns
 2. **Block Level**: Categorizes blocks as CONTENT, INTERACTION, or PRESERVED_CONTENT
-3. **Interaction Level**: Parses `?[]` formats into TEXT_ONLY, BUTTONS_ONLY, BUTTONS_WITH_TEXT, or NON_ASSIGNMENT_BUTTON types
+3. **Interaction Level**: Parses `?[]` formats into TEXT_ONLY, BUTTONS_ONLY, BUTTONS_WITH_TEXT, BUTTONS_MULTI_SELECT, BUTTONS_MULTI_WITH_TEXT, or NON_ASSIGNMENT_BUTTON types
 
 **LLM Integration (`llm.py`)** - Abstract provider interface
 
@@ -234,7 +234,7 @@ if result.stderr: print('Errors:', result.stderr)
 - `__init__(content: str, llm_provider: LLMProvider = None)`
 - `get_all_blocks() -> List[Block]`
 - `extract_variables() -> Set[str]`
-- `process(block_index: int, mode: ProcessMode, variables: dict = None, user_input: str = None)`
+- `process(block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] = None, user_input: dict[str, list[str]] = None)`
 
 **ProcessMode** - Processing mode enumeration
 
@@ -253,6 +253,8 @@ if result.stderr: print('Errors:', result.stderr)
 - `TEXT_ONLY`: `?[%{{var}}...question]` - Text input with question
 - `BUTTONS_ONLY`: `?[%{{var}} A|B]` - Button selection only
 - `BUTTONS_WITH_TEXT`: `?[%{{var}} A|B|...question]` - Buttons with fallback text input
+- `BUTTONS_MULTI_SELECT`: `?[%{{var}} A||B||C]` - Multi-select buttons using `||` separator
+- `BUTTONS_MULTI_WITH_TEXT`: `?[%{{var}} A||B||...question]` - Multi-select buttons with text fallback
 - `NON_ASSIGNMENT_BUTTON`: `?[Continue|Cancel]` - Display buttons without variable assignment
 
 ### Utility Functions
@@ -304,6 +306,43 @@ result = replace_variables_in_text(text, {'name': 'John', 'age': '25'})
 # Returns: "Hello John! You are 25 years old."
 ```
 
+### Multi-Select Variable Values
+
+Multi-select interactions support list values for variables:
+
+```python
+# Single value (traditional)
+variables = {'level': 'Beginner'}
+
+# Multiple values (multi-select)
+variables = {'skills': ['Python', 'JavaScript', 'Go']}
+
+# Mixed types supported
+variables = {
+    'name': 'John',                    # str
+    'skills': ['Python', 'JavaScript'], # list[str]
+    'experience': 'Senior'             # str
+}
+```
+
+**User Input Format**
+
+Multi-select user input uses `dict[str, list[str]]` format:
+
+```python
+# Traditional single selection
+user_input = {'level': ['Beginner']}
+
+# Multi-select
+user_input = {'skills': ['Python', 'JavaScript', 'Go']}
+
+# Multiple variables
+user_input = {
+    'skills': ['Python', 'JavaScript'],
+    'experience': ['Senior']
+}
+```
+
 ## Interaction Formats
 
 ### Supported Patterns
@@ -324,6 +363,18 @@ result = replace_variables_in_text(text, {'name': 'John', 'age': '25'})
 
 ```markdown
 ?[%{{preference}} Option A|Option B|Please specify your preference]
+```
+
+**Multi-Select Buttons**
+
+```markdown
+?[%{{skills}} Python||JavaScript||Go||Rust]
+```
+
+**Multi-Select with Text Fallback**
+
+```markdown
+?[%{{frameworks}} React||Vue||Angular||Please specify other frameworks]
 ```
 
 **Display-Only Buttons**

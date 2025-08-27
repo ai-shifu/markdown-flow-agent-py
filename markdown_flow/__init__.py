@@ -15,6 +15,8 @@ Supported Interaction Types:
     - TEXT_ONLY: ?[%{{var}}...question] - Text input only
     - BUTTONS_ONLY: ?[%{{var}} A|B] - Button selection only
     - BUTTONS_WITH_TEXT: ?[%{{var}} A|B|...question] - Buttons + text input
+    - BUTTONS_MULTI_SELECT: ?[%{{var}} A||B||C] - Multi-select buttons
+    - BUTTONS_MULTI_WITH_TEXT: ?[%{{var}} A||B||...question] - Multi-select + text input
     - NON_ASSIGNMENT_BUTTON: ?[Continue|Cancel] - Display buttons only
 
 Basic Usage:
@@ -81,4 +83,4 @@ __all__ = [
     "replace_variables_in_text",
 ]
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"

@@ -14,10 +14,10 @@ from .constants import (
     COMPILED_INTERACTION_REGEX,
     COMPILED_LAYER1_INTERACTION_REGEX,
     COMPILED_LAYER2_VARIABLE_REGEX,
-    COMPILED_LAYER3_BUTTON_VALUE_REGEX,
     COMPILED_LAYER3_ELLIPSIS_REGEX,
     COMPILED_PERCENT_VARIABLE_REGEX,
     COMPILED_PRESERVE_FENCE_REGEX,
+    COMPILED_SINGLE_PIPE_SPLIT_REGEX,
     CONTEXT_CONVERSATION_TEMPLATE,
     CONTEXT_QUESTION_MARKER,
     CONTEXT_QUESTION_TEMPLATE,
@@ -172,6 +172,8 @@ class InteractionType(Enum):
     TEXT_ONLY = "text_only"  # Text input only: ?[%{{var}}...question]
     BUTTONS_ONLY = "buttons_only"  # Button selection only: ?[%{{var}} A|B]
     BUTTONS_WITH_TEXT = "buttons_with_text"  # Buttons + text: ?[%{{var}} A|B|...question]
+    BUTTONS_MULTI_SELECT = "buttons_multi_select"  # Multi-select buttons: ?[%{{var}} A||B]
+    BUTTONS_MULTI_WITH_TEXT = "buttons_multi_with_text"  # Multi-select + text: ?[%{{var}} A||B||...question]
     NON_ASSIGNMENT_BUTTON = "non_assignment_button"  # Display buttons: ?[Continue|Cancel]
 
 
@@ -275,39 +277,34 @@ class InteractionParser:
             before_ellipsis = ellipsis_match.group(1).strip()
             question = ellipsis_match.group(2).strip()
 
-            if "|" in before_ellipsis and before_ellipsis:
-                # Button group + text input
-                buttons = self._parse_buttons(before_ellipsis)
-                return {
-                    "type": InteractionType.BUTTONS_WITH_TEXT,
-                    "variable": variable_name,
-                    "buttons": buttons,
-                    "question": question,
-                }
-            # Pure text input or single button + text
             if before_ellipsis:
-                # Has prefix buttons
-                buttons = self._parse_buttons(before_ellipsis)
+                # Has prefix content (buttons or single option) + text input
+                buttons, is_multi_select = self._parse_buttons(before_ellipsis)
+                interaction_type = InteractionType.BUTTONS_MULTI_WITH_TEXT if is_multi_select else InteractionType.BUTTONS_WITH_TEXT
                 return {
-                    "type": InteractionType.BUTTONS_WITH_TEXT,
+                    "type": interaction_type,
                     "variable": variable_name,
                     "buttons": buttons,
                     "question": question,
+                    "is_multi_select": is_multi_select,
                 }
             # Pure text input
             return {
                 "type": InteractionType.TEXT_ONLY,
                 "variable": variable_name,
                 "question": question,
+                "is_multi_select": False,
             }
         # No ... separator
-        if "|" in content and content:  # type: ignore[unreachable]
+        if ("|" in content or "||" in content) and content:  # type: ignore[unreachable]
             # Pure button group
-            buttons = self._parse_buttons(content)
+            buttons, is_multi_select = self._parse_buttons(content)
+            interaction_type = InteractionType.BUTTONS_MULTI_SELECT if is_multi_select else InteractionType.BUTTONS_ONLY
             return {
-                "type": InteractionType.BUTTONS_ONLY,
+                "type": interaction_type,
                 "variable": variable_name,
                 "buttons": buttons,
+                "is_multi_select": is_multi_select,
             }
         if content:  # type: ignore[unreachable]
             # Single button
@@ -316,12 +313,14 @@ class InteractionParser:
                 "type": InteractionType.BUTTONS_ONLY,
                 "variable": variable_name,
                 "buttons": [button],
+                "is_multi_select": False,
             }
         # Pure text input (no hint)
         return {
             "type": InteractionType.TEXT_ONLY,
             "variable": variable_name,
             "question": "",
+            "is_multi_select": False,
         }
 
     def _layer3_parse_display_buttons(self, content: str) -> dict[str, Any]:
@@ -343,34 +342,60 @@ class InteractionParser:
 
         if "|" in content:
             # Multiple buttons
-            buttons = self._parse_buttons(content)
+            buttons, _ = self._parse_buttons(content)  # Display buttons don't use multi-select
             return {"type": InteractionType.NON_ASSIGNMENT_BUTTON, "buttons": buttons}
         # Single button
         button = self._parse_single_button(content)
         return {"type": InteractionType.NON_ASSIGNMENT_BUTTON, "buttons": [button]}
 
-    def _parse_buttons(self, content: str) -> list[dict[str, str]]:
+    def _parse_buttons(self, content: str) -> tuple[list[dict[str, str]], bool]:
         """
-        Parse button group.
+        Parse button group with fault tolerance.
 
         Args:
-            content: Button content separated by |
+            content: Button content separated by | or ||
 
         Returns:
-            List of button dictionaries
+            Tuple of (button list, is_multi_select)
         """
-        buttons = []
-        for button_text in content.split("|"):
-            button_text = button_text.strip()
-            if button_text:
-                button = self._parse_single_button(button_text)
-                buttons.append(button)
+        if not content or not isinstance(content, str):
+            return [], False
 
-        return buttons
+        _, is_multi_select = self._detect_separator_type(content)
+
+        buttons = []
+        try:
+            # Use different splitting logic based on separator type
+            if is_multi_select:
+                # Multi-select mode: split on ||, preserve single |
+                button_parts = content.split("||")
+            else:
+                # Single-select mode: split on single |, but preserve ||
+                # Use pre-compiled regex from constants
+                button_parts = COMPILED_SINGLE_PIPE_SPLIT_REGEX.split(content)
+
+            for button_text in button_parts:
+                button_text = button_text.strip()
+                if button_text:
+                    button = self._parse_single_button(button_text)
+                    buttons.append(button)
+        except (TypeError, ValueError):
+            # Fallback to treating entire content as single button
+            return [{"display": content.strip(), "value": content.strip()}], False
+
+        # For empty content (like just separators), return empty list
+        if not buttons and (content.strip() == "||" or content.strip() == "|"):
+            return [], is_multi_select
+
+        # Ensure at least one button exists (but only if there's actual content)
+        if not buttons and content.strip():
+            buttons = [{"display": content.strip(), "value": content.strip()}]
+
+        return buttons, is_multi_select
 
     def _parse_single_button(self, button_text: str) -> dict[str, str]:
         """
-        Parse single button, supports Button//value format.
+        Parse single button with fault tolerance, supports Button//value format.
 
         Args:
             button_text: Button text
@@ -378,16 +403,64 @@ class InteractionParser:
         Returns:
             Dictionary with display and value keys
         """
+        if not button_text or not isinstance(button_text, str):
+            return {"display": "", "value": ""}
+
         button_text = button_text.strip()
+        if not button_text:
+            return {"display": "", "value": ""}
 
-        # Detect Button//value format
-        match = COMPILED_LAYER3_BUTTON_VALUE_REGEX.match(button_text)
+        try:
+            # Detect Button//value format - split only on first //
+            if "//" in button_text:
+                parts = button_text.split("//", 1)  # Split only on first //
+                display = parts[0].strip()
+                value = parts[1] if len(parts) > 1 else ""
+                # Don't strip value to preserve intentional spacing/formatting
+                return {"display": display, "value": value}
+        except (ValueError, IndexError):
+            # Fallback: use text as both display and value
+            pass
 
-        if match:
-            display = match.group(1).strip()
-            value = match.group(2).strip()
-            return {"display": display, "value": value}
-        return {"display": button_text, "value": button_text}  # type: ignore[unreachable]
+        return {"display": button_text, "value": button_text}
+
+    def _detect_separator_type(self, content: str) -> tuple[str, bool]:
+        """
+        Detect separator type and whether it's multi-select.
+
+        Implements fault tolerance: first separator type encountered determines the behavior.
+        Mixed separators are handled by treating the rest as literal text.
+
+        Args:
+            content: Button content to analyze
+
+        Returns:
+            Tuple of (separator, is_multi_select) where separator is '|' or '||'
+        """
+        if not content or not isinstance(content, str):
+            return "|", False
+
+        # Find first occurrence of separators
+        single_pos = content.find("|")
+        double_pos = content.find("||")
+
+        # If no separators found
+        if single_pos == -1 and double_pos == -1:
+            return "|", False
+
+        # If only single separator found
+        if double_pos == -1:
+            return "|", False
+
+        # If only double separator found
+        if single_pos == -1:
+            return "||", True
+
+        # Both found - fault tolerance: first occurrence wins
+        # This handles mixed cases like "A||B|C" (multi-select) and "A|B||C" (single-select)
+        if double_pos <= single_pos:
+            return "||", True
+        return "|", False
 
     def _create_error_result(self, error_message: str) -> dict[str, Any]:
         """
@@ -664,7 +737,7 @@ def parse_validation_response(llm_response: str, original_input: str, target_var
     return {"content": llm_response, "variables": None}
 
 
-def replace_variables_in_text(text: str, variables: dict[str, str]) -> str:
+def replace_variables_in_text(text: str, variables: dict[str, str | list[str]]) -> str:
     """
     Replace variables in text, undefined or empty variables are auto-assigned "UNKNOWN".
 
@@ -681,7 +754,7 @@ def replace_variables_in_text(text: str, variables: dict[str, str]) -> str:
     # Check each variable for null or empty values, assign "UNKNOWN" if so
     if variables:
         for key, value in variables.items():
-            if value is None or value == "":
+            if value is None or value == "" or (isinstance(value, list) and not value):
                 variables[key] = VARIABLE_DEFAULT_VALUE
 
     # re module already imported at file top
@@ -703,8 +776,17 @@ def replace_variables_in_text(text: str, variables: dict[str, str]) -> str:
     # Use updated replacement logic, preserve %{{var_name}} format variables
     result = text
     for var_name, var_value in variables.items():
+        # Convert value to string based on type
+        if isinstance(var_value, list):
+            # Multiple values - join with comma
+            value_str = ", ".join(str(v) for v in var_value if v is not None and str(v).strip())
+            if not value_str:
+                value_str = VARIABLE_DEFAULT_VALUE
+        else:
+            value_str = str(var_value) if var_value is not None else VARIABLE_DEFAULT_VALUE
+
         # Use negative lookbehind assertion to exclude %{{var_name}} format
         pattern = f"(?<!%){{{{{re.escape(var_name)}}}}}"
-        result = re.sub(pattern, var_value, result)
+        result = re.sub(pattern, value_str, result)
 
     return result
