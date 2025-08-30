@@ -6,6 +6,7 @@ Refactored MarkdownFlow class with built-in LLM processing capabilities and unif
 
 import re
 from collections.abc import AsyncGenerator
+from copy import copy
 from typing import Any
 
 from .constants import (
@@ -208,9 +209,9 @@ class MarkdownFlow:
         if block.block_type == BlockType.INTERACTION:
             if user_input is None:
                 # Render interaction content
-                return await self._process_interaction_render(block_index, mode)
+                return await self._process_interaction_render(block_index, mode, variables)
             # Process user input
-            return await self._process_interaction_input(block_index, user_input, mode, context)
+            return await self._process_interaction_input(block_index, user_input, mode, context, variables)
 
         if block.block_type == BlockType.PRESERVED_CONTENT:
             # Preserved content output as-is, no LLM call
@@ -264,15 +265,22 @@ class MarkdownFlow:
 
         return LLMResult(content=content)
 
-    async def _process_interaction_render(self, block_index: int, mode: ProcessMode) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    async def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str] | None = None) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process interaction content rendering."""
         block = self.get_block(block_index)
 
-        # Extract question text
-        question_text = extract_interaction_question(block.content)
+        # Apply variable replacement to interaction content
+        processed_content = replace_variables_in_text(block.content, variables or {})
+
+        # Create temporary block object to avoid modifying original data
+        processed_block = copy(block)
+        processed_block.content = processed_content
+
+        # Extract question text from processed content
+        question_text = extract_interaction_question(processed_block.content)
         if not question_text:
-            # Unable to extract, return original content
-            return LLMResult(content=block.content)
+            # Unable to extract, return processed content
+            return LLMResult(content=processed_block.content)
 
         # Build render messages
         messages = self._build_interaction_render_messages(question_text)
@@ -281,17 +289,17 @@ class MarkdownFlow:
             return LLMResult(
                 prompt=messages[-1]["content"],
                 metadata={
-                    "original_content": block.content,
+                    "original_content": processed_block.content,
                     "question_text": question_text,
                 },
             )
 
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
-                return LLMResult(content=block.content)  # Fallback processing
+                return LLMResult(content=processed_block.content)  # Fallback processing
 
             rendered_question = await self._llm_provider.complete(messages)
-            rendered_content = self._reconstruct_interaction_content(block.content, rendered_question)
+            rendered_content = self._reconstruct_interaction_content(processed_block.content, rendered_question)
 
             return LLMResult(
                 content=rendered_content,
@@ -305,7 +313,7 @@ class MarkdownFlow:
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
                 # For interaction blocks, return reconstructed content (one-time output)
-                rendered_content = self._reconstruct_interaction_content(block.content, question_text or "")
+                rendered_content = self._reconstruct_interaction_content(processed_block.content, question_text or "")
 
                 async def stream_generator():
                     yield LLMResult(
@@ -322,7 +330,7 @@ class MarkdownFlow:
                     full_response += chunk
 
                 # Reconstruct final interaction content
-                rendered_content = self._reconstruct_interaction_content(block.content, full_response)
+                rendered_content = self._reconstruct_interaction_content(processed_block.content, full_response)
 
                 # Return complete content at once, not incrementally
                 yield LLMResult(
@@ -338,6 +346,7 @@ class MarkdownFlow:
         user_input: str,
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
+        variables: dict[str, str] | None = None,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process interaction user input."""
         block = self.get_block(block_index)
@@ -348,9 +357,12 @@ class MarkdownFlow:
             error_msg = INPUT_EMPTY_ERROR
             return await self._render_error(error_msg, mode)
 
-        # Parse interaction format
+        # Apply variable replacement to interaction content
+        processed_content = replace_variables_in_text(block.content, variables or {})
+
+        # Parse interaction format using processed content
         parser = InteractionParser()
-        parse_result = parser.parse(block.content)
+        parse_result = parser.parse(processed_content)
 
         if "error" in parse_result:
             error_msg = INTERACTION_PARSE_ERROR.format(error=parse_result["error"])
@@ -383,26 +395,17 @@ class MarkdownFlow:
 
         if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
             # Non-assignment buttons: ?[Continue] or ?[Continue|Cancel]
-            buttons = parse_result.get("buttons", [])
+            # Since these buttons don't assign any variables, any user input should complete the interaction
             user_input_stripped = user_input.strip()
 
-            # Check if user input matches any button (display or actual value)
-            for button in buttons:
-                if user_input_stripped in [button["display"], button["value"]]:
-                    return LLMResult(
-                        content="",  # Empty content indicates interaction complete
-                        variables={},  # Non-assignment buttons don't set variables
-                        metadata={
-                            "interaction_type": "non_assignment_button",
-                            "button_clicked": button,
-                            "user_input": user_input_stripped,
-                        },
-                    )
-
-            # User input doesn't match any button
-            button_displays = [btn["display"] for btn in buttons]
-            error_msg = OPTION_SELECTION_ERROR_TEMPLATE.format(options=", ".join(button_displays))
-            return await self._render_error(error_msg, mode)
+            return LLMResult(
+                content="",  # Empty content indicates interaction complete
+                variables={},  # Non-assignment buttons don't set variables
+                metadata={
+                    "interaction_type": "non_assignment_button",
+                    "user_input": user_input_stripped,
+                },
+            )
 
         # Text-only input type: ?[%{{sys_user_nickname}}...question]
         # Check if LLM validation is needed
