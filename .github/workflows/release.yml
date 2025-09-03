@@ -104,8 +104,13 @@ jobs:
             echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
             echo "New version will be: $NEW_VERSION"
 
-            # Generate changelog content from last tag to current commits
-            CHANGELOG_CONTENT=$(cz changelog --unreleased-version=$NEW_VERSION --dry-run 2>/dev/null || echo "Changelog generation failed")
+            # Generate changelog content from last tag to current commits (incremental only)
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$LAST_TAG" ]; then
+              CHANGELOG_CONTENT=$(cz changelog --start-rev=$LAST_TAG --unreleased-version=$NEW_VERSION --dry-run 2>/dev/null || echo "Changelog generation failed")
+            else
+              CHANGELOG_CONTENT=$(cz changelog --unreleased-version=$NEW_VERSION --dry-run 2>/dev/null || echo "Changelog generation failed")
+            fi
             echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
             echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
