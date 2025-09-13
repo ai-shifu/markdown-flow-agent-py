@@ -223,7 +223,7 @@ Enumeration of different block types in MarkdownFlow documents.
 class BlockType(Enum):
     CONTENT = "content"                    # Regular markdown content
     INTERACTION = "interaction"            # User interaction blocks (?[...])
-    PRESERVED_CONTENT = "preserved_content" # Content wrapped in === markers
+    PRESERVED_CONTENT = "preserved_content" # Content wrapped in !=== markers (inline or multiline)
 ```
 
 **Block Structure:**

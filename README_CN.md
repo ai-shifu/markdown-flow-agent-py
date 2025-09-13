@@ -223,7 +223,7 @@ MarkdownFlow 文档中不同块类型的枚举。
 class BlockType(Enum):
     CONTENT = "content"                    # 常规 markdown 内容
     INTERACTION = "interaction"            # 用户交互块 (?[...])
-    PRESERVED_CONTENT = "preserved_content" # 用 !=== 起止行标记的多行内容，或行内 ===content===
+    PRESERVED_CONTENT = "preserved_content" # 用 !=== 标记的内容（单行或多行格式）
 ```
 
 **块结构：**

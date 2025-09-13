@@ -11,13 +11,13 @@ from typing import Any
 
 from .constants import (
     COMPILED_BRACE_VARIABLE_REGEX,
-    COMPILED_PRESERVE_FENCE_REGEX,
     COMPILED_INTERACTION_REGEX,
     COMPILED_LAYER1_INTERACTION_REGEX,
     COMPILED_LAYER2_VARIABLE_REGEX,
     COMPILED_LAYER3_BUTTON_VALUE_REGEX,
     COMPILED_LAYER3_ELLIPSIS_REGEX,
     COMPILED_PERCENT_VARIABLE_REGEX,
+    COMPILED_PRESERVE_FENCE_REGEX,
     CONTEXT_CONVERSATION_TEMPLATE,
     CONTEXT_QUESTION_MARKER,
     CONTEXT_QUESTION_TEMPLATE,
@@ -67,7 +67,7 @@ def is_preserved_content_block(content: str) -> bool:
     Check if content is completely preserved content block.
 
     Preserved blocks are entirely wrapped by markers with no external content.
-    Supports inline (===content===) and multiline (!=== ... !===) formats.
+    Supports inline (!===content!===) and multiline (!=== ... !===) formats.
 
     Args:
         content: Content to check
@@ -81,7 +81,7 @@ def is_preserved_content_block(content: str) -> bool:
 
     lines = content.split("\n")
 
-    # Check if all non-empty lines are inline format
+    # Check if all non-empty lines are inline format (!===content!===)
     all_inline_format = True
     has_any_content = False
 
@@ -89,22 +89,22 @@ def is_preserved_content_block(content: str) -> bool:
         stripped_line = line.strip()
         if stripped_line:  # Non-empty line
             has_any_content = True
-            # Check if inline format
-            import re
-
-            match = re.match(r"^===(.+)===$", stripped_line)
-            if not match:
-                all_inline_format = False  # type: ignore[unreachable]
-                break
-            # Ensure inner content exists and contains no equals signs
-            inner_content = match.group(1).strip()
-            if not inner_content or "=" in inner_content:
+            # Check if inline format: !===content!===
+            match = re.match(r"^!===(.+)!=== *$", stripped_line)
+            if match:
+                # Ensure inner content exists and contains no !===
+                inner_content = match.group(1).strip()
+                if not inner_content or "!==" in inner_content:
+                    all_inline_format = False
+                    break
+            else:
                 all_inline_format = False  # type: ignore[unreachable]
                 break
 
     # If all lines are inline format, return directly
     if has_any_content and all_inline_format:
         return True
+
     # Check multiline format using state machine
     state = "OUTSIDE"  # States: OUTSIDE, INSIDE
     has_content_outside = False  # Has external content
@@ -121,13 +121,14 @@ def is_preserved_content_block(content: str) -> bool:
             elif state == "INSIDE":
                 # Exit preserve block
                 state = "OUTSIDE"
-            # === lines don't count as external content
+            # !=== lines don't count as external content
         else:
-            # Non-=== lines
-            if stripped_line:  # Non-empty line
+            # Non-!=== lines
+            if stripped_line:  # type: ignore[unreachable]  # Non-empty line
                 if state == "OUTSIDE":
                     # External content found
                     has_content_outside = True
+                    break
                 # Internal content doesn't affect judgment
 
     # Judgment conditions:
@@ -204,6 +205,7 @@ class InteractionParser:
 
             # Layer 3: Specific content parsing
             if has_variable:
+                assert variable_name is not None, "variable_name should not be None when has_variable is True"
                 return self._layer3_parse_variable_interaction(variable_name, remaining_content)
             return self._layer3_parse_display_buttons(inner_content)
 
@@ -485,15 +487,15 @@ def parse_json_response(response_text: str) -> dict[str, Any]:
 
 def process_output_instructions(content: str) -> str:
     """
-    Process output instruction markers, converting === format to [output] format.
+    Process output instruction markers, converting !=== format to [output] format.
 
-    Uses unified state machine to handle inline (===content===) and multiline formats.
+    Uses unified state machine to handle inline (!===content!===) and multiline (!===...!===) formats.
 
     Args:
         content: Raw content containing output instructions
 
     Returns:
-        Processed content with === markers converted to [output] format
+        Processed content with !=== markers converted to [output] format
     """
     lines = content.split("\n")
     result_lines = []
@@ -503,72 +505,67 @@ def process_output_instructions(content: str) -> str:
     while i < len(lines):
         line = lines[i]
 
-        # Check if contains preserved markers (inline ===...=== or multiline !===...)
-        if "===" in line:
-            # Check inline format: ===content===
-            inline_match = re.search(r"===\s*([^=]+?)\s*===", line)
-            if inline_match and line.count("===") >= 2:
-                # Process inline format
-                full_match = inline_match.group(0)
-                inner_content = inline_match.group(1).strip()
+        # Check if contains preserved markers (inline !===...!=== or multiline !===...)
+        # Check inline format first: !===content!===
+        inline_match = re.search(r"!===\s*([^!]+)\s*!===", line)
+        if inline_match and line.count("!===") >= 2:
+            # Process inline format
+            full_match = inline_match.group(0)
+            inner_content = inline_match.group(1).strip()
 
-                # Build output instruction - keep inline format on same line
-                output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
+            # Build output instruction - keep inline format on same line
+            output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
 
-                # Replace === part in original line
-                processed_line = line.replace(full_match, output_instruction)
-                result_lines.append(processed_line)
-                has_output_instruction = True
-                i += 1
+            # Replace !===...!=== part in original line
+            processed_line = line.replace(full_match, output_instruction)
+            result_lines.append(processed_line)
+            has_output_instruction = True
+            i += 1
 
-            elif COMPILED_PRESERVE_FENCE_REGEX.match(line.strip()):
-                # Multiline format start
-                i += 1
-                output_content_lines: list[str] = []
+        elif COMPILED_PRESERVE_FENCE_REGEX.match(line.strip()):
+            # Multiline format start
+            i += 1
+            output_content_lines: list[str] = []
 
-                # Collect multiline content
-                while i < len(lines):
-                    current_line = lines[i]
-                    if COMPILED_PRESERVE_FENCE_REGEX.match(current_line.strip()):
-                        # Found end marker, process collected content
-                        output_content = "\n".join(output_content_lines).strip()
+            # Collect multiline content
+            while i < len(lines):
+                current_line = lines[i]
+                if COMPILED_PRESERVE_FENCE_REGEX.match(current_line.strip()):
+                    # Found end marker, process collected content
+                    output_content = "\n".join(output_content_lines).strip()
 
-                        # Special handling for title format (maintain original logic)
-                        hash_prefix = ""
-                        if output_content.startswith("#"):
-                            first_space = output_content.find(" ")
-                            first_newline = output_content.find("\n")
+                    # Special handling for title format (maintain original logic)
+                    hash_prefix = ""
+                    if output_content.startswith("#"):
+                        first_space = output_content.find(" ")
+                        first_newline = output_content.find("\n")
 
-                            if first_space != -1 and (first_newline == -1 or first_space < first_newline):
-                                hash_prefix = output_content[: first_space + 1]
-                                output_content = output_content[first_space + 1 :].strip()
-                            elif first_newline != -1:
-                                hash_prefix = output_content[: first_newline + 1]
-                                output_content = output_content[first_newline + 1 :].strip()
+                        if first_space != -1 and (first_newline == -1 or first_space < first_newline):
+                            hash_prefix = output_content[: first_space + 1]
+                            output_content = output_content[first_space + 1 :].strip()
+                        elif first_newline != -1:
+                            hash_prefix = output_content[: first_newline + 1]
+                            output_content = output_content[first_newline + 1 :].strip()
 
-                        # Build output instruction
-                        if hash_prefix:
-                            result_lines.append(f"{OUTPUT_INSTRUCTION_PREFIX}{hash_prefix}{output_content}{OUTPUT_INSTRUCTION_SUFFIX}")
-                        else:
-                            result_lines.append(f"{OUTPUT_INSTRUCTION_PREFIX}{output_content}{OUTPUT_INSTRUCTION_SUFFIX}")
+                    # Build output instruction
+                    if hash_prefix:
+                        result_lines.append(f"{OUTPUT_INSTRUCTION_PREFIX}{hash_prefix}{output_content}{OUTPUT_INSTRUCTION_SUFFIX}")
+                    else:
+                        result_lines.append(f"{OUTPUT_INSTRUCTION_PREFIX}{output_content}{OUTPUT_INSTRUCTION_SUFFIX}")
 
-                        has_output_instruction = True
-                        i += 1
-                        break
-                    # Continue collecting content
-                    output_content_lines.append(current_line)
+                    has_output_instruction = True
                     i += 1
-                else:
-                    # No end marker found, rollback processing
-                    result_lines.append(lines[i - len(output_content_lines) - 1])
-                    result_lines.extend(output_content_lines)
-            else:
-                # Contains === but not valid format, treat as normal line
-                result_lines.append(line)
+                    break
+                # Continue collecting content
+                output_content_lines.append(current_line)  # type: ignore[unreachable]
                 i += 1
+            else:
+                # No end marker found, rollback processing
+                result_lines.append(lines[i - len(output_content_lines) - 1])
+                result_lines.extend(output_content_lines)
         else:
             # Normal line
-            result_lines.append(line)
+            result_lines.append(line)  # type: ignore[unreachable]
             i += 1
 
     # Assemble final content
@@ -585,13 +582,13 @@ def extract_preserved_content(content: str) -> str:
     """
     Extract actual content from preserved content blocks, removing markers.
 
-    Handles inline (===content===) and multiline (!===...!===) formats.
+    Handles inline (!===content!===) and multiline (!===...!===) formats.
 
     Args:
         content: Preserved content containing preserved markers
 
     Returns:
-        Actual content with === markers removed
+        Actual content with !=== markers removed
     """
     content = content.strip()
     if not content:
@@ -603,12 +600,12 @@ def extract_preserved_content(content: str) -> str:
     for line in lines:
         stripped_line = line.strip()
 
-        # Check inline format
-        match = re.match(r"^===(.+)===$", stripped_line)
-        if match:
+        # Check inline format: !===content!===
+        inline_match = re.match(r"^!===(.+)!=== *$", stripped_line)
+        if inline_match:
             # Inline format, extract middle content
-            inner_content = match.group(1).strip()
-            if inner_content and "=" not in inner_content:
+            inner_content = inline_match.group(1).strip()
+            if inner_content and "!==" not in inner_content:
                 result_lines.append(inner_content)
         elif COMPILED_PRESERVE_FENCE_REGEX.match(stripped_line):  # type: ignore[unreachable]
             # Multiline format delimiter, skip
@@ -694,7 +691,7 @@ def replace_variables_in_text(text: str, variables: dict[str, str]) -> str:
         variables = {}
 
     # Find all {{variable}} format variable references
-    variable_pattern = r"\{\{([^{}]+?)\}\}"
+    variable_pattern = r"\{\{([^{}]+)\}\}"
     matches = re.findall(variable_pattern, text)
 
     # Assign "UNKNOWN" to undefined variables
