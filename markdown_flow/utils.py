@@ -11,6 +11,7 @@ from typing import Any
 
 from .constants import (
     COMPILED_BRACE_VARIABLE_REGEX,
+    COMPILED_PRESERVE_FENCE_REGEX,
     COMPILED_INTERACTION_REGEX,
     COMPILED_LAYER1_INTERACTION_REGEX,
     COMPILED_LAYER2_VARIABLE_REGEX,
@@ -25,7 +26,6 @@ from .constants import (
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
     SMART_VALIDATION_TEMPLATE,
-    TRIPLE_EQUALS_DELIMITER,
     VALIDATION_ILLEGAL_DEFAULT_REASON,
     VALIDATION_RESPONSE_ILLEGAL,
     VALIDATION_RESPONSE_OK,
@@ -66,14 +66,14 @@ def is_preserved_content_block(content: str) -> bool:
     """
     Check if content is completely preserved content block.
 
-    Preserved blocks are entirely wrapped by === markers with no external content.
-    Supports inline (===content===) and multiline formats.
+    Preserved blocks are entirely wrapped by markers with no external content.
+    Supports inline (===content===) and multiline (!=== ... !===) formats.
 
     Args:
         content: Content to check
 
     Returns:
-        True if content is fully wrapped by === markers
+        True if content is fully wrapped by preserved markers
     """
     content = content.strip()
     if not content:
@@ -113,7 +113,7 @@ def is_preserved_content_block(content: str) -> bool:
     for line in lines:
         stripped_line = line.strip()
 
-        if stripped_line == TRIPLE_EQUALS_DELIMITER:
+        if COMPILED_PRESERVE_FENCE_REGEX.match(stripped_line):
             if state == "OUTSIDE":
                 # Enter preserve block
                 state = "INSIDE"
@@ -503,7 +503,7 @@ def process_output_instructions(content: str) -> str:
     while i < len(lines):
         line = lines[i]
 
-        # Check if contains === markers
+        # Check if contains preserved markers (inline ===...=== or multiline !===...)
         if "===" in line:
             # Check inline format: ===content===
             inline_match = re.search(r"===\s*([^=]+?)\s*===", line)
@@ -521,7 +521,7 @@ def process_output_instructions(content: str) -> str:
                 has_output_instruction = True
                 i += 1
 
-            elif line.strip() == TRIPLE_EQUALS_DELIMITER:
+            elif COMPILED_PRESERVE_FENCE_REGEX.match(line.strip()):
                 # Multiline format start
                 i += 1
                 output_content_lines: list[str] = []
@@ -529,7 +529,7 @@ def process_output_instructions(content: str) -> str:
                 # Collect multiline content
                 while i < len(lines):
                     current_line = lines[i]
-                    if current_line.strip() == TRIPLE_EQUALS_DELIMITER:
+                    if COMPILED_PRESERVE_FENCE_REGEX.match(current_line.strip()):
                         # Found end marker, process collected content
                         output_content = "\n".join(output_content_lines).strip()
 
@@ -583,12 +583,12 @@ def process_output_instructions(content: str) -> str:
 
 def extract_preserved_content(content: str) -> str:
     """
-    Extract actual content from preserved content blocks, removing === markers.
+    Extract actual content from preserved content blocks, removing markers.
 
-    Handles inline (===content===) and multiline formats.
+    Handles inline (===content===) and multiline (!===...!===) formats.
 
     Args:
-        content: Preserved content containing === markers
+        content: Preserved content containing preserved markers
 
     Returns:
         Actual content with === markers removed
@@ -610,7 +610,7 @@ def extract_preserved_content(content: str) -> str:
             inner_content = match.group(1).strip()
             if inner_content and "=" not in inner_content:
                 result_lines.append(inner_content)
-        elif stripped_line == TRIPLE_EQUALS_DELIMITER:  # type: ignore[unreachable]
+        elif COMPILED_PRESERVE_FENCE_REGEX.match(stripped_line):  # type: ignore[unreachable]
             # Multiline format delimiter, skip
             continue
         else:

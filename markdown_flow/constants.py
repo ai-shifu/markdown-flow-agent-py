@@ -37,7 +37,9 @@ COMPILED_WHITESPACE_CLEANUP_REGEX = re.compile(r"\s+")
 
 # Separators
 BLOCK_SEPARATOR = r"\n\s*---\s*\n"
-TRIPLE_EQUALS_DELIMITER = "==="
+# Multiline preserved block fence: starts with '!' followed by 3 or more '='
+PRESERVE_FENCE_PATTERN = r"^!={3,}\s*$"
+COMPILED_PRESERVE_FENCE_REGEX = re.compile(PRESERVE_FENCE_PATTERN)
 
 # Output instruction markers
 OUTPUT_INSTRUCTION_PREFIX = "[输出]"

@@ -241,10 +241,11 @@ Hello {{name}}! Welcome to our platform.
 
 # Preserved content - output as-is
 """
-===
+# Multiline fence with leading '!'
+!===
 This content is preserved exactly as written.
 No LLM processing or variable replacement.
-===
+!===
 """
 ```
 
