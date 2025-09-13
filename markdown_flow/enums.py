@@ -27,4 +27,4 @@ class BlockType(Enum):
 
     CONTENT = "content"  # Regular document content blocks
     INTERACTION = "interaction"  # Interactive blocks requiring user input
-    PRESERVED_CONTENT = "preserved_content"  # Special content blocks marked with === delimiters
+    PRESERVED_CONTENT = "preserved_content"  # Special blocks: inline ===content=== or multiline !===...!===

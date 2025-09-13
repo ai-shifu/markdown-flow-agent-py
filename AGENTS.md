@@ -246,7 +246,7 @@ if result.stderr: print('Errors:', result.stderr)
 
 - `CONTENT`: Regular markdown content processed by LLM
 - `INTERACTION`: User input blocks with `?[]` syntax requiring validation
-- `PRESERVED_CONTENT`: Output-as-is blocks wrapped in `===` markers
+- `PRESERVED_CONTENT`: Output-as-is blocks using inline `===content===` or multiline fences `!===` ... `!===` (3+ `=`)
 
 **InteractionType** - Interaction format enumeration
 

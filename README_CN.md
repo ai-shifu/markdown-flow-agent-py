@@ -223,7 +223,7 @@ MarkdownFlow 文档中不同块类型的枚举。
 class BlockType(Enum):
     CONTENT = "content"                    # 常规 markdown 内容
     INTERACTION = "interaction"            # 用户交互块 (?[...])
-    PRESERVED_CONTENT = "preserved_content" # 用 === 标记包装的内容
+    PRESERVED_CONTENT = "preserved_content" # 用 !=== 起止行标记的多行内容，或行内 ===content===
 ```
 
 **块结构：**
@@ -239,12 +239,13 @@ class BlockType(Enum):
 ?[%{{choice}} 选项 A | 选项 B | 输入自定义选项...]
 """
 
-# 保留内容 - 原样输出
+# 保留内容 - 原样输出（多行）
 """
-===
+# 以感叹号开头并至少 3 个等号作为分隔线
+!===
 此内容完全按原样保留。
 没有 LLM 处理或变量替换。
-===
+!===
 """
 ```
 
