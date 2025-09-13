@@ -246,7 +246,7 @@ if result.stderr: print('Errors:', result.stderr)
 
 - `CONTENT`: Regular markdown content processed by LLM
 - `INTERACTION`: User input blocks with `?[]` syntax requiring validation
-- `PRESERVED_CONTENT`: Output-as-is blocks using inline `===content===` or multiline fences `!===` ... `!===` (3+ `=`)
+- `PRESERVED_CONTENT`: Output-as-is blocks using inline `!===content!===` or multiline fences `!===` ... `!===` (3+ `=`)
 
 **InteractionType** - Interaction format enumeration
 
@@ -1053,7 +1053,7 @@ mf = ValidatedMarkdownFlow(document, llm_provider, validators)
 
 ### Output Format Standards
 
-- Output instructions use `===content===` format internally
+- Output instructions use `!===` multiline fence format internally
 - Gets converted to `[output]` format for external consumption
 - Preserved content blocks maintain exact formatting
 

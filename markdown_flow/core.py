@@ -257,7 +257,7 @@ class MarkdownFlow:
         """Process preserved content block, output as-is without LLM call."""
         block = self.get_block(block_index)
 
-        # Extract preserved content (remove === markers)
+        # Extract preserved content (remove !=== markers)
         content = extract_preserved_content(block.content)
 
         # Replace variables
