@@ -98,7 +98,7 @@ for block in blocks:
         # Process user interaction
         print(f"Interaction: {block.content}")
 
-# Process user input 
+# Process user input
 user_input = {
     'language': ['Python'],                    # Single selection
     'skills': ['Python', 'JavaScript', 'Go']  # Multi-selection
