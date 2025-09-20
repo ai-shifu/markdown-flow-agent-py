@@ -580,11 +580,16 @@ def process_output_instructions(content: str) -> str:
 
         # Check if contains preserved markers (inline ===...=== or multiline !===...)
         # Check inline format first: ===content===
-        inline_match = re.search(r"===\s*([^=]+)\s*===", line)
+        inline_match = re.search(r"===\s*(.+?)\s*===", line)
         if inline_match and line.count("===") == 2 and not line.strip().startswith("!"):
+            inner_content = inline_match.group(1).strip()
+            # Validate that inner content doesn't contain ===
+            if not inner_content or "===" in inner_content:
+                result_lines.append(line)
+                i += 1
+                continue
             # Process inline format
             full_match = inline_match.group(0)
-            inner_content = inline_match.group(1).strip()
 
             # Build output instruction - keep inline format on same line
             output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
