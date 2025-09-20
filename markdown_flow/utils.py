@@ -67,7 +67,7 @@ def is_preserved_content_block(content: str) -> bool:
     Check if content is completely preserved content block.
 
     Preserved blocks are entirely wrapped by markers with no external content.
-    Supports inline (!===content!===) and multiline (!=== ... !===) formats.
+    Supports inline (===content===) and multiline (!=== ... !===) formats.
 
     Args:
         content: Content to check
@@ -89,12 +89,12 @@ def is_preserved_content_block(content: str) -> bool:
         stripped_line = line.strip()
         if stripped_line:  # Non-empty line
             has_any_content = True
-            # Check if inline format: !===content!===
-            match = re.match(r"^!===(.+)!=== *$", stripped_line)
+            # Check if inline format: ===content===
+            match = re.match(r"^===(.+)=== *$", stripped_line)
             if match:
-                # Ensure inner content exists and contains no !===
+                # Ensure inner content exists and contains no ===
                 inner_content = match.group(1).strip()
-                if not inner_content or "!==" in inner_content:
+                if not inner_content or "===" in inner_content:
                     all_inline_format = False
                     break
             else:
@@ -562,13 +562,13 @@ def process_output_instructions(content: str) -> str:
     """
     Process output instruction markers, converting !=== format to [output] format.
 
-    Uses unified state machine to handle inline (!===content!===) and multiline (!===...!===) formats.
+    Uses unified state machine to handle inline (===content===) and multiline (!===...!===) formats.
 
     Args:
         content: Raw content containing output instructions
 
     Returns:
-        Processed content with !=== markers converted to [output] format
+        Processed content with === and !=== markers converted to [output] format
     """
     lines = content.split("\n")
     result_lines = []
@@ -578,10 +578,10 @@ def process_output_instructions(content: str) -> str:
     while i < len(lines):
         line = lines[i]
 
-        # Check if contains preserved markers (inline !===...!=== or multiline !===...)
-        # Check inline format first: !===content!===
-        inline_match = re.search(r"!===\s*([^!]+)\s*!===", line)
-        if inline_match and line.count("!===") >= 2:
+        # Check if contains preserved markers (inline ===...=== or multiline !===...)
+        # Check inline format first: ===content===
+        inline_match = re.search(r"===\s*([^=]+)\s*===", line)
+        if inline_match and line.count("===") == 2 and not line.strip().startswith("!"):
             # Process inline format
             full_match = inline_match.group(0)
             inner_content = inline_match.group(1).strip()
@@ -589,7 +589,7 @@ def process_output_instructions(content: str) -> str:
             # Build output instruction - keep inline format on same line
             output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
 
-            # Replace !===...!=== part in original line
+            # Replace ===...=== part in original line
             processed_line = line.replace(full_match, output_instruction)
             result_lines.append(processed_line)
             has_output_instruction = True
@@ -655,13 +655,13 @@ def extract_preserved_content(content: str) -> str:
     """
     Extract actual content from preserved content blocks, removing markers.
 
-    Handles inline (!===content!===) and multiline (!===...!===) formats.
+    Handles inline (===content===) and multiline (!===...!===) formats.
 
     Args:
         content: Preserved content containing preserved markers
 
     Returns:
-        Actual content with !=== markers removed
+        Actual content with === and !=== markers removed
     """
     content = content.strip()
     if not content:
@@ -673,12 +673,12 @@ def extract_preserved_content(content: str) -> str:
     for line in lines:
         stripped_line = line.strip()
 
-        # Check inline format: !===content!===
-        inline_match = re.match(r"^!===(.+)!=== *$", stripped_line)
+        # Check inline format: ===content===
+        inline_match = re.match(r"^===(.+)=== *$", stripped_line)
         if inline_match:
             # Inline format, extract middle content
             inner_content = inline_match.group(1).strip()
-            if inner_content and "!==" not in inner_content:
+            if inner_content and "===" not in inner_content:
                 result_lines.append(inner_content)
         elif COMPILED_PRESERVE_FENCE_REGEX.match(stripped_line):  # type: ignore[unreachable]
             # Multiline format delimiter, skip
