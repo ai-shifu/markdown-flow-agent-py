@@ -42,6 +42,10 @@ BLOCK_SEPARATOR = r"\n\s*---\s*\n"
 PRESERVE_FENCE_PATTERN = r"^!={3,}\s*$"
 COMPILED_PRESERVE_FENCE_REGEX = re.compile(PRESERVE_FENCE_PATTERN)
 
+# Inline preserved content pattern: ===content=== format
+INLINE_PRESERVE_PATTERN = r"^===(.+)=== *$"
+COMPILED_INLINE_PRESERVE_REGEX = re.compile(INLINE_PRESERVE_PATTERN)
+
 # Output instruction markers
 OUTPUT_INSTRUCTION_PREFIX = "[输出]"
 OUTPUT_INSTRUCTION_SUFFIX = "[/输出]"

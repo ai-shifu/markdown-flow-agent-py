@@ -17,6 +17,7 @@ from .constants import (
     COMPILED_LAYER3_ELLIPSIS_REGEX,
     COMPILED_PERCENT_VARIABLE_REGEX,
     COMPILED_PRESERVE_FENCE_REGEX,
+    COMPILED_INLINE_PRESERVE_REGEX,
     COMPILED_SINGLE_PIPE_SPLIT_REGEX,
     CONTEXT_CONVERSATION_TEMPLATE,
     CONTEXT_QUESTION_MARKER,
@@ -90,7 +91,7 @@ def is_preserved_content_block(content: str) -> bool:
         if stripped_line:  # Non-empty line
             has_any_content = True
             # Check if inline format: ===content===
-            match = re.match(r"^===(.+)=== *$", stripped_line)
+            match = COMPILED_INLINE_PRESERVE_REGEX.match(stripped_line)
             if match:
                 # Ensure inner content exists and contains no ===
                 inner_content = match.group(1).strip()
@@ -679,7 +680,7 @@ def extract_preserved_content(content: str) -> str:
         stripped_line = line.strip()
 
         # Check inline format: ===content===
-        inline_match = re.match(r"^===(.+)=== *$", stripped_line)
+        inline_match = COMPILED_INLINE_PRESERVE_REGEX.match(stripped_line)
         if inline_match:
             # Inline format, extract middle content
             inner_content = inline_match.group(1).strip()
