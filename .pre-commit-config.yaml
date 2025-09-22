@@ -61,7 +61,7 @@ repos:
   # Python code formatting and linting (Ruff - modern replacement for Black/Flake8/isort)
   # =============================================================================
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.11
+    rev: v0.13.1
     hooks:
       # Linting (replaces Flake8 + many other tools)
       - id: ruff-check
@@ -76,7 +76,7 @@ repos:
   # Type checking
   # =============================================================================
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.18.2
     hooks:
       - id: mypy
         description: Static type checking with mypy (basic checks only)
@@ -95,7 +95,7 @@ repos:
   # Commit message validation
   # =============================================================================
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.8.3
+    rev: v4.9.1
     hooks:
       - id: commitizen
         description: Validates commit messages follow Conventional Commits
