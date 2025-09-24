@@ -826,12 +826,12 @@ Original Error: {error_message}
         block = self.get_block(block_index)
         messages = self._build_dynamic_check_messages(block, context, variables)
 
-        # Define Function Calling tools
+        # Define Function Calling tools with structured approach
         tools = [{
             "type": "function",
             "function": {
                 "name": "create_interaction_block",
-                "description": "Convert content to interaction block format with specific options when it needs to collect user input",
+                "description": "Convert content to interaction block with structured data when it needs to collect user input",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -839,9 +839,27 @@ Original Error: {error_message}
                             "type": "boolean",
                             "description": "Whether this content needs to be converted to interaction block"
                         },
-                        "interaction_content": {
+                        "variable_name": {
                             "type": "string",
-                            "description": "Complete interaction block format following MarkdownFlow syntax. MUST use '...' for text input. Examples: ?[%{{dish}} 宫保鸡丁|麻婆豆腐|...其他请输入] or ?[%{{skills}} Python||JavaScript||...其他请输入] or ?[%{{name}} ...请输入姓名]"
+                            "description": "Name of the variable to collect (without {{}} brackets)"
+                        },
+                        "interaction_type": {
+                            "type": "string",
+                            "enum": ["single_select", "multi_select", "text_input", "mixed"],
+                            "description": "Type of interaction: single_select (|), multi_select (||), text_input (...), mixed (options + text)"
+                        },
+                        "options": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of selectable options (3-4 specific options based on context)"
+                        },
+                        "allow_text_input": {
+                            "type": "boolean",
+                            "description": "Whether to include a text input option for 'Other' cases"
+                        },
+                        "text_input_prompt": {
+                            "type": "string",
+                            "description": "Prompt text for the text input option (e.g., '其他请输入', 'Other, please specify')"
                         }
                     },
                     "required": ["needs_interaction"]
@@ -854,6 +872,14 @@ Original Error: {error_message}
 
         # Call LLM with tools
         result = await self._llm_provider.complete_with_tools(messages, tools)
+
+        # If interaction was generated through Function Calling, construct the MarkdownFlow format
+        if result.transformed_to_interaction and result.metadata and "tool_args" in result.metadata:
+            tool_args = result.metadata["tool_args"]
+            if tool_args.get("needs_interaction"):
+                # Construct MarkdownFlow format from structured data
+                interaction_content = self._build_interaction_format(tool_args)
+                result.content = interaction_content
 
         # If transformed to interaction, return as is
         if result.transformed_to_interaction:
@@ -889,25 +915,7 @@ Judgment criteria:
 2. Does it need to collect detailed information based on previous variable values?
 3. Does it mention "recording" or "saving" information to variables?
 
-If conversion is needed, generate a STANDARD interaction block format with SPECIFIC options based on the document-level instructions and context.
-
-REQUIRED FORMATS (MarkdownFlow Standard Syntax):
-- Buttons only: ?[%{{variable_name}} Option1|Option2|Option3]
-- Multi-select only: ?[%{{variable_name}} Option1||Option2||Option3]
-- Text input only: ?[%{{variable_name}} ...Text input prompt]
-- Buttons + text: ?[%{{variable_name}} Option1|Option2|...Text input prompt]
-- Multi-select + text: ?[%{{variable_name}} Option1||Option2||...Text input prompt]
-
-CRITICAL SYNTAX RULES:
-1. Text input MUST have "..." prefix (e.g., "...enter your name" not "enter your name")
-2. Use %{{variable_name}} format to protect variables from replacement
-3. Use single | for single choice, double || for multiple choice
-4. For buttons+text combo, text option MUST start with "..."
-5. ALWAYS provide specific options based on document context and existing variables
-6. You can reference existing variables in the content: "You chose {{food_type}}"
-7. Follow the language and domain specified in the document-level instructions
-
-IMPORTANT: The document-level instructions will specify the language, domain, and specific requirements. Follow them precisely for option generation."""
+If conversion is needed, generate a STANDARD interaction block format with SPECIFIC options based on the document-level instructions and context provided in the user message."""
 
         # User message with content and context
         # Build user prompt with document context
@@ -963,51 +971,43 @@ IMPORTANT: The document-level instructions will specify the language, domain, an
 
         user_prompt_parts.append(content_analysis)
 
-        # Add analysis requirements
-        user_prompt_parts.append("""Analysis requirements:
-1. Consider BOTH the document-level instructions AND the current content block
-2. If this content asks for user information or mentions recording to variables, convert it to interaction format
-3. **IMPORTANT: Use the resolved content for context, generate options for new variables:**
-   - Pay attention to the "Resolved content" which shows actual variable values
-   - Generate specific options based on the resolved context (e.g., if resolved content shows "川菜", generate Sichuan dishes)
-   - Create interaction format to collect the "New variables to collect" identified above
-   - Use the format: ?[%{{new_variable_name}} option1|option2|...] where new_variable_name is from the analysis above
-5. Follow ALL requirements specified in the document-level instructions, including:
-   - Language requirements (use the exact language specified)
-   - Domain-specific options and terminology
-   - Formatting preferences
-   - Any other specific requirements
+        # Add analysis requirements and structured output guide
+        user_prompt_parts.append("""## Analysis Task:
+1. Determine if this content needs to be converted to an interaction block
+2. If conversion is needed, provide structured interaction data
 
-6. **CRITICAL: Choose appropriate selection type based on business logic:**
+## Context-based Analysis:
+- Use the "Resolved content" to understand actual context (e.g., if it shows "川菜", generate Sichuan dish options)
+- Extract the "New variables to collect" identified in the variable analysis above
+- Generate 3-4 specific options based on the resolved context and document-level instructions
+- Follow ALL document-level instruction requirements (language, domain, terminology)
 
-   **Use MULTIPLE CHOICE (||) when:**
-   - Users can logically select multiple items simultaneously
-   - Items are additive/complementary, not mutually exclusive
-   - Examples:
-     * Food dishes: "宫保鸡丁||麻婆豆腐||水煮鱼" (can order multiple dishes)
-     * Skills/Technologies: "Python||JavaScript||Java" (can know multiple languages)
-     * Interests/Hobbies: "读书||运动||旅游" (can have multiple interests)
-     * Features/Requirements: "定制颜色||个性化logo||特殊尺寸" (can want multiple features)
-     * Exercise types: "跑步||游泳||瑜伽" (can do multiple exercises)
+## Selection Type Decision Logic:
+Ask: "Can a user realistically want/choose multiple of these options simultaneously?"
 
-   **Use SINGLE CHOICE (|) when:**
-   - Only one option makes logical sense
-   - Options are mutually exclusive or represent a single decision
-   - Examples:
-     * Job positions: "软件工程师|数据科学家|产品经理" (usually apply for one position)
-     * Education levels: "Beginner|Intermediate|Advanced" (have one current level)
-     * Budget ranges: "5-10万|10-20万|20-30万" (have one budget range)
-     * Travel destinations: "北京|上海|深圳" (usually choose one main destination)
-     * Experience levels: "初级|中级|高级" (have one current experience level)
+**Use MULTI_SELECT when:**
+- Food dishes (can order multiple: 宫保鸡丁, 麻婆豆腐)
+- Programming skills (can know multiple: Python, JavaScript)
+- Interests/hobbies (can have multiple: 读书, 运动, 旅游)
+- Product features (can want multiple: 定制颜色, 个性化logo)
+- Exercise types (can do multiple: 跑步, 游泳, 瑜伽)
 
-7. **Selection logic analysis:**
-   - Ask yourself: "Can a user realistically want/choose multiple of these options at the same time?"
-   - If YES → Use multiple choice (||)
-   - If NO → Use single choice (|)
+**Use SINGLE_SELECT when:**
+- Job positions (usually apply for one: 软件工程师 OR 产品经理)
+- Experience levels (have one current level: Beginner OR Advanced)
+- Budget ranges (have one range: 5-10万 OR 10-20万)
+- Education levels (have one highest: Bachelor's OR Master's)
 
-8. Always include 3-4 realistic options plus appropriate fallback text option when suitable
+## Output Instructions:
+If this content needs interaction, use the create_interaction_block function with:
+- `needs_interaction`: true/false
+- `variable_name`: the variable to collect (from "New variables" above)
+- `interaction_type`: "single_select", "multi_select", "text_input", or "mixed"
+- `options`: array of 3-4 specific options based on context
+- `allow_text_input`: true if you want to include "other" option
+- `text_input_prompt`: text for the "other" option (in appropriate language)
 
-Please determine if conversion is needed, analyze the selection logic carefully, and generate the proper interaction format with concrete options using the appropriate selection type (| or ||).""")
+Analyze the content and provide the structured interaction data.""")
 
         user_prompt = "\n\n".join(user_prompt_parts)
 
@@ -1022,6 +1022,42 @@ Please determine if conversion is needed, analyze the selection logic carefully,
         messages.append({"role": "user", "content": user_prompt})
 
         return messages
+
+    def _build_interaction_format(self, tool_args: dict) -> str:
+        """Build MarkdownFlow interaction format from structured Function Calling data."""
+        variable_name = tool_args.get("variable_name", "")
+        interaction_type = tool_args.get("interaction_type", "single_select")
+        options = tool_args.get("options", [])
+        allow_text_input = tool_args.get("allow_text_input", False)
+        text_input_prompt = tool_args.get("text_input_prompt", "...请输入")
+
+        if not variable_name:
+            return ""
+
+        # For text_input type, options can be empty
+        if interaction_type != "text_input" and not options:
+            return ""
+
+        # Choose separator based on interaction type
+        if interaction_type in ["multi_select", "mixed"]:
+            separator = "||"
+        else:
+            separator = "|"
+
+        # Build options string
+        if interaction_type == "text_input":
+            # Text input only
+            options_str = f"...{text_input_prompt}"
+        else:
+            # Options with potential text input
+            options_str = separator.join(options)
+
+            if allow_text_input and text_input_prompt:
+                # Ensure text input has ... prefix
+                text_option = text_input_prompt if text_input_prompt.startswith("...") else f"...{text_input_prompt}"
+                options_str += f"{separator}{text_option}"
+
+        return f"?[%{{{{{variable_name}}}}} {options_str}]"
 
     async def _process_dynamic_interaction_validation(
         self,
