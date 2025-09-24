@@ -69,6 +69,7 @@ class MarkdownFlow:
         document_prompt: str | None = None,
         interaction_prompt: str | None = None,
         interaction_error_prompt: str | None = None,
+        enable_dynamic_interaction: bool = False,
     ):
         """
         Initialize MarkdownFlow instance.
@@ -79,12 +80,14 @@ class MarkdownFlow:
             document_prompt: Document-level system prompt
             interaction_prompt: Interaction content rendering prompt
             interaction_error_prompt: Interaction error rendering prompt
+            enable_dynamic_interaction: Enable dynamic content to interaction conversion
         """
         self._document = document
         self._llm_provider = llm_provider
         self._document_prompt = document_prompt
         self._interaction_prompt = interaction_prompt or DEFAULT_INTERACTION_PROMPT
         self._interaction_error_prompt = interaction_error_prompt or DEFAULT_INTERACTION_ERROR_PROMPT
+        self._enable_dynamic_interaction = enable_dynamic_interaction
         self._blocks = None
         self._interaction_configs: dict[int, InteractionValidationConfig] = {}
 
@@ -183,6 +186,7 @@ class MarkdownFlow:
         context: list[dict[str, str]] | None = None,
         variables: dict[str, str | list[str]] | None = None,
         user_input: dict[str, list[str]] | None = None,
+        dynamic_interaction_format: str | None = None,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """
         Unified block processing interface.
@@ -193,6 +197,7 @@ class MarkdownFlow:
             context: Context message list
             variables: Variable mappings
             user_input: User input (for interaction blocks)
+            dynamic_interaction_format: Dynamic interaction format for validation
 
         Returns:
             LLMResult or AsyncGenerator[LLMResult, None]
@@ -204,6 +209,12 @@ class MarkdownFlow:
         block = self.get_block(block_index)
 
         if block.block_type == BlockType.CONTENT:
+            # Check if this is dynamic interaction validation
+            if dynamic_interaction_format and user_input:
+                return await self._process_dynamic_interaction_validation(
+                    block_index, dynamic_interaction_format, user_input, mode, context, variables
+                )
+            # Normal content processing (possibly with dynamic conversion)
             return await self._process_content(block_index, mode, context, variables)
 
         if block.block_type == BlockType.INTERACTION:
@@ -230,7 +241,12 @@ class MarkdownFlow:
         variables: dict[str, str | list[str]] | None,
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process content block."""
-        # Build messages
+
+        # Check if dynamic interaction is enabled and should be attempted
+        if self._enable_dynamic_interaction and mode != ProcessMode.PROMPT_ONLY:
+            return await self._process_with_dynamic_check(block_index, mode, context, variables)
+
+        # Original logic: Build messages
         messages = self._build_content_messages(block_index, variables)
 
         if mode == ProcessMode.PROMPT_ONLY:
@@ -795,3 +811,268 @@ Original Error: {error_message}
             suffix = match.group(2)
             return f"{prefix}{cleaned_question}{suffix}"
         return original_content  # type: ignore[unreachable]
+
+    # Dynamic Interaction Methods
+
+    async def _process_with_dynamic_check(
+        self,
+        block_index: int,
+        mode: ProcessMode,
+        context: list[dict[str, str]] | None,
+        variables: dict[str, str | list[str]] | None,
+    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+        """Process content with dynamic interaction detection and conversion."""
+
+        block = self.get_block(block_index)
+        messages = self._build_dynamic_check_messages(block, context, variables)
+
+        # Define Function Calling tools
+        tools = [{
+            "type": "function",
+            "function": {
+                "name": "create_interaction_block",
+                "description": "Convert content to interaction block format with specific options when it needs to collect user input",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "needs_interaction": {
+                            "type": "boolean",
+                            "description": "Whether this content needs to be converted to interaction block"
+                        },
+                        "interaction_content": {
+                            "type": "string",
+                            "description": "Complete interaction block format following MarkdownFlow syntax. MUST use '...' for text input. Examples: ?[%{{dish}} 宫保鸡丁|麻婆豆腐|...其他请输入] or ?[%{{skills}} Python||JavaScript||...其他请输入] or ?[%{{name}} ...请输入姓名]"
+                        }
+                    },
+                    "required": ["needs_interaction"]
+                }
+            }
+        }]
+
+        if not self._llm_provider:
+            raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
+
+        # Call LLM with tools
+        result = await self._llm_provider.complete_with_tools(messages, tools)
+
+        # If transformed to interaction, return as is
+        if result.transformed_to_interaction:
+            return result
+
+        # If not transformed, continue with normal processing
+        if mode == ProcessMode.STREAM:
+            async def stream_wrapper():
+                async for chunk in self._llm_provider.stream(messages):
+                    yield LLMResult(content=chunk)
+            return stream_wrapper()
+
+        # Complete mode - already handled by complete_with_tools
+        return result
+
+    def _build_dynamic_check_messages(
+        self,
+        block: "Block",
+        context: list[dict[str, str]] | None,
+        variables: dict[str, str | list[str]] | None,
+    ) -> list[dict[str, str]]:
+        """Build messages for dynamic interaction detection."""
+
+        import json
+
+        # System prompt for detection
+        system_prompt = """You are an intelligent document processing assistant specializing in creating interactive forms.
+
+Task: Analyze the given content block and determine if it needs to be converted to an interaction block to collect user information.
+
+Judgment criteria:
+1. Does the content imply the need to ask users for information?
+2. Does it need to collect detailed information based on previous variable values?
+3. Does it mention "recording" or "saving" information to variables?
+
+If conversion is needed, generate a STANDARD interaction block format with SPECIFIC options based on the document-level instructions and context.
+
+REQUIRED FORMATS (MarkdownFlow Standard Syntax):
+- Buttons only: ?[%{{variable_name}} Option1|Option2|Option3]
+- Multi-select only: ?[%{{variable_name}} Option1||Option2||Option3]
+- Text input only: ?[%{{variable_name}} ...Text input prompt]
+- Buttons + text: ?[%{{variable_name}} Option1|Option2|...Text input prompt]
+- Multi-select + text: ?[%{{variable_name}} Option1||Option2||...Text input prompt]
+
+CRITICAL SYNTAX RULES:
+1. Text input MUST have "..." prefix (e.g., "...enter your name" not "enter your name")
+2. Use %{{variable_name}} format to protect variables from replacement
+3. Use single | for single choice, double || for multiple choice
+4. For buttons+text combo, text option MUST start with "..."
+5. ALWAYS provide specific options based on document context and existing variables
+6. You can reference existing variables in the content: "You chose {{food_type}}"
+7. Follow the language and domain specified in the document-level instructions
+
+IMPORTANT: The document-level instructions will specify the language, domain, and specific requirements. Follow them precisely for option generation."""
+
+        # User message with content and context
+        # Build user prompt with document context
+        user_prompt_parts = []
+
+        # Add document-level prompt context if exists
+        if self._document_prompt:
+            user_prompt_parts.append(f"""Document-level instructions:
+{self._document_prompt}
+
+(Note: The above are the user's document-level instructions that provide context and requirements for processing.)
+""")
+
+        # Prepare content analysis with both original and resolved versions
+        original_content = block.content
+
+        # Create resolved content with variable substitution for better context
+        resolved_content = original_content
+        if variables:
+            from .utils import replace_variables_in_text
+            resolved_content = replace_variables_in_text(original_content, variables)
+
+        content_analysis = f"""Current content block to analyze:
+
+**Original content (shows variable structure):**
+{original_content}
+
+**Resolved content (with current variable values):**
+{resolved_content}
+
+**Existing variable values:**
+{json.dumps(variables, ensure_ascii=False) if variables else "None"}"""
+
+        # Add different analysis based on whether content has variables
+        if "{{" in original_content and "}}" in original_content:
+            from .utils import extract_variables_from_text
+            content_variables = set(extract_variables_from_text(original_content))
+
+            # Find new variables (not yet collected)
+            new_variables = content_variables - (set(variables.keys()) if variables else set())
+            existing_used_variables = content_variables & (set(variables.keys()) if variables else set())
+
+            content_analysis += f"""
+
+**Variable analysis:**
+- Variables used from previous steps: {list(existing_used_variables) if existing_used_variables else "None"}
+- New variables to collect: {list(new_variables) if new_variables else "None"}
+
+**Context guidance:**
+- Use the resolved content to understand the actual context and requirements
+- Generate options based on the real variable values shown in the resolved content
+- Collect user input for the new variables identified above"""
+
+        user_prompt_parts.append(content_analysis)
+
+        # Add analysis requirements
+        user_prompt_parts.append("""Analysis requirements:
+1. Consider BOTH the document-level instructions AND the current content block
+2. If this content asks for user information or mentions recording to variables, convert it to interaction format
+3. **IMPORTANT: Use the resolved content for context, generate options for new variables:**
+   - Pay attention to the "Resolved content" which shows actual variable values
+   - Generate specific options based on the resolved context (e.g., if resolved content shows "川菜", generate Sichuan dishes)
+   - Create interaction format to collect the "New variables to collect" identified above
+   - Use the format: ?[%{{new_variable_name}} option1|option2|...] where new_variable_name is from the analysis above
+5. Follow ALL requirements specified in the document-level instructions, including:
+   - Language requirements (use the exact language specified)
+   - Domain-specific options and terminology
+   - Formatting preferences
+   - Any other specific requirements
+
+6. **CRITICAL: Choose appropriate selection type based on business logic:**
+
+   **Use MULTIPLE CHOICE (||) when:**
+   - Users can logically select multiple items simultaneously
+   - Items are additive/complementary, not mutually exclusive
+   - Examples:
+     * Food dishes: "宫保鸡丁||麻婆豆腐||水煮鱼" (can order multiple dishes)
+     * Skills/Technologies: "Python||JavaScript||Java" (can know multiple languages)
+     * Interests/Hobbies: "读书||运动||旅游" (can have multiple interests)
+     * Features/Requirements: "定制颜色||个性化logo||特殊尺寸" (can want multiple features)
+     * Exercise types: "跑步||游泳||瑜伽" (can do multiple exercises)
+
+   **Use SINGLE CHOICE (|) when:**
+   - Only one option makes logical sense
+   - Options are mutually exclusive or represent a single decision
+   - Examples:
+     * Job positions: "软件工程师|数据科学家|产品经理" (usually apply for one position)
+     * Education levels: "Beginner|Intermediate|Advanced" (have one current level)
+     * Budget ranges: "5-10万|10-20万|20-30万" (have one budget range)
+     * Travel destinations: "北京|上海|深圳" (usually choose one main destination)
+     * Experience levels: "初级|中级|高级" (have one current experience level)
+
+7. **Selection logic analysis:**
+   - Ask yourself: "Can a user realistically want/choose multiple of these options at the same time?"
+   - If YES → Use multiple choice (||)
+   - If NO → Use single choice (|)
+
+8. Always include 3-4 realistic options plus appropriate fallback text option when suitable
+
+Please determine if conversion is needed, analyze the selection logic carefully, and generate the proper interaction format with concrete options using the appropriate selection type (| or ||).""")
+
+        user_prompt = "\n\n".join(user_prompt_parts)
+
+        messages = [
+            {"role": "system", "content": system_prompt}
+        ]
+
+        # Add context if provided
+        if context:
+            messages.extend(context)
+
+        messages.append({"role": "user", "content": user_prompt})
+
+        return messages
+
+    async def _process_dynamic_interaction_validation(
+        self,
+        block_index: int,
+        interaction_format: str,
+        user_input: dict[str, list[str]],
+        mode: ProcessMode,
+        context: list[dict[str, str]] | None,
+        variables: dict[str, str | list[str]] | None,
+    ) -> LLMResult:
+        """Validate user input for dynamically generated interaction blocks."""
+
+        from .utils import InteractionParser
+
+        # Parse the interaction format
+        parser = InteractionParser()
+        interaction = parser.parse(interaction_format)
+
+        if interaction is None:
+            raise ValueError(f"Invalid interaction format: {interaction_format}")
+
+        # Extract variable name from the interaction format
+        # This is a simplified extraction - in real implementation you'd use the parser result
+        import re
+        var_match = re.search(r'%\{\{([^}]+)\}\}', interaction_format)
+        if not var_match:
+            raise ValueError(f"No variable found in interaction format: {interaction_format}")
+
+        variable_name = var_match.group(1)
+
+        # Validate the user input
+        user_values = user_input.get(variable_name, [])
+        if not user_values:
+            raise ValueError(f"No input provided for variable: {variable_name}")
+
+        # Process the validation result
+        updated_variables = dict(variables or {})
+
+        # Handle single vs multiple values
+        if len(user_values) == 1:
+            updated_variables[variable_name] = user_values[0]
+        else:
+            updated_variables[variable_name] = user_values
+
+        # Return successful validation result
+        return LLMResult(
+            content=f"Successfully collected {variable_name}: {user_values}",
+            variables=updated_variables,
+            metadata={
+                "validation_success": True,
+                "variable_collected": variable_name,
+                "values_collected": user_values
+            }
+        )

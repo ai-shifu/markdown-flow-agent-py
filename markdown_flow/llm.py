@@ -29,6 +29,7 @@ class LLMResult:
     prompt: str | None = None  # Used prompt
     variables: dict[str, str | list[str]] | None = None  # Extracted variables
     metadata: dict[str, Any] | None = None  # Metadata
+    transformed_to_interaction: bool = False  # Whether content block was transformed to interaction block
 
     def __bool__(self):
         """Support boolean evaluation."""
@@ -68,6 +69,26 @@ class LLMProvider(ABC):
             ValueError: When LLM call fails
         """
 
+    @abstractmethod
+    async def complete_with_tools(
+        self,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None
+    ) -> LLMResult:
+        """
+        LLM call with function calling tools support.
+
+        Args:
+            messages: Message list in format [{"role": "system/user/assistant", "content": "..."}]
+            tools: Optional tools/functions for LLM to call
+
+        Returns:
+            LLMResult: Complete result including transformation status
+
+        Raises:
+            ValueError: When LLM call fails
+        """
+
 
 class NoLLMProvider(LLMProvider):
     """Empty LLM provider for prompt-only scenarios."""
@@ -76,4 +97,11 @@ class NoLLMProvider(LLMProvider):
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
 
     async def stream(self, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:
+        raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
+
+    async def complete_with_tools(
+        self,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None
+    ) -> LLMResult:
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
