@@ -256,8 +256,8 @@ class MarkdownFlow:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            content = await self._llm_provider.complete(messages)
-            return LLMResult(content=content, prompt=messages[-1]["content"])
+            result = await self._llm_provider.complete(messages)
+            return LLMResult(content=result.content, prompt=messages[-1]["content"], metadata=result.metadata)
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
@@ -314,7 +314,8 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=processed_block.content)  # Fallback processing
 
-            rendered_question = await self._llm_provider.complete(messages)
+            result = await self._llm_provider.complete(messages)
+            rendered_question = result.content
             rendered_content = self._reconstruct_interaction_content(processed_block.content, rendered_question)
 
             return LLMResult(
@@ -539,7 +540,8 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = await self._llm_provider.complete(messages)
+            result = await self._llm_provider.complete(messages)
+            llm_response = result.content
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
@@ -596,7 +598,8 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = await self._llm_provider.complete(messages)
+            result = await self._llm_provider.complete(messages)
+            llm_response = result.content
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
@@ -641,7 +644,8 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=error_message)  # Fallback processing
 
-            friendly_error = await self._llm_provider.complete(messages)
+            result = await self._llm_provider.complete(messages)
+            friendly_error = result.content
             return LLMResult(content=friendly_error, prompt=messages[-1]["content"])
 
         if mode == ProcessMode.STREAM:
@@ -871,7 +875,7 @@ Original Error: {error_message}
             raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
         # Call LLM with tools
-        result = await self._llm_provider.complete_with_tools(messages, tools)
+        result = await self._llm_provider.complete(messages, tools)
 
         # If interaction was generated through Function Calling, construct the MarkdownFlow format
         if result.transformed_to_interaction and result.metadata and "tool_args" in result.metadata:

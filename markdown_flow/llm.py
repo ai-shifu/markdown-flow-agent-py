@@ -40,15 +40,20 @@ class LLMProvider(ABC):
     """Abstract LLM provider interface."""
 
     @abstractmethod
-    async def complete(self, messages: list[dict[str, str]]) -> str:
+    async def complete(
+        self,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None
+    ) -> LLMResult:
         """
-        Non-streaming LLM call.
+        Non-streaming LLM call with optional function calling support.
 
         Args:
             messages: Message list in format [{"role": "system/user/assistant", "content": "..."}]
+            tools: Optional tools/functions for LLM to call
 
         Returns:
-            str: LLM response content
+            LLMResult: Structured result with content and metadata
 
         Raises:
             ValueError: When LLM call fails
@@ -69,39 +74,17 @@ class LLMProvider(ABC):
             ValueError: When LLM call fails
         """
 
-    @abstractmethod
-    async def complete_with_tools(
-        self,
-        messages: list[dict[str, str]],
-        tools: list[dict[str, Any]] | None = None
-    ) -> LLMResult:
-        """
-        LLM call with function calling tools support.
-
-        Args:
-            messages: Message list in format [{"role": "system/user/assistant", "content": "..."}]
-            tools: Optional tools/functions for LLM to call
-
-        Returns:
-            LLMResult: Complete result including transformation status
-
-        Raises:
-            ValueError: When LLM call fails
-        """
 
 
 class NoLLMProvider(LLMProvider):
     """Empty LLM provider for prompt-only scenarios."""
 
-    async def complete(self, messages: list[dict[str, str]]) -> str:
-        raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
-
-    async def stream(self, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:
-        raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
-
-    async def complete_with_tools(
+    async def complete(
         self,
         messages: list[dict[str, str]],
         tools: list[dict[str, Any]] | None = None
     ) -> LLMResult:
+        raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
+
+    async def stream(self, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
