@@ -478,7 +478,7 @@ class MarkdownFlow:
             error_msg = f"Please select from: {', '.join(button_displays)}"
             return self._render_error(error_msg, mode)
 
-        # Validate input values against available buttons
+        # First, check if user input matches available buttons
         valid_values = []
         invalid_values = []
 
@@ -491,19 +491,30 @@ class MarkdownFlow:
                     break
 
             if not matched:
-                if allow_text_input:
-                    # Allow custom text in buttons+text mode
-                    valid_values.append(value)
-                else:
-                    invalid_values.append(value)
+                invalid_values.append(value)
 
-        # Check for validation errors
-        if invalid_values and not allow_text_input:
+        # If there are invalid values and this interaction allows text input, use LLM validation
+        if invalid_values and allow_text_input:
+            # Use LLM validation for text input interactions
+            button_displays = [btn["display"] for btn in buttons]
+            question = parse_result.get("question", "")
+
+            return self._process_llm_validation_with_options(
+                block_index=0,  # Not used in the method
+                user_input={target_variable: target_values},
+                target_variable=target_variable,
+                options=button_displays,
+                question=question,
+                mode=mode
+            )
+
+        # Check for validation errors in pure button mode or when text input not allowed
+        if invalid_values:
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Invalid options: {', '.join(invalid_values)}. Please select from: {', '.join(button_displays)}"
             return self._render_error(error_msg, mode)
 
-        # Success: return validated values
+        # Success: return validated button values
         return LLMResult(
             content="",
             variables={target_variable: valid_values},
@@ -513,6 +524,7 @@ class MarkdownFlow:
                 "valid_values": valid_values,
                 "invalid_values": invalid_values,
                 "total_input_count": len(target_values),
+                "llm_validated": False,
             },
         )
 
@@ -1066,47 +1078,102 @@ Analyze the content and provide the structured interaction data.""")
         context: list[dict[str, str]] | None,
         variables: dict[str, str | list[str]] | None,
     ) -> LLMResult:
-        """Validate user input for dynamically generated interaction blocks."""
+        """Validate user input for dynamically generated interaction blocks using same logic as normal interactions."""
         _ = block_index  # Mark as intentionally unused
-        _ = mode  # Mark as intentionally unused
         _ = context  # Mark as intentionally unused
 
         from .utils import InteractionParser
 
-        # Parse the interaction format
+        # Parse the interaction format using the same parser as normal interactions
         parser = InteractionParser()
-        interaction = parser.parse(interaction_format)
+        parse_result = parser.parse(interaction_format)
 
-        if interaction is None:
-            raise ValueError(f"Invalid interaction format: {interaction_format}")
+        if "error" in parse_result:
+            error_msg = f"Invalid interaction format: {parse_result['error']}"
+            return self._render_error(error_msg, mode)
 
-        # Extract variable name from the interaction format
-        # This is a simplified extraction - in real implementation you'd use the parser result
-        import re
+        # Extract variable name and interaction type
+        variable_name = parse_result.get("variable")
+        interaction_type = parse_result.get("type")
 
-        var_match = re.search(r"%\{\{([^}]+)\}\}", interaction_format)
-        if not var_match:
-            raise ValueError(f"No variable found in interaction format: {interaction_format}")
+        if not variable_name:
+            error_msg = f"No variable found in interaction format: {interaction_format}"
+            return self._render_error(error_msg, mode)
 
-        variable_name = var_match.group(1)
+        # Get user input for the target variable
+        target_values = user_input.get(variable_name, [])
 
-        # Validate the user input
-        user_values = user_input.get(variable_name, [])
-        if not user_values:
-            raise ValueError(f"No input provided for variable: {variable_name}")
+        # Basic validation - check if input is provided when required
+        if not target_values:
+            # Check if this is a text input or allows empty input
+            allow_text_input = interaction_type in [
+                InteractionType.BUTTONS_WITH_TEXT,
+                InteractionType.BUTTONS_MULTI_WITH_TEXT,
+            ]
 
-        # Process the validation result
-        updated_variables = dict(variables or {})
+            if allow_text_input:
+                # Allow empty input for buttons+text mode - merge with existing variables
+                merged_variables = dict(variables or {})
+                merged_variables[variable_name] = []
+                return LLMResult(
+                    content="",
+                    variables=merged_variables,
+                    metadata={
+                        "interaction_type": "dynamic_interaction",
+                        "empty_input": True,
+                    },
+                )
+            else:
+                error_msg = f"No input provided for variable '{variable_name}'"
+                return self._render_error(error_msg, mode)
 
-        # Handle single vs multiple values
-        if len(user_values) == 1:
-            updated_variables[variable_name] = user_values[0]
+        # Use the same validation logic as normal interactions
+        if interaction_type in [
+            InteractionType.BUTTONS_ONLY,
+            InteractionType.BUTTONS_WITH_TEXT,
+            InteractionType.BUTTONS_MULTI_SELECT,
+            InteractionType.BUTTONS_MULTI_WITH_TEXT,
+        ]:
+            # Button validation - reuse the existing button validation logic
+            button_result = self._process_button_validation(
+                parse_result,
+                target_values,
+                variable_name,
+                mode,
+                interaction_type,
+            )
+
+            # Merge with existing variables for dynamic interactions
+            if hasattr(button_result, 'variables') and button_result.variables is not None and variables:
+                merged_variables = dict(variables)
+                merged_variables.update(button_result.variables)
+                return LLMResult(
+                    content=button_result.content,
+                    variables=merged_variables,
+                    metadata=button_result.metadata,
+                )
+            return button_result
+
+        elif interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
+            # Non-assignment buttons: don't set variables, keep existing ones
+            return LLMResult(
+                content="",
+                variables=dict(variables or {}),
+                metadata={
+                    "interaction_type": "non_assignment_button",
+                    "user_input": user_input,
+                },
+            )
         else:
-            updated_variables[variable_name] = user_values
-
-        # Return successful validation result
-        return LLMResult(
-            content=f"Successfully collected {variable_name}: {user_values}",
-            variables=updated_variables,
-            metadata={"validation_success": True, "variable_collected": variable_name, "values_collected": user_values},
-        )
+            # Text-only input type - merge with existing variables
+            merged_variables = dict(variables or {})
+            merged_variables[variable_name] = target_values
+            return LLMResult(
+                content="",
+                variables=merged_variables,
+                metadata={
+                    "interaction_type": "text_only",
+                    "target_variable": variable_name,
+                    "values": target_values,
+                },
+            )
