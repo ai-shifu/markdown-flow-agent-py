@@ -6,7 +6,7 @@ Refactored MarkdownFlow class with built-in LLM processing capabilities and unif
 
 import json
 import re
-from collections.abc import AsyncGenerator
+from collections.abc import Generator
 from copy import copy
 from typing import Any
 
@@ -176,7 +176,7 @@ class MarkdownFlow:
 
     # Core unified interface
 
-    async def process(
+    def process(
         self,
         block_index: int,
         mode: ProcessMode = ProcessMode.COMPLETE,
@@ -184,7 +184,7 @@ class MarkdownFlow:
         variables: dict[str, str | list[str]] | None = None,
         user_input: dict[str, list[str]] | None = None,
         dynamic_interaction_format: str | None = None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """
         Unified block processing interface.
 
@@ -197,7 +197,7 @@ class MarkdownFlow:
             dynamic_interaction_format: Dynamic interaction format for validation
 
         Returns:
-            LLMResult or AsyncGenerator[LLMResult, None]
+            LLMResult or Generator[LLMResult, None, None]
         """
         # Process document_prompt variable replacement
         if self._document_prompt:
@@ -208,65 +208,68 @@ class MarkdownFlow:
         if block.block_type == BlockType.CONTENT:
             # Check if this is dynamic interaction validation
             if dynamic_interaction_format and user_input:
-                return await self._process_dynamic_interaction_validation(block_index, dynamic_interaction_format, user_input, mode, context, variables)
+                return self._process_dynamic_interaction_validation(block_index, dynamic_interaction_format, user_input, mode, context, variables)
             # Normal content processing (possibly with dynamic conversion)
-            return await self._process_content(block_index, mode, context, variables)
+            return self._process_content(block_index, mode, context, variables)
 
         if block.block_type == BlockType.INTERACTION:
             if user_input is None:
                 # Render interaction content
-                return await self._process_interaction_render(block_index, mode, variables)
+                return self._process_interaction_render(block_index, mode, variables)
             # Process user input
-            return await self._process_interaction_input(block_index, user_input, mode, context, variables)
+            return self._process_interaction_input(block_index, user_input, mode, context, variables)
 
         if block.block_type == BlockType.PRESERVED_CONTENT:
             # Preserved content output as-is, no LLM call
-            return await self._process_preserved_content(block_index, variables)
+            return self._process_preserved_content(block_index, variables)
 
         # Handle other types as content
-        return await self._process_content(block_index, mode, context, variables)
+        return self._process_content(block_index, mode, context, variables)
 
     # Internal processing methods
 
-    async def _process_content(
+    def _process_content(
         self,
         block_index: int,
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
         variables: dict[str, str | list[str]] | None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process content block."""
 
-        # Always attempt dynamic interaction for content blocks (LLM decides)
-        if mode != ProcessMode.PROMPT_ONLY and self._llm_provider:
+        # For PROMPT_ONLY mode, use standard content processing
+        if mode == ProcessMode.PROMPT_ONLY:
+            messages = self._build_content_messages(block_index, variables)
+            return LLMResult(prompt=messages[-1]["content"], metadata={"messages": messages})
+
+        # For COMPLETE and STREAM modes with LLM provider, use dynamic interaction check
+        # LLM will decide whether content needs to be converted to interaction block
+        if self._llm_provider:
             block = self.get_block(block_index)
             if block.block_type == BlockType.CONTENT:
-                return await self._process_with_dynamic_check(block_index, mode, context, variables)
+                return self._process_with_dynamic_check(block_index, mode, context, variables)
 
-        # Original logic: Build messages
+        # Fallback: Build messages using standard content processing
         messages = self._build_content_messages(block_index, variables)
-
-        if mode == ProcessMode.PROMPT_ONLY:
-            return LLMResult(prompt=messages[-1]["content"], metadata={"messages": messages})
 
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            result = await self._llm_provider.complete(messages)
+            result = self._llm_provider.complete(messages)
             return LLMResult(content=result.content, prompt=messages[-1]["content"], metadata=result.metadata)
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            async def stream_generator():
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+            def stream_generator():
+                for chunk in self._llm_provider.stream(messages):
                     yield LLMResult(content=chunk, prompt=messages[-1]["content"])
 
             return stream_generator()
 
-    async def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
+    def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
         """Process preserved content block, output as-is without LLM call."""
         block = self.get_block(block_index)
 
@@ -278,7 +281,7 @@ class MarkdownFlow:
 
         return LLMResult(content=content)
 
-    async def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] | None = None) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] | None = None) -> LLMResult | Generator[LLMResult, None, None]:
         """Process interaction content rendering."""
         block = self.get_block(block_index)
 
@@ -311,7 +314,7 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=processed_block.content)  # Fallback processing
 
-            result = await self._llm_provider.complete(messages)
+            result = self._llm_provider.complete(messages)
             rendered_question = result.content
             rendered_content = self._reconstruct_interaction_content(processed_block.content, rendered_question)
 
@@ -329,7 +332,7 @@ class MarkdownFlow:
                 # For interaction blocks, return reconstructed content (one-time output)
                 rendered_content = self._reconstruct_interaction_content(processed_block.content, question_text or "")
 
-                async def stream_generator():
+                def stream_generator():
                     yield LLMResult(
                         content=rendered_content,
                         prompt=messages[-1]["content"],
@@ -338,9 +341,9 @@ class MarkdownFlow:
                 return stream_generator()
 
             # With LLM provider, collect full response then return once
-            async def stream_generator():
+            def stream_generator():
                 full_response = ""
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages):
                     full_response += chunk
 
                 # Reconstruct final interaction content
@@ -354,22 +357,23 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _process_interaction_input(
+    def _process_interaction_input(
         self,
         block_index: int,
         user_input: dict[str, list[str]],
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
         variables: dict[str, str | list[str]] | None = None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process interaction user input."""
+        _ = context  # Mark as intentionally unused
         block = self.get_block(block_index)
         target_variable = block.variables[0] if block.variables else "user_input"
 
         # Basic validation
         if not user_input or not any(values for values in user_input.values()):
             error_msg = INPUT_EMPTY_ERROR
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         # Get the target variable value from user_input
         target_values = user_input.get(target_variable, [])
@@ -383,7 +387,7 @@ class MarkdownFlow:
 
         if "error" in parse_result:
             error_msg = INTERACTION_PARSE_ERROR.format(error=parse_result["error"])
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         interaction_type = parse_result.get("type")
 
@@ -395,7 +399,7 @@ class MarkdownFlow:
             InteractionType.BUTTONS_MULTI_WITH_TEXT,
         ]:
             # All button types: validate user input against available buttons
-            return await self._process_button_validation(
+            return self._process_button_validation(
                 parse_result,
                 target_values,
                 target_variable,
@@ -428,16 +432,16 @@ class MarkdownFlow:
                 },
             )
         error_msg = f"No input provided for variable '{target_variable}'"
-        return await self._render_error(error_msg, mode)
+        return self._render_error(error_msg, mode)
 
-    async def _process_button_validation(
+    def _process_button_validation(
         self,
         parse_result: dict[str, Any],
         target_values: list[str],
         target_variable: str,
         mode: ProcessMode,
         interaction_type: InteractionType,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """
         Simplified button validation with new input format.
 
@@ -472,7 +476,7 @@ class MarkdownFlow:
             # Pure button mode requires input
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Please select from: {', '.join(button_displays)}"
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         # Validate input values against available buttons
         valid_values = []
@@ -497,7 +501,7 @@ class MarkdownFlow:
         if invalid_values and not allow_text_input:
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Invalid options: {', '.join(invalid_values)}. Please select from: {', '.join(button_displays)}"
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         # Success: return validated values
         return LLMResult(
@@ -512,13 +516,13 @@ class MarkdownFlow:
             },
         )
 
-    async def _process_llm_validation(
+    def _process_llm_validation(
         self,
         block_index: int,
         user_input: dict[str, list[str]],
         target_variable: str,
         mode: ProcessMode,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process LLM validation."""
         # Build validation messages
         messages = self._build_validation_messages(block_index, user_input, target_variable)
@@ -537,7 +541,7 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            result = await self._llm_provider.complete(messages)
+            result = self._llm_provider.complete(messages)
             llm_response = result.content
 
             # Parse validation response and convert to LLMResult
@@ -550,9 +554,9 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            async def stream_generator():
+            def stream_generator():
                 full_response = ""
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages):
                     full_response += chunk
 
                 # Parse complete response and convert to LLMResult
@@ -566,7 +570,7 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _process_llm_validation_with_options(
+    def _process_llm_validation_with_options(
         self,
         block_index: int,
         user_input: dict[str, list[str]],
@@ -574,8 +578,9 @@ class MarkdownFlow:
         options: list[str],
         question: str,
         mode: ProcessMode,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process LLM validation with button options (third case)."""
+        _ = block_index  # Mark as intentionally unused
         # Build special validation messages containing button option information
         messages = self._build_validation_messages_with_options(user_input, target_variable, options, question)
 
@@ -595,7 +600,7 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            result = await self._llm_provider.complete(messages)
+            result = self._llm_provider.complete(messages)
             llm_response = result.content
 
             # Parse validation response and convert to LLMResult
@@ -608,9 +613,9 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            async def stream_generator():
+            def stream_generator():
                 full_response = ""
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages):
                     full_response += chunk
                     # For validation scenario, don't output chunks in real-time, only final result
 
@@ -627,7 +632,7 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _render_error(self, error_message: str, mode: ProcessMode) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    def _render_error(self, error_message: str, mode: ProcessMode) -> LLMResult | Generator[LLMResult, None, None]:
         """Render user-friendly error message."""
         messages = self._build_error_render_messages(error_message)
 
@@ -641,7 +646,7 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=error_message)  # Fallback processing
 
-            result = await self._llm_provider.complete(messages)
+            result = self._llm_provider.complete(messages)
             friendly_error = result.content
             return LLMResult(content=friendly_error, prompt=messages[-1]["content"])
 
@@ -649,8 +654,8 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=error_message)
 
-            async def stream_generator():
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+            def stream_generator():
+                for chunk in self._llm_provider.stream(messages):
                     yield LLMResult(content=chunk, prompt=messages[-1]["content"])
 
             return stream_generator()
@@ -815,13 +820,13 @@ Original Error: {error_message}
 
     # Dynamic Interaction Methods
 
-    async def _process_with_dynamic_check(
+    def _process_with_dynamic_check(
         self,
         block_index: int,
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
         variables: dict[str, str | list[str]] | None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process content with dynamic interaction detection and conversion."""
 
         block = self.get_block(block_index)
@@ -858,7 +863,7 @@ Original Error: {error_message}
             raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
         # Call LLM with tools
-        result = await self._llm_provider.complete(messages, tools)
+        result = self._llm_provider.complete(messages, tools)
 
         # If interaction was generated through Function Calling, construct the MarkdownFlow format
         if result.transformed_to_interaction and result.metadata and "tool_args" in result.metadata:
@@ -872,18 +877,21 @@ Original Error: {error_message}
         if result.transformed_to_interaction:
             return result
 
-        # If not transformed, continue with normal processing
+        # If not transformed, continue with normal processing using standard content messages
+        normal_messages = self._build_content_messages(block_index, variables)
+
         if mode == ProcessMode.STREAM:
 
-            async def stream_wrapper():
-                stream_generator = await self._llm_provider.stream(messages)
-                async for chunk in stream_generator:
+            def stream_wrapper():
+                stream_generator = self._llm_provider.stream(normal_messages)
+                for chunk in stream_generator:
                     yield LLMResult(content=chunk)
 
             return stream_wrapper()
 
-        # Complete mode - already handled by complete_with_tools
-        return result
+        # Complete mode - use normal content processing
+        normal_result = self._llm_provider.complete(normal_messages)
+        return LLMResult(content=normal_result.content, prompt=normal_messages[-1]["content"], metadata=normal_result.metadata)
 
     def _build_dynamic_check_messages(
         self,
@@ -1049,7 +1057,7 @@ Analyze the content and provide the structured interaction data.""")
 
         return f"?[%{{{{{variable_name}}}}} {options_str}]"
 
-    async def _process_dynamic_interaction_validation(
+    def _process_dynamic_interaction_validation(
         self,
         block_index: int,
         interaction_format: str,
@@ -1059,6 +1067,9 @@ Analyze the content and provide the structured interaction data.""")
         variables: dict[str, str | list[str]] | None,
     ) -> LLMResult:
         """Validate user input for dynamically generated interaction blocks."""
+        _ = block_index  # Mark as intentionally unused
+        _ = mode  # Mark as intentionally unused
+        _ = context  # Mark as intentionally unused
 
         from .utils import InteractionParser
 

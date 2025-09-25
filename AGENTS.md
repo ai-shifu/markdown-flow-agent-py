@@ -296,7 +296,7 @@ mf = MarkdownFlow(
 )
 
 # Process with dynamic interaction
-result = await mf.process(0, ProcessMode.COMPLETE)
+result = mf.process(0, ProcessMode.COMPLETE)
 
 # Check if converted to interaction
 if result.transformed_to_interaction:
@@ -561,15 +561,14 @@ class TestMarkdownFlow:
         assert blocks[1].block_type == BlockType.INTERACTION
         assert blocks[2].block_type == BlockType.CONTENT
 
-    @pytest.mark.asyncio
-    async def test_process_with_mock_llm(self, sample_document, mock_llm_provider):
+    def test_process_with_mock_llm(self, sample_document, mock_llm_provider):
         """Test processing with mocked LLM"""
         # Arrange
         mf = MarkdownFlow(sample_document, llm_provider=mock_llm_provider)
         variables = {"name": "John", "level": "Beginner"}
 
         # Act
-        result = await mf.process(0, mode=ProcessMode.COMPLETE, variables=variables)
+        result = mf.process(0, mode=ProcessMode.COMPLETE, variables=variables)
 
         # Assert
         assert result.content == "Mock response"
@@ -755,18 +754,17 @@ del large_document  # Free memory
 return result
 ```
 
-**Async/await**: Use async patterns for LLM calls and I/O operations
+**Synchronous Interface**: MarkdownFlow uses synchronous methods for simplicity
 
 ```python
-# Good: Async processing
-async def process_with_llm(content):
-    result = await llm_provider.complete(content)
+# MarkdownFlow synchronous processing
+def process_with_llm(content):
+    result = llm_provider.complete(content)
     return result
 
-# Bad: Synchronous blocking call
-def process_with_llm(content):
-    result = llm_provider.complete(content)  # Blocks execution
-    return result
+# Process documents directly
+result = mf.process(0, ProcessMode.COMPLETE)
+print(result.content)
 ```
 
 ### LLM Integration Optimization
@@ -783,18 +781,18 @@ class MarkdownFlow:
 **Error Handling**: Implement retry logic with exponential backoff
 
 ```python
-import asyncio
+import time
 import random
 
-async def retry_with_backoff(func, max_retries=3):
+def retry_with_backoff(func, max_retries=3):
     for attempt in range(max_retries):
         try:
-            return await func()
+            return func()
         except Exception as e:
             if attempt == max_retries - 1:
                 raise e
             wait_time = (2 ** attempt) + random.uniform(0, 1)
-            await asyncio.sleep(wait_time)
+            time.sleep(wait_time)
 ```
 
 **Token Optimization**: Minimize prompt tokens while maintaining functionality
@@ -813,13 +811,13 @@ prompt = f"Please process the following content: {full_content}"
 
 ```python
 # Good: Streaming response
-async def process_stream(self, block_index: int):
-    async for chunk in self.llm_provider.stream(prompt):
+def process_stream(self, block_index: int):
+    for chunk in self.llm_provider.stream(prompt):
         yield chunk
 
 # Bad: Loading full response into memory
-async def process_complete(self, block_index: int):
-    full_response = await self.llm_provider.complete(prompt)
+def process_complete(self, block_index: int):
+    full_response = self.llm_provider.complete(prompt)
     return full_response
 ```
 
@@ -1027,10 +1025,10 @@ print('Pattern count:', len([var for var in dir() if 'COMPILED' in var]))
 # Test core functionality end-to-end
 python -c "
 from markdown_flow import MarkdownFlow, ProcessMode
-from unittest.mock import AsyncMock
-import asyncio
+from markdown_flow.llm import LLMResult
+from unittest.mock import Mock
 
-async def test():
+def test():
     doc = '''Hello {{name}}!
 
 ---
@@ -1041,17 +1039,17 @@ async def test():
 
 You selected {{level}}.'''
 
-    mock_llm = AsyncMock()
-    mock_llm.complete.return_value = 'Mock LLM response'
+    mock_llm = Mock()
+    mock_llm.complete.return_value = LLMResult(content='Mock LLM response')
 
     mf = MarkdownFlow(doc, llm_provider=mock_llm)
     print('Variables:', mf.extract_variables())
     print('Blocks:', len(mf.get_all_blocks()))
 
-    result = await mf.process(0, ProcessMode.COMPLETE, {'name': 'John'})
+    result = mf.process(0, ProcessMode.COMPLETE, {'name': 'John'})
     print('Process result:', result)
 
-asyncio.run(test())
+test()
 "
 
 # Check Commitizen configuration and version
@@ -1082,9 +1080,9 @@ from functools import wraps
 
 def timing_decorator(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         start = time.time()
-        result = await func(*args, **kwargs)
+        result = func(*args, **kwargs)
         end = time.time()
         print(f"{func.__name__} took {end - start:.2f}s")
         return result
@@ -1097,14 +1095,14 @@ def timing_decorator(func):
 
 ```python
 from markdown_flow.llm import LLMProvider, LLMResult
-from collections.abc import AsyncGenerator
+from collections.abc import Generator
 from typing import List, Dict, Any
 
 class CustomLLMProvider(LLMProvider):
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    async def complete(
+    def complete(
         self,
         messages: List[Dict[str, str]],
         tools: List[Dict[str, Any]] | None = None
@@ -1113,7 +1111,7 @@ class CustomLLMProvider(LLMProvider):
 
         if tools:
             # Handle Function Calling request
-            response = await your_llm_api.complete_with_tools(messages, tools)
+            response = your_llm_api.complete_with_tools(messages, tools)
 
             # Check if LLM called a function
             if response.tool_calls:
@@ -1135,15 +1133,15 @@ class CustomLLMProvider(LLMProvider):
             )
         else:
             # Regular completion without tools
-            response = await your_llm_api.complete(messages)
+            response = your_llm_api.complete(messages)
             return LLMResult(
                 content=response.text,
                 transformed_to_interaction=False
             )
 
-    async def stream(self, messages: List[Dict[str, str]]) -> AsyncGenerator[str, None]:
+    def stream(self, messages: List[Dict[str, str]]) -> Generator[str, None, None]:
         # Implement streaming logic
-        async for chunk in your_llm_api.stream(messages):
+        for chunk in your_llm_api.stream(messages):
             yield chunk.text
 
 # Usage
@@ -1162,24 +1160,35 @@ mf_dynamic = MarkdownFlow(
 ### Batch Processing Multiple Documents
 
 ```python
-import asyncio
 from markdown_flow import MarkdownFlow, ProcessMode
+from concurrent.futures import ThreadPoolExecutor
 
-async def process_documents(documents: list, llm_provider):
-    """Process multiple documents concurrently"""
-    tasks = []
+def process_documents(documents: list, llm_provider):
+    """Process multiple documents with thread pool"""
+    results = []
 
-    for i, doc in enumerate(documents):
+    for doc in documents:
         mf = MarkdownFlow(doc, llm_provider=llm_provider)
-        task = mf.process(0, ProcessMode.COMPLETE)
-        tasks.append(task)
+        result = mf.process(0, ProcessMode.COMPLETE)
+        results.append(result)
 
-    results = await asyncio.gather(*tasks)
+    return results
+
+# For concurrent processing
+def process_documents_concurrent(documents: list, llm_provider):
+    """Process multiple documents concurrently"""
+    def process_single(doc):
+        mf = MarkdownFlow(doc, llm_provider=llm_provider)
+        return mf.process(0, ProcessMode.COMPLETE)
+
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(process_single, documents))
+
     return results
 
 # Usage
 documents = ["Document 1", "Document 2", "Document 3"]
-results = await process_documents(documents, your_llm_provider)
+results = process_documents(documents, your_llm_provider)
 ```
 
 ### Variable Validation and Transformation
@@ -1202,11 +1211,11 @@ class ValidatedMarkdownFlow(MarkdownFlow):
                 validated[key] = value
         return validated
 
-    async def process(self, block_index: int, mode: ProcessMode,
-                     variables: dict = None, user_input: str = None):
+    def process(self, block_index: int, mode: ProcessMode,
+                variables: dict = None, user_input: str = None):
         if variables:
             variables = self.validate_variables(variables)
-        return await super().process(block_index, mode, variables, user_input)
+        return super().process(block_index, mode, variables, user_input)
 
 # Usage with validators
 validators = {
@@ -1251,7 +1260,7 @@ mf = ValidatedMarkdownFlow(document, llm_provider, validators)
 - **Structured Returns**: Always returns `LLMResult` with consistent metadata
 - **Function Calling Integration**: Built-in support for dynamic interaction generation
 - **Three Processing Modes**: PROMPT_ONLY, COMPLETE, and STREAM support different use cases
-- **Async/await Pattern**: Non-blocking operations throughout
+- **Synchronous Operations**: Clean synchronous interface throughout the library
 - **Error Handling**: Automatic fallback from Function Calling to regular completion
 
 ### Dynamic Interaction Philosophy
