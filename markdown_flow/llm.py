@@ -40,11 +40,7 @@ class LLMProvider(ABC):
     """Abstract LLM provider interface."""
 
     @abstractmethod
-    async def complete(
-        self,
-        messages: list[dict[str, str]],
-        tools: list[dict[str, Any]] | None = None
-    ) -> LLMResult:
+    async def complete(self, messages: list[dict[str, str]], tools: list[dict[str, Any]] | None = None) -> LLMResult:
         """
         Non-streaming LLM call with optional function calling support.
 
@@ -75,15 +71,10 @@ class LLMProvider(ABC):
         """
 
 
-
 class NoLLMProvider(LLMProvider):
     """Empty LLM provider for prompt-only scenarios."""
 
-    async def complete(
-        self,
-        messages: list[dict[str, str]],
-        tools: list[dict[str, Any]] | None = None
-    ) -> LLMResult:
+    async def complete(self, messages: list[dict[str, str]], tools: list[dict[str, Any]] | None = None) -> LLMResult:
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
 
     async def stream(self, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:

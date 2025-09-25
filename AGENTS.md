@@ -53,7 +53,8 @@ MarkdownFlow Agent (Python) is a specialized library designed to parse and proce
 
 - **Three-Layer Parsing Architecture**: Document → Block → Interaction level parsing
 - **Variable System**: Support for `{{variable}}` (replaceable) and `%{{variable}}` (preserved) formats
-- **LLM Integration**: Abstract provider interface with multiple processing modes
+- **Unified LLM Integration**: Single interface supporting both regular calls and Function Calling
+- **Dynamic Interaction Generation**: Content blocks can be automatically converted to interaction blocks using Function Calling
 - **Interactive Elements**: Parse and handle `?[]` syntax for user interactions
 - **Stream Processing**: Support for real-time streaming responses
 - **Type Safety**: Full TypeScript-style type hints for Python development
@@ -76,11 +77,12 @@ The project follows a clean, modular architecture with clear separation of conce
 2. **Block Level**: Categorizes blocks as CONTENT, INTERACTION, or PRESERVED_CONTENT
 3. **Interaction Level**: Parses `?[]` formats into TEXT_ONLY, BUTTONS_ONLY, BUTTONS_WITH_TEXT, BUTTONS_MULTI_SELECT, BUTTONS_MULTI_WITH_TEXT, or NON_ASSIGNMENT_BUTTON types
 
-**LLM Integration (`llm.py`)** - Abstract provider interface
+**LLM Integration (`llm.py`)** - Unified provider interface
 
 - `PROMPT_ONLY`: Generate prompts without LLM calls
-- `COMPLETE`: Non-streaming LLM processing
+- `COMPLETE`: Non-streaming LLM processing with optional Function Calling support
 - `STREAM`: Streaming LLM responses
+- **Dynamic Interaction**: Function Calling enables automatic content → interaction conversion
 
 **Utilities (`utils.py`)** - Core processing utilities
 
@@ -269,6 +271,99 @@ if result.stderr: print('Errors:', result.stderr)
 - `InteractionParser.parse(content: str) -> InteractionType`
 - `extract_interaction_question(content: str) -> str`
 - `generate_smart_validation_template(interaction_type: InteractionType) -> str`
+
+## Dynamic Interaction Generation
+
+MarkdownFlow supports **dynamic conversion** of regular content blocks into interactive blocks using Function Calling. This powerful feature allows natural language content to be automatically transformed into structured user interactions.
+
+### How It Works
+
+1. **Natural Language Input**: Write content like "询问用户的菜品偏好，并记录到变量{{菜品选择}}"
+2. **Automatic Detection**: LLM analyzes content and determines if interaction is needed
+3. **Structured Generation**: Returns structured data for building proper interaction blocks
+4. **Seamless Integration**: Works automatically for all content blocks with LLM providers
+
+### Usage Example
+
+```python
+from markdown_flow import MarkdownFlow, ProcessMode
+
+# Dynamic interaction works automatically with any LLM provider
+mf = MarkdownFlow(
+    document="询问用户的菜品偏好，并记录到变量{{菜品选择}}",
+    llm_provider=llm_provider,
+    document_prompt="你是中餐厅服务员，提供川菜、粤菜、鲁菜选项"
+)
+
+# Process with dynamic interaction
+result = await mf.process(0, ProcessMode.COMPLETE)
+
+# Check if converted to interaction
+if result.transformed_to_interaction:
+    print(f"Generated interaction: {result.content}")
+    # Example output: ?[%{{菜品选择}} 宫保鸡丁||麻婆豆腐||水煮鱼||...其他菜品]
+```
+
+### Structured Function Calling (方案A)
+
+The system uses **structured Function Calling** to separate data generation from format construction:
+
+**LLM Returns Structured Data**:
+
+```json
+{
+  "needs_interaction": true,
+  "variable_name": "菜品选择",
+  "interaction_type": "multi_select",
+  "options": ["宫保鸡丁", "麻婆豆腐", "水煮鱼"],
+  "allow_text_input": true,
+  "text_input_prompt": "其他菜品"
+}
+```
+
+**Core.py Builds Format**:
+
+```python
+def _build_interaction_format(self, tool_args: dict) -> str:
+    # Constructs MarkdownFlow format from structured data
+    return f"?[%{{{variable_name}}} {options_str}]"
+```
+
+### Selection Type Intelligence
+
+The LLM automatically determines the appropriate interaction type:
+
+- **Single Select** (`|`): Job positions, experience levels, yes/no choices
+- **Multi Select** (`||`): Skills, interests, product categories
+- **Text Input** (`...`): Names, custom descriptions, open-ended responses
+- **Mixed Mode**: Predefined options + custom text input
+
+### Language Support
+
+Dynamic interaction generation supports any language:
+
+```python
+# Chinese restaurant scenario
+document_prompt = """你是中餐厅服务员，提供中式菜品选项：
+- 川菜（宫保鸡丁、麻婆豆腐、水煮鱼）
+- 粤菜（白切鸡、蒸蛋羹、叉烧包）
+语言：中文"""
+
+# English education scenario
+document_prompt = """You are an education consultant. Provide learning options:
+- Study Fields: Computer Science, Business, Engineering
+Language: English"""
+```
+
+### Variable Context Resolution
+
+The system provides both original and resolved content to the LLM for better context understanding:
+
+```python
+# Original: "根据用户选择的{{菜系}}，询问具体菜品"
+# Resolved: "根据用户选择的川菜，询问具体菜品"
+# LLM sees both contexts for accurate option generation
+```
 
 ## Variable System
 
@@ -1001,26 +1096,67 @@ def timing_decorator(func):
 ### Custom LLM Provider Implementation
 
 ```python
-from markdown_flow.llm import LLMProvider, LLMResult, ProcessMode
+from markdown_flow.llm import LLMProvider, LLMResult
 from collections.abc import AsyncGenerator
+from typing import List, Dict, Any
 
 class CustomLLMProvider(LLMProvider):
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    async def complete(self, prompt: str) -> LLMResult:
-        # Implement your LLM completion logic
-        response = await your_llm_api.complete(prompt)
-        return LLMResult(content=response.text)
+    async def complete(
+        self,
+        messages: List[Dict[str, str]],
+        tools: List[Dict[str, Any]] | None = None
+    ) -> LLMResult:
+        """Unified completion method supporting optional Function Calling"""
 
-    async def stream(self, prompt: str) -> AsyncGenerator[str, None]:
+        if tools:
+            # Handle Function Calling request
+            response = await your_llm_api.complete_with_tools(messages, tools)
+
+            # Check if LLM called a function
+            if response.tool_calls:
+                tool_call = response.tool_calls[0]
+                function_args = json.loads(tool_call.function.arguments)
+
+                if function_args.get("needs_interaction"):
+                    # Return structured data for interaction generation
+                    return LLMResult(
+                        content="",  # Will be built by core.py
+                        transformed_to_interaction=True,
+                        metadata={"tool_args": function_args}
+                    )
+
+            # No tool call, return regular response
+            return LLMResult(
+                content=response.content,
+                transformed_to_interaction=False
+            )
+        else:
+            # Regular completion without tools
+            response = await your_llm_api.complete(messages)
+            return LLMResult(
+                content=response.text,
+                transformed_to_interaction=False
+            )
+
+    async def stream(self, messages: List[Dict[str, str]]) -> AsyncGenerator[str, None]:
         # Implement streaming logic
-        async for chunk in your_llm_api.stream(prompt):
+        async for chunk in your_llm_api.stream(messages):
             yield chunk.text
 
 # Usage
 provider = CustomLLMProvider("your-api-key")
+
+# Regular usage
 mf = MarkdownFlow(document, llm_provider=provider)
+
+# Dynamic interaction works automatically
+mf_dynamic = MarkdownFlow(
+    document="询问用户偏好",
+    llm_provider=provider
+)
 ```
 
 ### Batch Processing Multiple Documents
@@ -1110,10 +1246,22 @@ mf = ValidatedMarkdownFlow(document, llm_provider, validators)
 
 ### LLM Provider Abstraction
 
-- Providers are completely abstracted to support different AI services
-- Three processing modes support different use cases
-- Async/await pattern throughout for non-blocking operations
-- Error handling and timeout management built into the interface
+- **Unified Interface**: Single `complete()` method handles both regular and Function Calling modes
+- **Automatic Switching**: Tools parameter determines processing mode automatically
+- **Structured Returns**: Always returns `LLMResult` with consistent metadata
+- **Function Calling Integration**: Built-in support for dynamic interaction generation
+- **Three Processing Modes**: PROMPT_ONLY, COMPLETE, and STREAM support different use cases
+- **Async/await Pattern**: Non-blocking operations throughout
+- **Error Handling**: Automatic fallback from Function Calling to regular completion
+
+### Dynamic Interaction Philosophy
+
+- **Natural Language First**: Write content in natural language, let AI determine interaction needs
+- **Structured Data Separation**: LLM returns structured data, core.py builds MarkdownFlow format
+- **Language Agnostic**: Works with any language when proper document_prompt is provided
+- **Context Aware**: Both original and resolved variable contexts provided to LLM
+- **Selection Intelligence**: Automatic determination of single vs multi-select based on content
+- **Stateless Operation**: Client manages dynamic interaction state, no server-side persistence
 
 ## Additional Resources
 

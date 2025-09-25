@@ -69,7 +69,6 @@ class MarkdownFlow:
         document_prompt: str | None = None,
         interaction_prompt: str | None = None,
         interaction_error_prompt: str | None = None,
-        enable_dynamic_interaction: bool = False,
     ):
         """
         Initialize MarkdownFlow instance.
@@ -80,14 +79,12 @@ class MarkdownFlow:
             document_prompt: Document-level system prompt
             interaction_prompt: Interaction content rendering prompt
             interaction_error_prompt: Interaction error rendering prompt
-            enable_dynamic_interaction: Enable dynamic content to interaction conversion
         """
         self._document = document
         self._llm_provider = llm_provider
         self._document_prompt = document_prompt
         self._interaction_prompt = interaction_prompt or DEFAULT_INTERACTION_PROMPT
         self._interaction_error_prompt = interaction_error_prompt or DEFAULT_INTERACTION_ERROR_PROMPT
-        self._enable_dynamic_interaction = enable_dynamic_interaction
         self._blocks = None
         self._interaction_configs: dict[int, InteractionValidationConfig] = {}
 
@@ -211,9 +208,7 @@ class MarkdownFlow:
         if block.block_type == BlockType.CONTENT:
             # Check if this is dynamic interaction validation
             if dynamic_interaction_format and user_input:
-                return await self._process_dynamic_interaction_validation(
-                    block_index, dynamic_interaction_format, user_input, mode, context, variables
-                )
+                return await self._process_dynamic_interaction_validation(block_index, dynamic_interaction_format, user_input, mode, context, variables)
             # Normal content processing (possibly with dynamic conversion)
             return await self._process_content(block_index, mode, context, variables)
 
@@ -242,9 +237,11 @@ class MarkdownFlow:
     ) -> LLMResult | AsyncGenerator[LLMResult, None]:
         """Process content block."""
 
-        # Check if dynamic interaction is enabled and should be attempted
-        if self._enable_dynamic_interaction and mode != ProcessMode.PROMPT_ONLY:
-            return await self._process_with_dynamic_check(block_index, mode, context, variables)
+        # Always attempt dynamic interaction for content blocks (LLM decides)
+        if mode != ProcessMode.PROMPT_ONLY and self._llm_provider:
+            block = self.get_block(block_index)
+            if block.block_type == BlockType.CONTENT:
+                return await self._process_with_dynamic_check(block_index, mode, context, variables)
 
         # Original logic: Build messages
         messages = self._build_content_messages(block_index, variables)
@@ -831,45 +828,31 @@ Original Error: {error_message}
         messages = self._build_dynamic_check_messages(block, context, variables)
 
         # Define Function Calling tools with structured approach
-        tools = [{
-            "type": "function",
-            "function": {
-                "name": "create_interaction_block",
-                "description": "Convert content to interaction block with structured data when it needs to collect user input",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "needs_interaction": {
-                            "type": "boolean",
-                            "description": "Whether this content needs to be converted to interaction block"
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_interaction_block",
+                    "description": "Convert content to interaction block with structured data when it needs to collect user input",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "needs_interaction": {"type": "boolean", "description": "Whether this content needs to be converted to interaction block"},
+                            "variable_name": {"type": "string", "description": "Name of the variable to collect (without {{}} brackets)"},
+                            "interaction_type": {
+                                "type": "string",
+                                "enum": ["single_select", "multi_select", "text_input", "mixed"],
+                                "description": "Type of interaction: single_select (|), multi_select (||), text_input (...), mixed (options + text)",
+                            },
+                            "options": {"type": "array", "items": {"type": "string"}, "description": "List of selectable options (3-4 specific options based on context)"},
+                            "allow_text_input": {"type": "boolean", "description": "Whether to include a text input option for 'Other' cases"},
+                            "text_input_prompt": {"type": "string", "description": "Prompt text for the text input option (e.g., '其他请输入', 'Other, please specify')"},
                         },
-                        "variable_name": {
-                            "type": "string",
-                            "description": "Name of the variable to collect (without {{}} brackets)"
-                        },
-                        "interaction_type": {
-                            "type": "string",
-                            "enum": ["single_select", "multi_select", "text_input", "mixed"],
-                            "description": "Type of interaction: single_select (|), multi_select (||), text_input (...), mixed (options + text)"
-                        },
-                        "options": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "List of selectable options (3-4 specific options based on context)"
-                        },
-                        "allow_text_input": {
-                            "type": "boolean",
-                            "description": "Whether to include a text input option for 'Other' cases"
-                        },
-                        "text_input_prompt": {
-                            "type": "string",
-                            "description": "Prompt text for the text input option (e.g., '其他请输入', 'Other, please specify')"
-                        }
+                        "required": ["needs_interaction"],
                     },
-                    "required": ["needs_interaction"]
-                }
+                },
             }
-        }]
+        ]
 
         if not self._llm_provider:
             raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
@@ -891,9 +874,12 @@ Original Error: {error_message}
 
         # If not transformed, continue with normal processing
         if mode == ProcessMode.STREAM:
+
             async def stream_wrapper():
-                async for chunk in self._llm_provider.stream(messages):
+                stream_generator = await self._llm_provider.stream(messages)
+                async for chunk in stream_generator:
                     yield LLMResult(content=chunk)
+
             return stream_wrapper()
 
         # Complete mode - already handled by complete_with_tools
@@ -940,6 +926,7 @@ If conversion is needed, generate a STANDARD interaction block format with SPECI
         resolved_content = original_content
         if variables:
             from .utils import replace_variables_in_text
+
             resolved_content = replace_variables_in_text(original_content, variables)
 
         content_analysis = f"""Current content block to analyze:
@@ -956,6 +943,7 @@ If conversion is needed, generate a STANDARD interaction block format with SPECI
         # Add different analysis based on whether content has variables
         if "{{" in original_content and "}}" in original_content:
             from .utils import extract_variables_from_text
+
             content_variables = set(extract_variables_from_text(original_content))
 
             # Find new variables (not yet collected)
@@ -1015,9 +1003,7 @@ Analyze the content and provide the structured interaction data.""")
 
         user_prompt = "\n\n".join(user_prompt_parts)
 
-        messages = [
-            {"role": "system", "content": system_prompt}
-        ]
+        messages = [{"role": "system", "content": system_prompt}]
 
         # Add context if provided
         if context:
@@ -1086,7 +1072,8 @@ Analyze the content and provide the structured interaction data.""")
         # Extract variable name from the interaction format
         # This is a simplified extraction - in real implementation you'd use the parser result
         import re
-        var_match = re.search(r'%\{\{([^}]+)\}\}', interaction_format)
+
+        var_match = re.search(r"%\{\{([^}]+)\}\}", interaction_format)
         if not var_match:
             raise ValueError(f"No variable found in interaction format: {interaction_format}")
 
@@ -1110,9 +1097,5 @@ Analyze the content and provide the structured interaction data.""")
         return LLMResult(
             content=f"Successfully collected {variable_name}: {user_values}",
             variables=updated_variables,
-            metadata={
-                "validation_success": True,
-                "variable_collected": variable_name,
-                "values_collected": user_values
-            }
+            metadata={"validation_success": True, "variable_collected": variable_name, "values_collected": user_values},
         )

@@ -74,6 +74,36 @@ async for chunk in mf.process(
     print(chunk.content, end='')
 ```
 
+### Dynamic Interaction Generation ✨
+
+Transform natural language content into interactive elements automatically:
+
+```python
+from markdown_flow import MarkdownFlow, ProcessMode
+
+# Dynamic interaction generation works automatically
+mf = MarkdownFlow(
+    document="询问用户的菜品偏好，并记录到变量{{菜品选择}}",
+    llm_provider=llm_provider,
+    document_prompt="你是中餐厅服务员，提供川菜、粤菜、鲁菜等选项"
+)
+
+# Process with Function Calling
+result = await mf.process(0, ProcessMode.COMPLETE)
+
+if result.transformed_to_interaction:
+    print(f"Generated interaction: {result.content}")
+    # Output: ?[%{{菜品选择}} 宫保鸡丁||麻婆豆腐||水煮鱼||...其他菜品]
+
+# Continue with user input
+user_result = await mf.process(
+    block_index=0,
+    mode=ProcessMode.COMPLETE,
+    user_input={"菜品选择": ["宫保鸡丁", "麻婆豆腐"]},
+    dynamic_interaction_format=result.content
+)
+```
+
 ### Interactive Elements
 
 ```python
@@ -110,6 +140,59 @@ result = await mf.process(
     mode=ProcessMode.COMPLETE
 )
 ```
+
+## ✨ Key Features
+
+### 🏗️ Three-Layer Architecture
+
+- **Document Level**: Parse `---` separators and `?[]` interaction patterns
+- **Block Level**: Categorize as CONTENT, INTERACTION, or PRESERVED_CONTENT
+- **Interaction Level**: Handle 6 different interaction types with smart validation
+
+### 🔄 Dynamic Interaction Generation
+
+- **Natural Language Input**: Write content in plain language
+- **AI-Powered Conversion**: LLM automatically detects interaction needs using Function Calling
+- **Structured Data Generation**: LLM returns structured data, core builds MarkdownFlow format
+- **Language Agnostic**: Support for any language with proper document prompts
+- **Context Awareness**: Both original and resolved variable contexts provided to LLM
+
+### 🤖 Unified LLM Integration
+
+- **Single Interface**: One `complete()` method for both regular and Function Calling modes
+- **Automatic Detection**: Tools parameter determines processing mode automatically
+- **Consistent Returns**: Always returns `LLMResult` with structured metadata
+- **Error Handling**: Automatic fallback from Function Calling to regular completion
+- **Provider Agnostic**: Abstract interface supports any LLM service
+
+### 📝 Variable System
+
+- **Replaceable Variables**: `{{variable}}` for content personalization
+- **Preserved Variables**: `%{{variable}}` for LLM understanding in interactions
+- **Multi-Value Support**: Handle both single values and arrays
+- **Smart Extraction**: Automatic detection from document content
+
+### 🎯 Interaction Types
+
+- **Text Input**: `?[%{{var}}...question]` - Free text entry
+- **Single Select**: `?[%{{var}} A|B|C]` - Choose one option
+- **Multi Select**: `?[%{{var}} A||B||C]` - Choose multiple options
+- **Mixed Mode**: `?[%{{var}} A||B||...custom]` - Predefined + custom input
+- **Display Buttons**: `?[Continue|Cancel]` - Action buttons without assignment
+- **Value Separation**: `?[%{{var}} Display//value|...]` - Different display/stored values
+
+### 🔒 Content Preservation
+
+- **Multiline Format**: `!===content!===` blocks output exactly as written
+- **Inline Format**: `===content===` for single-line preserved content
+- **Variable Support**: Preserved content can contain variables for substitution
+
+### ⚡ Performance Optimized
+
+- **Pre-compiled Regex**: All patterns compiled once for maximum performance
+- **Async/Await**: Non-blocking operations throughout
+- **Stream Processing**: Real-time streaming responses supported
+- **Memory Efficient**: Lazy evaluation and generator patterns
 
 ## 📖 API Reference
 

@@ -74,6 +74,36 @@ async for chunk in mf.process(
     print(chunk.content, end='')
 ```
 
+### 动态交互生成 ✨
+
+将自然语言内容自动转换为交互式元素：
+
+```python
+from markdown_flow import MarkdownFlow, ProcessMode
+
+# 动态交互生成自动工作
+mf = MarkdownFlow(
+    document="询问用户的菜品偏好，并记录到变量{{菜品选择}}",
+    llm_provider=llm_provider,
+    document_prompt="你是中餐厅服务员，提供川菜、粤菜、鲁菜等选项"
+)
+
+# 使用 Function Calling 处理
+result = await mf.process(0, ProcessMode.COMPLETE)
+
+if result.transformed_to_interaction:
+    print(f"生成的交互: {result.content}")
+    # 输出: ?[%{{菜品选择}} 宫保鸡丁||麻婆豆腐||水煮鱼||...其他菜品]
+
+# 继续处理用户输入
+user_result = await mf.process(
+    block_index=0,
+    mode=ProcessMode.COMPLETE,
+    user_input={"菜品选择": ["宫保鸡丁", "麻婆豆腐"]},
+    dynamic_interaction_format=result.content
+)
+```
+
 ### 交互式元素
 
 ```python
@@ -110,6 +140,59 @@ result = await mf.process(
     mode=ProcessMode.COMPLETE
 )
 ```
+
+## ✨ 核心特性
+
+### 🏗️ 三层架构
+
+- **文档层**: 解析 `---` 分隔符和 `?[]` 交互模式
+- **区块层**: 分类为 CONTENT（内容）、INTERACTION（交互）或 PRESERVED_CONTENT（保留内容）
+- **交互层**: 处理 6 种不同的交互类型并进行智能验证
+
+### 🔄 动态交互生成
+
+- **自然语言输入**: 使用纯文本编写内容
+- **AI 驱动转换**: LLM 自动检测交互需求，使用 Function Calling
+- **结构化数据生成**: LLM 返回结构化数据，核心构建 MarkdownFlow 格式
+- **多语言支持**: 支持任何语言的恰当文档提示
+- **上下文感知**: 向 LLM 提供原始和解析后的变量上下文
+
+### 🤖 统一 LLM 集成
+
+- **单一接口**: 一个 `complete()` 方法同时支持常规和 Function Calling 模式
+- **自动检测**: 工具参数自动确定处理模式
+- **一致返回**: 总是返回带有结构化元数据的 `LLMResult`
+- **错误处理**: 从 Function Calling 自动降级到常规完成
+- **提供商无关**: 抽象接口支持任何 LLM 服务
+
+### 📝 变量系统
+
+- **可替换变量**: `{{variable}}` 用于内容个性化
+- **保留变量**: `%{{variable}}` 用于交互中的 LLM 理解
+- **多值支持**: 处理单个值和数组
+- **智能提取**: 从文档内容自动检测
+
+### 🎯 交互类型
+
+- **文本输入**: `?[%{{var}}...问题]` - 自由文本输入
+- **单选**: `?[%{{var}} A|B|C]` - 选择一个选项
+- **多选**: `?[%{{var}} A||B||C]` - 选择多个选项
+- **混合模式**: `?[%{{var}} A||B||...自定义]` - 预定义 + 自定义输入
+- **显示按钮**: `?[继续|取消]` - 无赋值的操作按钮
+- **值分离**: `?[%{{var}} 显示//值|...]` - 不同的显示/存储值
+
+### 🔒 内容保护
+
+- **多行格式**: `!===内容!===` 块完全按原样输出
+- **内联格式**: `===内容===` 单行保留内容
+- **变量支持**: 保留内容可以包含用于替换的变量
+
+### ⚡ 性能优化
+
+- **预编译正则**: 所有模式一次编译以获得最大性能
+- **异步/等待**: 全程非阻塞操作
+- **流处理**: 支持实时流式响应
+- **内存高效**: 懒求值和生成器模式
 
 ## 📖 API 参考
 
