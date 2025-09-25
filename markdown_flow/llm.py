@@ -5,7 +5,7 @@ Provides LLM provider interfaces and related data models, supporting multiple pr
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import Generator
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
