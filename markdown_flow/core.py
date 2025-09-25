@@ -505,7 +505,7 @@ class MarkdownFlow:
                 target_variable=target_variable,
                 options=button_displays,
                 question=question,
-                mode=mode
+                mode=mode,
             )
 
         # Check for validation errors in pure button mode or when text input not allowed
@@ -1123,9 +1123,8 @@ Analyze the content and provide the structured interaction data.""")
                         "empty_input": True,
                     },
                 )
-            else:
-                error_msg = f"No input provided for variable '{variable_name}'"
-                return self._render_error(error_msg, mode)
+            error_msg = f"No input provided for variable '{variable_name}'"
+            return self._render_error(error_msg, mode)
 
         # Use the same validation logic as normal interactions
         if interaction_type in [
@@ -1144,7 +1143,7 @@ Analyze the content and provide the structured interaction data.""")
             )
 
             # Merge with existing variables for dynamic interactions
-            if hasattr(button_result, 'variables') and button_result.variables is not None and variables:
+            if hasattr(button_result, "variables") and button_result.variables is not None and variables:
                 merged_variables = dict(variables)
                 merged_variables.update(button_result.variables)
                 return LLMResult(
@@ -1154,7 +1153,7 @@ Analyze the content and provide the structured interaction data.""")
                 )
             return button_result
 
-        elif interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
+        if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
             # Non-assignment buttons: don't set variables, keep existing ones
             return LLMResult(
                 content="",
@@ -1164,16 +1163,15 @@ Analyze the content and provide the structured interaction data.""")
                     "user_input": user_input,
                 },
             )
-        else:
-            # Text-only input type - merge with existing variables
-            merged_variables = dict(variables or {})
-            merged_variables[variable_name] = target_values
-            return LLMResult(
-                content="",
-                variables=merged_variables,
-                metadata={
-                    "interaction_type": "text_only",
-                    "target_variable": variable_name,
-                    "values": target_values,
-                },
-            )
+        # Text-only input type - merge with existing variables
+        merged_variables = dict(variables or {})
+        merged_variables[variable_name] = target_values
+        return LLMResult(
+            content="",
+            variables=merged_variables,
+            metadata={
+                "interaction_type": "text_only",
+                "target_variable": variable_name,
+                "values": target_values,
+            },
+        )
