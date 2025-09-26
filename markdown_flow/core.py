@@ -827,7 +827,14 @@ Original Error: {error_message}
         if match:
             prefix = match.group(1)
             suffix = match.group(2)
-            return f"{prefix}{cleaned_question}{suffix}"
+            # Extract only the closing bracket from suffix, remove original question
+            # suffix format is "original_question]", we only want "]"
+            if suffix.endswith("]"):
+                clean_suffix = "]"
+            else:
+                clean_suffix = suffix
+
+            return f"{prefix}{cleaned_question}{clean_suffix}"
         return original_content  # type: ignore[unreachable]
 
     # Dynamic Interaction Methods
