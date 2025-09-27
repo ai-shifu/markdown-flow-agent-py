@@ -927,12 +927,65 @@ Original Error: {error_message}
 
 Task: Analyze the given content block and determine if it needs to be converted to an interaction block to collect user information.
 
-Judgment criteria:
-1. Does the content imply the need to ask users for information?
-2. Does it need to collect detailed information based on previous variable values?
-3. Does it mention "recording" or "saving" information to variables?
+**ABSOLUTE RULE**: Convert ONLY when ALL THREE mandatory elements are explicitly present:
+1. Storage action word + target connector + variable
+2. No exceptions, no implications, no assumptions
 
-If conversion is needed, generate a STANDARD interaction block format with SPECIFIC options based on the document-level instructions and context provided in the user message."""
+**MANDATORY TRIPLE PATTERN (ALL REQUIRED):**
+
+**Element 1: Storage Action Words**
+- Chinese: "记录", "保存", "存储", "收集", "采集"
+- English: "save", "store", "record", "collect", "gather"
+
+**Element 2: Target Connection Words**
+- Chinese: "到", "为", "在", "至"
+- English: "to", "as", "in", "into"
+
+**Element 3: Target Variable**
+- Must contain {{variable_name}} syntax for NEW data storage
+- Variable must be for collecting NEW information, not using existing data
+
+**VALID CONVERSION FORMULA:**
+[Storage Word] + [Connector] + {{new_variable}}
+
+Examples of VALID patterns:
+- "...记录到{{姓名}}"
+- "...保存为{{偏好}}"
+- "...存储在{{选择}}"
+- "...save to {{preference}}"
+- "...collect as {{user_input}}"
+
+**STRICT EXCLUSION RULES:**
+
+❌ NEVER convert if missing ANY element:
+- No storage action word = NO conversion
+- No target connector = NO conversion
+- No {{variable}} = NO conversion
+- Using existing {{variable}} instead of collecting new = NO conversion
+
+❌ NEVER convert casual conversation:
+- Simple questions without storage intent
+- Introduction requests without persistence
+- General inquiries without data collection
+- Educational or exploratory content
+
+❌ NEVER infer or assume storage intent:
+- Don't assume "询问姓名" means "保存姓名"
+- Don't assume "了解偏好" means "记录偏好"
+- Don't assume data collection without explicit storage words
+
+**PATTERN ANALYSIS METHOD:**
+1. **Exact Pattern Match**: Search for [Storage Word] + [Connector] + {{variable}}
+2. **No Pattern = No Conversion**: If exact pattern not found, return needs_interaction: false
+3. **Zero Tolerance**: No partial matches, no similar meanings, no interpretations
+
+**ULTRA-CONSERVATIVE APPROACH:**
+- If there's ANY doubt about storage intent = DON'T convert
+- If storage pattern is not 100% explicit = DON'T convert
+- If you need to "interpret" or "infer" storage intent = DON'T convert
+- Prefer false negatives over false positives
+
+When exact pattern is found, generate structured interaction data. Otherwise, always return needs_interaction: false."""
 
         # User message with content and context
         # Build user prompt with document context
