@@ -9,7 +9,7 @@ import re
 
 # Pre-compiled regex patterns
 COMPILED_PERCENT_VARIABLE_REGEX = re.compile(
-    r"%\{\{([^}]+)\}\}"  # Match %{{variable}} format for preserved variables
+    r"%\{\{([\w]+)\}\}"  # Match %{{variable}} format for preserved variables
 )
 
 # Interaction regex base patterns
@@ -20,11 +20,11 @@ INTERACTION_PATTERN_SPLIT = r"((?<!\\)\?\[[^\]]*\](?!\())"  # Pattern for re.spl
 # InteractionParser specific regex patterns
 COMPILED_INTERACTION_REGEX = re.compile(INTERACTION_PATTERN)  # Main interaction pattern matcher
 COMPILED_LAYER1_INTERACTION_REGEX = COMPILED_INTERACTION_REGEX  # Layer 1: Basic format validation (alias)
-COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^%\{\{([^}]+)\}\}(.*)$")  # Layer 2: Variable detection
+COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^%\{\{([\w]+)\}\}(.*)$")  # Layer 2: Variable detection
 COMPILED_LAYER3_ELLIPSIS_REGEX = re.compile(r"^(.*)\.\.\.(.*)")  # Layer 3: Split content around ellipsis
 COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Parse Button//value format
 COMPILED_BRACE_VARIABLE_REGEX = re.compile(
-    r"(?<!%)\{\{([^}]+)\}\}"  # Match {{variable}} format for replaceable variables
+    r"(?<!%)\{\{([\w]+)\}\}"  # Match {{variable}} format for replaceable variables
 )
 COMPILED_INTERACTION_CONTENT_RECONSTRUCT_REGEX = re.compile(
     r"(\?\[[^]]*\.\.\.)([^]]*\])"  # Reconstruct interaction content: prefix + question + suffix
