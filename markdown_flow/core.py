@@ -21,6 +21,13 @@ from .constants import (
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
     DEFAULT_VALIDATION_SYSTEM_MESSAGE,
+    DYNAMIC_INTERACTION_CONTENT_ANALYSIS_TEMPLATE,
+    DYNAMIC_INTERACTION_DOCUMENT_CONTEXT_TEMPLATE,
+    DYNAMIC_INTERACTION_OUTPUT_INSTRUCTIONS,
+    DYNAMIC_INTERACTION_SELECTION_TYPE_GUIDE,
+    DYNAMIC_INTERACTION_SYSTEM_PROMPT,
+    DYNAMIC_INTERACTION_TASK_INSTRUCTIONS,
+    DYNAMIC_INTERACTION_VARIABLE_ANALYSIS_TEMPLATE,
     INPUT_EMPTY_ERROR,
     INTERACTION_ERROR_RENDER_INSTRUCTIONS,
     INTERACTION_PARSE_ERROR,
@@ -30,6 +37,7 @@ from .constants import (
     LLM_PROVIDER_REQUIRED_ERROR,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
 )
+from .function_calling import DYNAMIC_INTERACTION_TOOLS, build_interaction_format
 from .enums import BlockType
 from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
@@ -851,45 +859,18 @@ Original Error: {error_message}
         block = self.get_block(block_index)
         messages = self._build_dynamic_check_messages(block, context, variables)
 
-        # Define Function Calling tools with structured approach
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "create_interaction_block",
-                    "description": "Convert content to interaction block with structured data when it needs to collect user input",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "needs_interaction": {"type": "boolean", "description": "Whether this content needs to be converted to interaction block"},
-                            "variable_name": {"type": "string", "description": "Name of the variable to collect (without {{}} brackets)"},
-                            "interaction_type": {
-                                "type": "string",
-                                "enum": ["single_select", "multi_select", "text_input", "mixed"],
-                                "description": "Type of interaction: single_select (|), multi_select (||), text_input (...), mixed (options + text)",
-                            },
-                            "options": {"type": "array", "items": {"type": "string"}, "description": "List of selectable options (3-4 specific options based on context)"},
-                            "allow_text_input": {"type": "boolean", "description": "Whether to include a text input option for 'Other' cases"},
-                            "text_input_prompt": {"type": "string", "description": "Prompt text for the text input option (e.g., '其他请输入', 'Other, please specify')"},
-                        },
-                        "required": ["needs_interaction"],
-                    },
-                },
-            }
-        ]
-
         if not self._llm_provider:
             raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-        # Call LLM with tools
-        result = self._llm_provider.complete(messages, tools)
+        # Call LLM with Function Calling tools
+        result = self._llm_provider.complete(messages, DYNAMIC_INTERACTION_TOOLS)
 
         # If interaction was generated through Function Calling, construct the MarkdownFlow format
         if result.transformed_to_interaction and result.metadata and "tool_args" in result.metadata:
             tool_args = result.metadata["tool_args"]
             if tool_args.get("needs_interaction"):
-                # Construct MarkdownFlow format from structured data
-                interaction_content = self._build_interaction_format(tool_args)
+                # Construct MarkdownFlow format from structured data using imported function
+                interaction_content = build_interaction_format(tool_args)
                 result.content = interaction_content
 
         # If transformed to interaction, return as is
@@ -922,82 +903,17 @@ Original Error: {error_message}
 
         import json
 
-        # System prompt for detection
-        system_prompt = """You are an intelligent document processing assistant specializing in creating interactive forms.
+        # Use system prompt from constants
+        system_prompt = DYNAMIC_INTERACTION_SYSTEM_PROMPT
 
-Task: Analyze the given content block and determine if it needs to be converted to an interaction block to collect user information.
-
-**ABSOLUTE RULE**: Convert ONLY when ALL THREE mandatory elements are explicitly present:
-1. Storage action word + target connector + variable
-2. No exceptions, no implications, no assumptions
-
-**MANDATORY TRIPLE PATTERN (ALL REQUIRED):**
-
-**Element 1: Storage Action Words**
-- Chinese: "记录", "保存", "存储", "收集", "采集"
-- English: "save", "store", "record", "collect", "gather"
-
-**Element 2: Target Connection Words**
-- Chinese: "到", "为", "在", "至"
-- English: "to", "as", "in", "into"
-
-**Element 3: Target Variable**
-- Must contain {{variable_name}} syntax for NEW data storage
-- Variable must be for collecting NEW information, not using existing data
-
-**VALID CONVERSION FORMULA:**
-[Storage Word] + [Connector] + {{new_variable}}
-
-Examples of VALID patterns:
-- "...记录到{{姓名}}"
-- "...保存为{{偏好}}"
-- "...存储在{{选择}}"
-- "...save to {{preference}}"
-- "...collect as {{user_input}}"
-
-**STRICT EXCLUSION RULES:**
-
-❌ NEVER convert if missing ANY element:
-- No storage action word = NO conversion
-- No target connector = NO conversion
-- No {{variable}} = NO conversion
-- Using existing {{variable}} instead of collecting new = NO conversion
-
-❌ NEVER convert casual conversation:
-- Simple questions without storage intent
-- Introduction requests without persistence
-- General inquiries without data collection
-- Educational or exploratory content
-
-❌ NEVER infer or assume storage intent:
-- Don't assume "询问姓名" means "保存姓名"
-- Don't assume "了解偏好" means "记录偏好"
-- Don't assume data collection without explicit storage words
-
-**PATTERN ANALYSIS METHOD:**
-1. **Exact Pattern Match**: Search for [Storage Word] + [Connector] + {{variable}}
-2. **No Pattern = No Conversion**: If exact pattern not found, return needs_interaction: false
-3. **Zero Tolerance**: No partial matches, no similar meanings, no interpretations
-
-**ULTRA-CONSERVATIVE APPROACH:**
-- If there's ANY doubt about storage intent = DON'T convert
-- If storage pattern is not 100% explicit = DON'T convert
-- If you need to "interpret" or "infer" storage intent = DON'T convert
-- Prefer false negatives over false positives
-
-When exact pattern is found, generate structured interaction data. Otherwise, always return needs_interaction: false."""
-
-        # User message with content and context
         # Build user prompt with document context
         user_prompt_parts = []
 
         # Add document-level prompt context if exists
         if self._document_prompt:
-            user_prompt_parts.append(f"""Document-level instructions:
-{self._document_prompt}
-
-(Note: The above are the user's document-level instructions that provide context and requirements for processing.)
-""")
+            user_prompt_parts.append(
+                DYNAMIC_INTERACTION_DOCUMENT_CONTEXT_TEMPLATE.format(document_prompt=self._document_prompt)
+            )
 
         # Prepare content analysis with both original and resolved versions
         original_content = block.content
@@ -1005,81 +921,37 @@ When exact pattern is found, generate structured interaction data. Otherwise, al
         # Create resolved content with variable substitution for better context
         resolved_content = original_content
         if variables:
-            from .utils import replace_variables_in_text
-
             resolved_content = replace_variables_in_text(original_content, variables)
 
-        content_analysis = f"""Current content block to analyze:
+        # Build content analysis using template
+        variables_json = json.dumps(variables, ensure_ascii=False) if variables else "None"
+        content_analysis = DYNAMIC_INTERACTION_CONTENT_ANALYSIS_TEMPLATE.format(
+            original_content=original_content,
+            resolved_content=resolved_content,
+            variables_json=variables_json,
+        )
 
-**Original content (shows variable structure):**
-{original_content}
-
-**Resolved content (with current variable values):**
-{resolved_content}
-
-**Existing variable values:**
-{json.dumps(variables, ensure_ascii=False) if variables else "None"}"""
-
-        # Add different analysis based on whether content has variables
+        # Add variable analysis if content has variables
         if "{{" in original_content and "}}" in original_content:
-            from .utils import extract_variables_from_text
-
             content_variables = set(extract_variables_from_text(original_content))
 
             # Find new variables (not yet collected)
             new_variables = content_variables - (set(variables.keys()) if variables else set())
             existing_used_variables = content_variables & (set(variables.keys()) if variables else set())
 
-            content_analysis += f"""
-
-**Variable analysis:**
-- Variables used from previous steps: {list(existing_used_variables) if existing_used_variables else "None"}
-- New variables to collect: {list(new_variables) if new_variables else "None"}
-
-**Context guidance:**
-- Use the resolved content to understand the actual context and requirements
-- Generate options based on the real variable values shown in the resolved content
-- Collect user input for the new variables identified above"""
+            # Add variable analysis using template
+            existing_vars_str = str(list(existing_used_variables)) if existing_used_variables else "None"
+            new_vars_str = str(list(new_variables)) if new_variables else "None"
+            content_analysis += DYNAMIC_INTERACTION_VARIABLE_ANALYSIS_TEMPLATE.format(
+                existing_used_variables=existing_vars_str, new_variables=new_vars_str
+            )
 
         user_prompt_parts.append(content_analysis)
 
-        # Add analysis requirements and structured output guide
-        user_prompt_parts.append("""## Analysis Task:
-1. Determine if this content needs to be converted to an interaction block
-2. If conversion is needed, provide structured interaction data
-
-## Context-based Analysis:
-- Use the "Resolved content" to understand actual context (e.g., if it shows "川菜", generate Sichuan dish options)
-- Extract the "New variables to collect" identified in the variable analysis above
-- Generate 3-4 specific options based on the resolved context and document-level instructions
-- Follow ALL document-level instruction requirements (language, domain, terminology)
-
-## Selection Type Decision Logic:
-Ask: "Can a user realistically want/choose multiple of these options simultaneously?"
-
-**Use MULTI_SELECT when:**
-- Food dishes (can order multiple: 宫保鸡丁, 麻婆豆腐)
-- Programming skills (can know multiple: Python, JavaScript)
-- Interests/hobbies (can have multiple: 读书, 运动, 旅游)
-- Product features (can want multiple: 定制颜色, 个性化logo)
-- Exercise types (can do multiple: 跑步, 游泳, 瑜伽)
-
-**Use SINGLE_SELECT when:**
-- Job positions (usually apply for one: 软件工程师 OR 产品经理)
-- Experience levels (have one current level: Beginner OR Advanced)
-- Budget ranges (have one range: 5-10万 OR 10-20万)
-- Education levels (have one highest: Bachelor's OR Master's)
-
-## Output Instructions:
-If this content needs interaction, use the create_interaction_block function with:
-- `needs_interaction`: true/false
-- `variable_name`: the variable to collect (from "New variables" above)
-- `interaction_type`: "single_select", "multi_select", "text_input", or "mixed"
-- `options`: array of 3-4 specific options based on context
-- `allow_text_input`: true if you want to include "other" option
-- `text_input_prompt`: text for the "other" option (in appropriate language)
-
-Analyze the content and provide the structured interaction data.""")
+        # Add task instructions, selection type guide, and output instructions from constants
+        user_prompt_parts.append(DYNAMIC_INTERACTION_TASK_INSTRUCTIONS)
+        user_prompt_parts.append(DYNAMIC_INTERACTION_SELECTION_TYPE_GUIDE)
+        user_prompt_parts.append(DYNAMIC_INTERACTION_OUTPUT_INSTRUCTIONS)
 
         user_prompt = "\n\n".join(user_prompt_parts)
 
@@ -1092,42 +964,6 @@ Analyze the content and provide the structured interaction data.""")
         messages.append({"role": "user", "content": user_prompt})
 
         return messages
-
-    def _build_interaction_format(self, tool_args: dict) -> str:
-        """Build MarkdownFlow interaction format from structured Function Calling data."""
-        variable_name = tool_args.get("variable_name", "")
-        interaction_type = tool_args.get("interaction_type", "single_select")
-        options = tool_args.get("options", [])
-        allow_text_input = tool_args.get("allow_text_input", False)
-        text_input_prompt = tool_args.get("text_input_prompt", "...请输入")
-
-        if not variable_name:
-            return ""
-
-        # For text_input type, options can be empty
-        if interaction_type != "text_input" and not options:
-            return ""
-
-        # Choose separator based on interaction type
-        if interaction_type in ["multi_select", "mixed"]:
-            separator = "||"
-        else:
-            separator = "|"
-
-        # Build options string
-        if interaction_type == "text_input":
-            # Text input only
-            options_str = f"...{text_input_prompt}"
-        else:
-            # Options with potential text input
-            options_str = separator.join(options)
-
-            if allow_text_input and text_input_prompt:
-                # Ensure text input has ... prefix
-                text_option = text_input_prompt if text_input_prompt.startswith("...") else f"...{text_input_prompt}"
-                options_str += f"{separator}{text_option}"
-
-        return f"?[%{{{{{variable_name}}}}} {options_str}]"
 
     def _process_dynamic_interaction_validation(
         self,

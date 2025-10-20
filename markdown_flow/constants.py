@@ -172,3 +172,141 @@ CONTEXT_CONVERSATION_MARKER = "# 对话上下文"
 # Context generation templates
 CONTEXT_QUESTION_TEMPLATE = f"{CONTEXT_QUESTION_MARKER}\n{{question}}"
 CONTEXT_CONVERSATION_TEMPLATE = f"{CONTEXT_CONVERSATION_MARKER}\n{{content}}"
+
+# ========== Dynamic Interaction Constants ==========
+
+# System prompt for dynamic interaction detection
+DYNAMIC_INTERACTION_SYSTEM_PROMPT = """You are an intelligent document processing assistant specializing in creating interactive forms.
+
+Task: Analyze the given content block and determine if it needs to be converted to an interaction block to collect user information.
+
+**ABSOLUTE RULE**: Convert ONLY when ALL THREE mandatory elements are explicitly present:
+1. Storage action word + target connector + variable
+2. No exceptions, no implications, no assumptions
+
+**MANDATORY TRIPLE PATTERN (ALL REQUIRED):**
+
+**Element 1: Storage Action Words**
+- Chinese: "记录", "保存", "存储", "收集", "采集"
+- English: "save", "store", "record", "collect", "gather"
+
+**Element 2: Target Connection Words**
+- Chinese: "到", "为", "在", "至"
+- English: "to", "as", "in", "into"
+
+**Element 3: Target Variable**
+- Must contain {{variable_name}} syntax for NEW data storage
+- Variable must be for collecting NEW information, not using existing data
+
+**VALID CONVERSION FORMULA:**
+[Storage Word] + [Connector] + {{new_variable}}
+
+Examples of VALID patterns:
+- "...记录到{{姓名}}"
+- "...保存为{{偏好}}"
+- "...存储在{{选择}}"
+- "...save to {{preference}}"
+- "...collect as {{user_input}}"
+
+**STRICT EXCLUSION RULES:**
+
+❌ NEVER convert if missing ANY element:
+- No storage action word = NO conversion
+- No target connector = NO conversion
+- No {{variable}} = NO conversion
+- Using existing {{variable}} instead of collecting new = NO conversion
+
+❌ NEVER convert casual conversation:
+- Simple questions without storage intent
+- Introduction requests without persistence
+- General inquiries without data collection
+- Educational or exploratory content
+
+❌ NEVER infer or assume storage intent:
+- Don't assume "询问姓名" means "保存姓名"
+- Don't assume "了解偏好" means "记录偏好"
+- Don't assume data collection without explicit storage words
+
+**PATTERN ANALYSIS METHOD:**
+1. **Exact Pattern Match**: Search for [Storage Word] + [Connector] + {{variable}}
+2. **No Pattern = No Conversion**: If exact pattern not found, return needs_interaction: false
+3. **Zero Tolerance**: No partial matches, no similar meanings, no interpretations
+
+**ULTRA-CONSERVATIVE APPROACH:**
+- If there's ANY doubt about storage intent = DON'T convert
+- If storage pattern is not 100% explicit = DON'T convert
+- If you need to "interpret" or "infer" storage intent = DON'T convert
+- Prefer false negatives over false positives
+
+When exact pattern is found, generate structured interaction data. Otherwise, always return needs_interaction: false."""
+
+# Document-level context template
+DYNAMIC_INTERACTION_DOCUMENT_CONTEXT_TEMPLATE = """Document-level instructions:
+{document_prompt}
+
+(Note: The above are the user's document-level instructions that provide context and requirements for processing.)
+"""
+
+# Content analysis template
+DYNAMIC_INTERACTION_CONTENT_ANALYSIS_TEMPLATE = """Current content block to analyze:
+
+**Original content (shows variable structure):**
+{original_content}
+
+**Resolved content (with current variable values):**
+{resolved_content}
+
+**Existing variable values:**
+{variables_json}"""
+
+# Variable analysis template
+DYNAMIC_INTERACTION_VARIABLE_ANALYSIS_TEMPLATE = """
+
+**Variable analysis:**
+- Variables used from previous steps: {existing_used_variables}
+- New variables to collect: {new_variables}
+
+**Context guidance:**
+- Use the resolved content to understand the actual context and requirements
+- Generate options based on the real variable values shown in the resolved content
+- Collect user input for the new variables identified above"""
+
+# Analysis task instructions
+DYNAMIC_INTERACTION_TASK_INSTRUCTIONS = """## Analysis Task:
+1. Determine if this content needs to be converted to an interaction block
+2. If conversion is needed, provide structured interaction data
+
+## Context-based Analysis:
+- Use the "Resolved content" to understand actual context (e.g., if it shows "川菜", generate Sichuan dish options)
+- Extract the "New variables to collect" identified in the variable analysis above
+- Generate 3-4 specific options based on the resolved context and document-level instructions
+- Follow ALL document-level instruction requirements (language, domain, terminology)"""
+
+# Selection type decision guide
+DYNAMIC_INTERACTION_SELECTION_TYPE_GUIDE = """## Selection Type Decision Logic:
+Ask: "Can a user realistically want/choose multiple of these options simultaneously?"
+
+**Use MULTI_SELECT when:**
+- Food dishes (can order multiple: 宫保鸡丁, 麻婆豆腐)
+- Programming skills (can know multiple: Python, JavaScript)
+- Interests/hobbies (can have multiple: 读书, 运动, 旅游)
+- Product features (can want multiple: 定制颜色, 个性化logo)
+- Exercise types (can do multiple: 跑步, 游泳, 瑜伽)
+
+**Use SINGLE_SELECT when:**
+- Job positions (usually apply for one: 软件工程师 OR 产品经理)
+- Experience levels (have one current level: Beginner OR Advanced)
+- Budget ranges (have one range: 5-10万 OR 10-20万)
+- Education levels (have one highest: Bachelor's OR Master's)"""
+
+# Output instructions for Function Calling
+DYNAMIC_INTERACTION_OUTPUT_INSTRUCTIONS = """## Output Instructions:
+If this content needs interaction, use the create_interaction_block function with:
+- `needs_interaction`: true/false
+- `variable_name`: the variable to collect (from "New variables" above)
+- `interaction_type`: "single_select", "multi_select", "text_input", or "mixed"
+- `options`: array of 3-4 specific options based on context
+- `allow_text_input`: true if you want to include "other" option
+- `text_input_prompt`: text for the "other" option (in appropriate language)
+
+Analyze the content and provide the structured interaction data."""
