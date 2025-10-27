@@ -6,7 +6,7 @@ Refactored MarkdownFlow class with built-in LLM processing capabilities and unif
 
 import json
 import re
-from collections.abc import AsyncGenerator
+from collections.abc import Generator
 from copy import copy
 from typing import Any
 
@@ -177,14 +177,14 @@ class MarkdownFlow:
 
     # Core unified interface
 
-    async def process(
+    def process(
         self,
         block_index: int,
         mode: ProcessMode = ProcessMode.COMPLETE,
         context: list[dict[str, str]] | None = None,
         variables: dict[str, str | list[str]] | None = None,
         user_input: dict[str, list[str]] | None = None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ):
         """
         Unified block processing interface.
 
@@ -196,7 +196,7 @@ class MarkdownFlow:
             user_input: User input (for interaction blocks)
 
         Returns:
-            LLMResult or AsyncGenerator[LLMResult, None]
+            LLMResult or Generator[LLMResult, None, None]
         """
         # Process document_prompt variable replacement
         if self._document_prompt:
@@ -205,31 +205,31 @@ class MarkdownFlow:
         block = self.get_block(block_index)
 
         if block.block_type == BlockType.CONTENT:
-            return await self._process_content(block_index, mode, context, variables)
+            return self._process_content(block_index, mode, context, variables)
 
         if block.block_type == BlockType.INTERACTION:
             if user_input is None:
                 # Render interaction content
-                return await self._process_interaction_render(block_index, mode, variables)
+                return self._process_interaction_render(block_index, mode, variables)
             # Process user input
-            return await self._process_interaction_input(block_index, user_input, mode, context, variables)
+            return self._process_interaction_input(block_index, user_input, mode, context, variables)
 
         if block.block_type == BlockType.PRESERVED_CONTENT:
             # Preserved content output as-is, no LLM call
-            return await self._process_preserved_content(block_index, variables)
+            return self._process_preserved_content(block_index, variables)
 
         # Handle other types as content
-        return await self._process_content(block_index, mode, context, variables)
+        return self._process_content(block_index, mode, context, variables)
 
     # Internal processing methods
 
-    async def _process_content(
+    def _process_content(
         self,
         block_index: int,
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
         variables: dict[str, str | list[str]] | None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ):
         """Process content block."""
         # Build messages
         messages = self._build_content_messages(block_index, variables)
@@ -241,20 +241,20 @@ class MarkdownFlow:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            content = await self._llm_provider.complete(messages)
+            content = self._llm_provider.complete(messages)
             return LLMResult(content=content, prompt=messages[-1]["content"])
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            async def stream_generator():
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+            def stream_generator():
+                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
                     yield LLMResult(content=chunk, prompt=messages[-1]["content"])
 
             return stream_generator()
 
-    async def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
+    def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
         """Process preserved content block, output as-is without LLM call."""
         block = self.get_block(block_index)
 
@@ -266,7 +266,7 @@ class MarkdownFlow:
 
         return LLMResult(content=content)
 
-    async def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] | None = None) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] | None = None):
         """Process interaction content rendering."""
         block = self.get_block(block_index)
 
@@ -299,7 +299,7 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=processed_block.content)  # Fallback processing
 
-            rendered_question = await self._llm_provider.complete(messages)
+            rendered_question = self._llm_provider.complete(messages)
             rendered_content = self._reconstruct_interaction_content(processed_block.content, rendered_question)
 
             return LLMResult(
@@ -316,7 +316,7 @@ class MarkdownFlow:
                 # For interaction blocks, return reconstructed content (one-time output)
                 rendered_content = self._reconstruct_interaction_content(processed_block.content, question_text or "")
 
-                async def stream_generator():
+                def stream_generator():
                     yield LLMResult(
                         content=rendered_content,
                         prompt=messages[-1]["content"],
@@ -325,9 +325,9 @@ class MarkdownFlow:
                 return stream_generator()
 
             # With LLM provider, collect full response then return once
-            async def stream_generator():
+            def stream_generator():
                 full_response = ""
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
                     full_response += chunk
 
                 # Reconstruct final interaction content
@@ -341,14 +341,14 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _process_interaction_input(
+    def _process_interaction_input(
         self,
         block_index: int,
         user_input: dict[str, list[str]],
         mode: ProcessMode,
         context: list[dict[str, str]] | None,
         variables: dict[str, str | list[str]] | None = None,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process interaction user input."""
         block = self.get_block(block_index)
         target_variable = block.variables[0] if block.variables else "user_input"
@@ -356,7 +356,7 @@ class MarkdownFlow:
         # Basic validation
         if not user_input or not any(values for values in user_input.values()):
             error_msg = INPUT_EMPTY_ERROR
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         # Get the target variable value from user_input
         target_values = user_input.get(target_variable, [])
@@ -370,7 +370,7 @@ class MarkdownFlow:
 
         if "error" in parse_result:
             error_msg = INTERACTION_PARSE_ERROR.format(error=parse_result["error"])
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         interaction_type = parse_result.get("type")
 
@@ -382,7 +382,7 @@ class MarkdownFlow:
             InteractionType.BUTTONS_MULTI_WITH_TEXT,
         ]:
             # All button types: validate user input against available buttons
-            return await self._process_button_validation(
+            return self._process_button_validation(
                 parse_result,
                 target_values,
                 target_variable,
@@ -415,16 +415,16 @@ class MarkdownFlow:
                 },
             )
         error_msg = f"No input provided for variable '{target_variable}'"
-        return await self._render_error(error_msg, mode)
+        return self._render_error(error_msg, mode)
 
-    async def _process_button_validation(
+    def _process_button_validation(
         self,
         parse_result: dict[str, Any],
         target_values: list[str],
         target_variable: str,
         mode: ProcessMode,
         interaction_type: InteractionType,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """
         Simplified button validation with new input format.
 
@@ -459,7 +459,7 @@ class MarkdownFlow:
             # Pure button mode requires input
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Please select from: {', '.join(button_displays)}"
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         # Validate input values against available buttons
         valid_values = []
@@ -484,7 +484,7 @@ class MarkdownFlow:
         if invalid_values and not allow_text_input:
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Invalid options: {', '.join(invalid_values)}. Please select from: {', '.join(button_displays)}"
-            return await self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode)
 
         # Success: return validated values
         return LLMResult(
@@ -499,13 +499,13 @@ class MarkdownFlow:
             },
         )
 
-    async def _process_llm_validation(
+    def _process_llm_validation(
         self,
         block_index: int,
         user_input: dict[str, list[str]],
         target_variable: str,
         mode: ProcessMode,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process LLM validation."""
         # Build validation messages
         messages = self._build_validation_messages(block_index, user_input, target_variable)
@@ -524,7 +524,7 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = await self._llm_provider.complete(messages)
+            llm_response = self._llm_provider.complete(messages)
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
@@ -536,9 +536,9 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            async def stream_generator():
+            def stream_generator():
                 full_response = ""
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
                     full_response += chunk
 
                 # Parse complete response and convert to LLMResult
@@ -552,7 +552,7 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _process_llm_validation_with_options(
+    def _process_llm_validation_with_options(
         self,
         block_index: int,
         user_input: dict[str, list[str]],
@@ -560,7 +560,7 @@ class MarkdownFlow:
         options: list[str],
         question: str,
         mode: ProcessMode,
-    ) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process LLM validation with button options (third case)."""
         # Build special validation messages containing button option information
         messages = self._build_validation_messages_with_options(user_input, target_variable, options, question)
@@ -581,7 +581,7 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = await self._llm_provider.complete(messages)
+            llm_response = self._llm_provider.complete(messages)
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
@@ -593,9 +593,9 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            async def stream_generator():
+            def stream_generator():
                 full_response = ""
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
                     full_response += chunk
                     # For validation scenario, don't output chunks in real-time, only final result
 
@@ -612,7 +612,7 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    async def _render_error(self, error_message: str, mode: ProcessMode) -> LLMResult | AsyncGenerator[LLMResult, None]:
+    def _render_error(self, error_message: str, mode: ProcessMode) -> LLMResult | Generator[LLMResult, None, None]:
         """Render user-friendly error message."""
         messages = self._build_error_render_messages(error_message)
 
@@ -626,15 +626,15 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=error_message)  # Fallback processing
 
-            friendly_error = await self._llm_provider.complete(messages)
+            friendly_error = self._llm_provider.complete(messages)
             return LLMResult(content=friendly_error, prompt=messages[-1]["content"])
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
                 return LLMResult(content=error_message)
 
-            async def stream_generator():
-                async for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+            def stream_generator():
+                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
                     yield LLMResult(content=chunk, prompt=messages[-1]["content"])
 
             return stream_generator()

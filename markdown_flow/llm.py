@@ -5,7 +5,6 @@ Provides LLM provider interfaces and related data models, supporting multiple pr
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -39,7 +38,7 @@ class LLMProvider(ABC):
     """Abstract LLM provider interface."""
 
     @abstractmethod
-    async def complete(self, messages: list[dict[str, str]]) -> str:
+    def complete(self, messages: list[dict[str, str]]) -> str:
         """
         Non-streaming LLM call.
 
@@ -54,7 +53,7 @@ class LLMProvider(ABC):
         """
 
     @abstractmethod
-    async def stream(self, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:
+    def stream(self, messages: list[dict[str, str]]):
         """
         Streaming LLM call.
 
@@ -72,8 +71,8 @@ class LLMProvider(ABC):
 class NoLLMProvider(LLMProvider):
     """Empty LLM provider for prompt-only scenarios."""
 
-    async def complete(self, messages: list[dict[str, str]]) -> str:
+    def complete(self, messages: list[dict[str, str]]) -> str:
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
 
-    async def stream(self, messages: list[dict[str, str]]) -> AsyncGenerator[str, None]:
+    def stream(self, messages: list[dict[str, str]]):
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)

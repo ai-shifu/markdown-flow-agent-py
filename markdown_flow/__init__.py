@@ -32,12 +32,12 @@ Basic Usage:
     blocks = mf.get_all_blocks()
 
     # Process blocks using unified interface
-    result = await mf.process(0, variables={'name': 'John'}, mode=ProcessMode.COMPLETE)
+    result = mf.process(0, variables={'name': 'John'}, mode=ProcessMode.COMPLETE)
 
     # Different processing modes
-    prompt_result = await mf.process(0, mode=ProcessMode.PROMPT_ONLY)
-    complete_result = await mf.process(0, mode=ProcessMode.COMPLETE)
-    stream_result = await mf.process(0, mode=ProcessMode.STREAM)
+    prompt_result = mf.process(0, mode=ProcessMode.PROMPT_ONLY)
+    complete_result = mf.process(0, mode=ProcessMode.COMPLETE)
+    stream_result = mf.process(0, mode=ProcessMode.STREAM)
 
 Variable System:
     - {{variable}} - Regular variables, replaced with actual values
