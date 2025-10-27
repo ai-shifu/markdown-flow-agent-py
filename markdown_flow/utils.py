@@ -23,7 +23,6 @@ from .constants import (
     CONTEXT_QUESTION_MARKER,
     CONTEXT_QUESTION_TEMPLATE,
     JSON_PARSE_ERROR,
-    OUTPUT_INSTRUCTION_EXPLANATION,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
     SMART_VALIDATION_TEMPLATE,
@@ -559,7 +558,7 @@ def parse_json_response(response_text: str) -> dict[str, Any]:
         raise ValueError(JSON_PARSE_ERROR)
 
 
-def process_output_instructions(content: str) -> str:
+def process_output_instructions(content: str) -> tuple[str, bool]:
     """
     Process output instruction markers, converting !=== format to [output] format.
 
@@ -569,7 +568,9 @@ def process_output_instructions(content: str) -> str:
         content: Raw content containing output instructions
 
     Returns:
-        Processed content with === and !=== markers converted to [output] format
+        Tuple of (processed_content, has_preserved_content):
+        - processed_content: Content with === and !=== markers converted to XML format
+        - has_preserved_content: True if content contained preserved markers
     """
     lines = content.split("\n")
     result_lines = []
@@ -650,11 +651,8 @@ def process_output_instructions(content: str) -> str:
     # Assemble final content
     processed_content = "\n".join(result_lines)
 
-    # Add explanation prefix (if has output instructions)
-    if has_output_instruction:
-        processed_content = OUTPUT_INSTRUCTION_EXPLANATION + processed_content
-
-    return processed_content
+    # Return both processed content and whether it contains preserved content
+    return processed_content, has_output_instruction
 
 
 def extract_preserved_content(content: str) -> str:

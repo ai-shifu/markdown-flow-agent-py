@@ -28,6 +28,7 @@ from .constants import (
     INTERACTION_PATTERN_SPLIT,
     INTERACTION_RENDER_INSTRUCTIONS,
     LLM_PROVIDER_REQUIRED_ERROR,
+    OUTPUT_INSTRUCTION_EXPLANATION,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
 )
 from .enums import BlockType
@@ -649,8 +650,9 @@ class MarkdownFlow:
         block = self.get_block(block_index)
         block_content = block.content
 
-        # Process output instructions
-        block_content = process_output_instructions(block_content)
+        # Process output instructions and detect if preserved content exists
+        # Returns: (processed_content, has_preserved_content)
+        block_content, has_preserved_content = process_output_instructions(block_content)
 
         # Replace variables
         block_content = replace_variables_in_text(block_content, variables or {})
@@ -658,9 +660,16 @@ class MarkdownFlow:
         # Build message array
         messages = []
 
-        # Add document prompt
+        # Conditionally add system prompts
         if self._document_prompt:
-            messages.append({"role": "system", "content": self._document_prompt})
+            system_msg = self._document_prompt
+            # Only add output instruction explanation when preserved content detected
+            if has_preserved_content:
+                system_msg += "\n\n" + OUTPUT_INSTRUCTION_EXPLANATION.strip()
+            messages.append({"role": "system", "content": system_msg})
+        elif has_preserved_content:
+            # No document prompt but has preserved content, add explanation alone
+            messages.append({"role": "system", "content": OUTPUT_INSTRUCTION_EXPLANATION.strip()})
 
         # For most content blocks, historical conversation context is not needed
         # because each document block is an independent instruction
