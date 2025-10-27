@@ -90,12 +90,44 @@ VALIDATION_RESPONSE_OK = "ok"
 VALIDATION_RESPONSE_ILLEGAL = "illegal"
 
 # Output instruction processing
-OUTPUT_INSTRUCTION_EXPLANATION = f"""对{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}之间的内容：
-- 可以翻译，但要保持原文的意思和风格
-- 不需要翻译时，保持原文输出，不做改动
-- **不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记**
-- **不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记**
-- **不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记**
+OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_or_translate_instruction>
+对{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记之间的内容的处理规则:
+
+<default_behavior>
+默认行为: 完全保持原样输出
+- 标记之间的内容必须逐字原样输出
+- 严禁改写、润色、优化或调整任何表达方式
+- 严禁添加、删除或替换任何文字
+</default_behavior>
+
+<exception_rule>
+唯一例外: 语言翻译
+- 仅当内容需要从一种语言翻译成另一种语言时，才可以翻译
+- 翻译时必须保持原文的完整含义、语气和格式
+- 如果内容无需翻译，则绝对不允许做任何改动
+</exception_rule>
+
+<output_requirement>
+输出要求:
+- 不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记本身
+- 只输出标记之间的实际内容
+</output_requirement>
+
+<examples>
+示例1 - 保持原样:
+  <original_content>{OUTPUT_INSTRUCTION_PREFIX}**下面我们做个练习。**{OUTPUT_INSTRUCTION_SUFFIX}</original_content>
+  <resolved_content>**下面我们做个练习。**</resolved_content>
+
+示例2 - 语言翻译:
+  <original_content>{OUTPUT_INSTRUCTION_PREFIX}**Let's do an exercise.**{OUTPUT_INSTRUCTION_SUFFIX}</original_content>
+  <resolved_content>**让我们做个练习。**</resolved_content>
+
+示例3 - 错误示范(同语言改写):
+  <original_content>{OUTPUT_INSTRUCTION_PREFIX}**下面我们做个练习。**{OUTPUT_INSTRUCTION_SUFFIX}</original_content>
+  <wrong_output>**来，咱们做个有趣的小练习**</wrong_output>
+  <reason>错误: 擅自改写了中文内容</reason>
+</examples>
+</preserve_or_translate_instruction>
 
 """
 
