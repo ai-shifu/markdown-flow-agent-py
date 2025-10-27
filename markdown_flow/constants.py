@@ -47,8 +47,8 @@ INLINE_PRESERVE_PATTERN = r"^===(.+)=== *$"
 COMPILED_INLINE_PRESERVE_REGEX = re.compile(INLINE_PRESERVE_PATTERN)
 
 # Output instruction markers
-OUTPUT_INSTRUCTION_PREFIX = "[输出]"
-OUTPUT_INSTRUCTION_SUFFIX = "[/输出]"
+OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"
+OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"
 
 # System message templates
 DEFAULT_VALIDATION_SYSTEM_MESSAGE = "你是一个输入验证助手，需要严格按照指定的格式和规则处理用户输入。"
@@ -90,19 +90,12 @@ VALIDATION_RESPONSE_OK = "ok"
 VALIDATION_RESPONSE_ILLEGAL = "illegal"
 
 # Output instruction processing
-OUTPUT_INSTRUCTION_EXPLANATION = f"""请按照以下指令执行：
-
-当遇到{OUTPUT_INSTRUCTION_PREFIX}content{OUTPUT_INSTRUCTION_SUFFIX}这样的标签对时：
-1. **完全原样输出**中间的content内容，不要进行任何格式转换或修改
-2. 不要输出{OUTPUT_INSTRUCTION_PREFIX}和{OUTPUT_INSTRUCTION_SUFFIX}标签本身
-3. 即使content内容包含标题符号（如#）、特殊格式等，也要原样输出，不要转换成Markdown格式
-4. 保持content中的所有原始字符、空格、换行符等
-5. 然后继续执行后面的指令
-
-重要提醒：
-- {OUTPUT_INSTRUCTION_PREFIX}和{OUTPUT_INSTRUCTION_SUFFIX}只是指令标记，不要将这些标记作为内容输出
-- 标签内的内容必须原样输出，不要按照文档提示词的格式要求进行转换
-- 这是绝对的输出指令，优先级高于任何格式要求
+OUTPUT_INSTRUCTION_EXPLANATION = f"""对{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}之间的内容：
+- 可以翻译，但要保持原文的意思和风格
+- 不需要翻译时，保持原文输出，不做改动
+- **不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记**
+- **不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记**
+- **不要输出{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX}标记**
 
 """
 
