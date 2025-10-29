@@ -119,22 +119,38 @@ class MarkdownFlow:
         context: list[dict[str, str]] | None,
     ) -> list[dict[str, str]] | None:
         """
-        Truncate context to specified maximum length.
+        Filter and truncate context to specified maximum length.
+
+        Processing steps:
+        1. Filter out messages with empty content (empty string or whitespace only)
+        2. Truncate to max_context_length if configured (0 = unlimited)
 
         Args:
             context: Original context list
 
         Returns:
-            Truncated context. If max_context_length=0, returns original context.
+            Filtered and truncated context. Returns None if no valid messages remain.
         """
-        if not context or self._max_context_length == 0:
-            return context
+        if not context:
+            return None
+
+        # Step 1: Filter out messages with empty or whitespace-only content
+        filtered_context = [msg for msg in context if msg.get("content", "").strip()]
+
+        # Return None if no valid messages remain after filtering
+        if not filtered_context:
+            return None
+
+        # Step 2: Truncate to max_context_length if configured
+        if self._max_context_length == 0:
+            # No limit, return all filtered messages
+            return filtered_context
 
         # Keep the most recent N messages
-        if len(context) > self._max_context_length:
-            return context[-self._max_context_length :]
+        if len(filtered_context) > self._max_context_length:
+            return filtered_context[-self._max_context_length :]
 
-        return context
+        return filtered_context
 
     @property
     def document(self) -> str:
