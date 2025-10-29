@@ -19,6 +19,7 @@ from .constants import (
     COMPILED_PERCENT_VARIABLE_REGEX,
     COMPILED_PRESERVE_FENCE_REGEX,
     COMPILED_SINGLE_PIPE_SPLIT_REGEX,
+    CONTEXT_BUTTON_OPTIONS_TEMPLATE,
     CONTEXT_CONVERSATION_TEMPLATE,
     CONTEXT_QUESTION_MARKER,
     CONTEXT_QUESTION_TEMPLATE,
@@ -479,6 +480,7 @@ def generate_smart_validation_template(
     target_variable: str,
     context: list[dict[str, Any]] | None = None,
     interaction_question: str | None = None,
+    buttons: list[dict[str, str]] | None = None,
 ) -> str:
     """
     Generate smart validation template based on context and question.
@@ -487,18 +489,27 @@ def generate_smart_validation_template(
         target_variable: Target variable name
         context: Context message list with role and content fields
         interaction_question: Question text from interaction block
+        buttons: Button options list with display and value fields
 
     Returns:
         Generated validation template
     """
     # Build context information
     context_info = ""
-    if interaction_question or context:
+    if interaction_question or context or buttons:
         context_parts = []
 
         # Add question information (most important, put first)
         if interaction_question:
             context_parts.append(CONTEXT_QUESTION_TEMPLATE.format(question=interaction_question))
+
+        # Add button options information
+        if buttons:
+            button_displays = [btn.get("display", "") for btn in buttons if btn.get("display")]
+            if button_displays:
+                button_options_str = ", ".join(button_displays)
+                button_info = CONTEXT_BUTTON_OPTIONS_TEMPLATE.format(button_options=button_options_str)
+                context_parts.append(button_info)
 
         # Add conversation context
         if context:
