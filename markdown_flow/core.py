@@ -430,12 +430,90 @@ class MarkdownFlow:
 
         # Process user input based on interaction type
         if interaction_type in [
-            InteractionType.BUTTONS_ONLY,
             InteractionType.BUTTONS_WITH_TEXT,
-            InteractionType.BUTTONS_MULTI_SELECT,
             InteractionType.BUTTONS_MULTI_WITH_TEXT,
         ]:
-            # All button types: validate user input against available buttons
+            # Buttons with text input: smart validation (match buttons first, then LLM validate custom text)
+            buttons = parse_result.get("buttons", [])
+
+            # Step 1: Match button values
+            matched_values, unmatched_values = self._match_button_values(buttons, target_values)
+
+            # Step 2: If there are unmatched values (custom text), validate with LLM
+            if unmatched_values:
+                # Create user_input for LLM validation (only custom text)
+                custom_input = {target_variable: unmatched_values}
+
+                validation_result = self._process_llm_validation(
+                    block_index=block_index,
+                    user_input=custom_input,
+                    target_variable=target_variable,
+                    mode=mode,
+                    context=context,
+                )
+
+                # Handle validation result based on mode
+                if mode == ProcessMode.PROMPT_ONLY:
+                    # Return validation prompt
+                    return validation_result
+
+                if mode == ProcessMode.COMPLETE:
+                    # Check if validation passed
+                    if isinstance(validation_result, LLMResult) and validation_result.variables:
+                        validated_values = validation_result.variables.get(target_variable, [])
+                        # Merge matched button values + validated custom text
+                        all_values = matched_values + validated_values
+                        return LLMResult(
+                            content="",
+                            variables={target_variable: all_values},
+                            metadata={
+                                "interaction_type": str(interaction_type),
+                                "matched_button_values": matched_values,
+                                "validated_custom_values": validated_values,
+                            },
+                        )
+                    else:
+                        # Validation failed, return error
+                        return validation_result
+
+                if mode == ProcessMode.STREAM:
+                    # For stream mode, collect validation result
+                    def stream_merge_generator():
+                        # Consume the validation stream
+                        for result in validation_result:  # type: ignore[attr-defined]
+                            if isinstance(result, LLMResult) and result.variables:
+                                validated_values = result.variables.get(target_variable, [])
+                                all_values = matched_values + validated_values
+                                yield LLMResult(
+                                    content="",
+                                    variables={target_variable: all_values},
+                                    metadata={
+                                        "interaction_type": str(interaction_type),
+                                        "matched_button_values": matched_values,
+                                        "validated_custom_values": validated_values,
+                                    },
+                                )
+                            else:
+                                # Validation failed
+                                yield result
+
+                    return stream_merge_generator()
+            else:
+                # All values matched buttons, return directly
+                return LLMResult(
+                    content="",
+                    variables={target_variable: matched_values},
+                    metadata={
+                        "interaction_type": str(interaction_type),
+                        "all_matched_buttons": True,
+                    },
+                )
+
+        if interaction_type in [
+            InteractionType.BUTTONS_ONLY,
+            InteractionType.BUTTONS_MULTI_SELECT,
+        ]:
+            # Pure button types: only basic button validation (no LLM)
             return self._process_button_validation(
                 parse_result,
                 target_values,
@@ -458,19 +536,50 @@ class MarkdownFlow:
             )
 
         # Text-only input type: ?[%{{sys_user_nickname}}...question]
-        # For text-only inputs, directly use the target variable values
+        # Use LLM validation to check if input is relevant to the question
         if target_values:
-            return LLMResult(
-                content="",
-                variables={target_variable: target_values},
-                metadata={
-                    "interaction_type": "text_only",
-                    "target_variable": target_variable,
-                    "values": target_values,
-                },
+            return self._process_llm_validation(
+                block_index=block_index,
+                user_input=user_input,
+                target_variable=target_variable,
+                mode=mode,
+                context=context,
             )
         error_msg = f"No input provided for variable '{target_variable}'"
         return self._render_error(error_msg, mode, context)
+
+    def _match_button_values(
+        self,
+        buttons: list[dict[str, str]],
+        target_values: list[str],
+    ) -> tuple[list[str], list[str]]:
+        """
+        Match user input values against button options.
+
+        Args:
+            buttons: List of button dictionaries with 'display' and 'value' keys
+            target_values: User input values to match
+
+        Returns:
+            Tuple of (matched_values, unmatched_values)
+            - matched_values: Values that match button options (using button value)
+            - unmatched_values: Values that don't match any button
+        """
+        matched_values = []
+        unmatched_values = []
+
+        for value in target_values:
+            matched = False
+            for button in buttons:
+                if value in [button["display"], button["value"]]:
+                    matched_values.append(button["value"])  # Use button value
+                    matched = True
+                    break
+
+            if not matched:
+                unmatched_values.append(value)
+
+        return matched_values, unmatched_values
 
     def _process_button_validation(
         self,
@@ -562,10 +671,11 @@ class MarkdownFlow:
         user_input: dict[str, list[str]],
         target_variable: str,
         mode: ProcessMode,
+        context: list[dict[str, str]] | None = None,
     ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process LLM validation."""
         # Build validation messages
-        messages = self._build_validation_messages(block_index, user_input, target_variable)
+        messages = self._build_validation_messages(block_index, user_input, target_variable, context)
 
         if mode == ProcessMode.PROMPT_ONLY:
             return LLMResult(
@@ -768,10 +878,12 @@ class MarkdownFlow:
 
         messages.append({"role": "system", "content": render_prompt})
 
-        # Add conversation history context if provided
-        truncated_context = self._truncate_context(context)
-        if truncated_context:
-            messages.extend(truncated_context)
+        # NOTE: Context is temporarily disabled for interaction rendering
+        # Mixing conversation history with interaction content rewriting can cause issues
+        # The context parameter is kept in the signature for future use
+        # truncated_context = self._truncate_context(context)
+        # if truncated_context:
+        #     messages.extend(truncated_context)
 
         messages.append({"role": "user", "content": question_text})
 
@@ -802,6 +914,7 @@ class MarkdownFlow:
         else:
             # Use smart default validation template
             from .utils import (
+                InteractionParser,
                 extract_interaction_question,
                 generate_smart_validation_template,
             )
@@ -809,11 +922,17 @@ class MarkdownFlow:
             # Extract interaction question
             interaction_question = extract_interaction_question(block.content)
 
-            # Generate smart validation template with context
+            # Parse interaction to extract button information
+            parser = InteractionParser()
+            parse_result = parser.parse(block.content)
+            buttons = parse_result.get("buttons") if "buttons" in parse_result else None
+
+            # Generate smart validation template with context and buttons
             validation_template = generate_smart_validation_template(
                 target_variable,
                 context=truncated_context,
                 interaction_question=interaction_question,
+                buttons=buttons,
             )
 
             # Replace template variables
