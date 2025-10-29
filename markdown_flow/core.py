@@ -60,6 +60,7 @@ class MarkdownFlow:
     _document_prompt: str | None
     _interaction_prompt: str | None
     _interaction_error_prompt: str | None
+    _max_context_length: int
     _blocks: list[Block] | None
     _interaction_configs: dict[int, InteractionValidationConfig]
 
@@ -70,6 +71,7 @@ class MarkdownFlow:
         document_prompt: str | None = None,
         interaction_prompt: str | None = None,
         interaction_error_prompt: str | None = None,
+        max_context_length: int = 0,
     ):
         """
         Initialize MarkdownFlow instance.
@@ -80,12 +82,14 @@ class MarkdownFlow:
             document_prompt: Document-level system prompt
             interaction_prompt: Interaction content rendering prompt
             interaction_error_prompt: Interaction error rendering prompt
+            max_context_length: Maximum number of context messages to keep (0 = unlimited)
         """
         self._document = document
         self._llm_provider = llm_provider
         self._document_prompt = document_prompt
         self._interaction_prompt = interaction_prompt or DEFAULT_INTERACTION_PROMPT
         self._interaction_error_prompt = interaction_error_prompt or DEFAULT_INTERACTION_ERROR_PROMPT
+        self._max_context_length = max_context_length
         self._blocks = None
         self._interaction_configs: dict[int, InteractionValidationConfig] = {}
 
@@ -109,6 +113,28 @@ class MarkdownFlow:
             self._interaction_error_prompt = value or DEFAULT_INTERACTION_ERROR_PROMPT
         else:
             raise ValueError(UNSUPPORTED_PROMPT_TYPE_ERROR.format(prompt_type=prompt_type))
+
+    def _truncate_context(
+        self,
+        context: list[dict[str, str]] | None,
+    ) -> list[dict[str, str]] | None:
+        """
+        Truncate context to specified maximum length.
+
+        Args:
+            context: Original context list
+
+        Returns:
+            Truncated context. If max_context_length=0, returns original context.
+        """
+        if not context or self._max_context_length == 0:
+            return context
+
+        # Keep the most recent N messages
+        if len(context) > self._max_context_length:
+            return context[-self._max_context_length :]
+
+        return context
 
     @property
     def document(self) -> str:
@@ -210,7 +236,7 @@ class MarkdownFlow:
         if block.block_type == BlockType.INTERACTION:
             if user_input is None:
                 # Render interaction content
-                return self._process_interaction_render(block_index, mode, variables)
+                return self._process_interaction_render(block_index, mode, context, variables)
             # Process user input
             return self._process_interaction_input(block_index, user_input, mode, context, variables)
 
@@ -231,8 +257,11 @@ class MarkdownFlow:
         variables: dict[str, str | list[str]] | None,
     ):
         """Process content block."""
-        # Build messages
-        messages = self._build_content_messages(block_index, variables)
+        # Truncate context to configured maximum length
+        truncated_context = self._truncate_context(context)
+
+        # Build messages with context
+        messages = self._build_content_messages(block_index, variables, truncated_context)
 
         if mode == ProcessMode.PROMPT_ONLY:
             return LLMResult(prompt=messages[-1]["content"], metadata={"messages": messages})
@@ -266,7 +295,13 @@ class MarkdownFlow:
 
         return LLMResult(content=content)
 
-    def _process_interaction_render(self, block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] | None = None):
+    def _process_interaction_render(
+        self,
+        block_index: int,
+        mode: ProcessMode,
+        context: list[dict[str, str]] | None = None,
+        variables: dict[str, str | list[str]] | None = None,
+    ):
         """Process interaction content rendering."""
         block = self.get_block(block_index)
 
@@ -283,8 +318,11 @@ class MarkdownFlow:
             # Unable to extract, return processed content
             return LLMResult(content=processed_block.content)
 
-        # Build render messages
-        messages = self._build_interaction_render_messages(question_text)
+        # Truncate context to configured maximum length
+        truncated_context = self._truncate_context(context)
+
+        # Build render messages with context
+        messages = self._build_interaction_render_messages(question_text, truncated_context)
 
         if mode == ProcessMode.PROMPT_ONLY:
             return LLMResult(
@@ -356,7 +394,7 @@ class MarkdownFlow:
         # Basic validation
         if not user_input or not any(values for values in user_input.values()):
             error_msg = INPUT_EMPTY_ERROR
-            return self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode, context)
 
         # Get the target variable value from user_input
         target_values = user_input.get(target_variable, [])
@@ -370,7 +408,7 @@ class MarkdownFlow:
 
         if "error" in parse_result:
             error_msg = INTERACTION_PARSE_ERROR.format(error=parse_result["error"])
-            return self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode, context)
 
         interaction_type = parse_result.get("type")
 
@@ -388,6 +426,7 @@ class MarkdownFlow:
                 target_variable,
                 mode,
                 interaction_type,
+                context,
             )
 
         if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
@@ -415,7 +454,7 @@ class MarkdownFlow:
                 },
             )
         error_msg = f"No input provided for variable '{target_variable}'"
-        return self._render_error(error_msg, mode)
+        return self._render_error(error_msg, mode, context)
 
     def _process_button_validation(
         self,
@@ -424,6 +463,7 @@ class MarkdownFlow:
         target_variable: str,
         mode: ProcessMode,
         interaction_type: InteractionType,
+        context: list[dict[str, str]] | None = None,
     ) -> LLMResult | Generator[LLMResult, None, None]:
         """
         Simplified button validation with new input format.
@@ -434,6 +474,7 @@ class MarkdownFlow:
             target_variable: Target variable name
             mode: Processing mode
             interaction_type: Type of interaction
+            context: Conversation history context (optional)
         """
         buttons = parse_result.get("buttons", [])
         is_multi_select = interaction_type in [
@@ -459,7 +500,7 @@ class MarkdownFlow:
             # Pure button mode requires input
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Please select from: {', '.join(button_displays)}"
-            return self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode, context)
 
         # Validate input values against available buttons
         valid_values = []
@@ -484,7 +525,7 @@ class MarkdownFlow:
         if invalid_values and not allow_text_input:
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Invalid options: {', '.join(invalid_values)}. Please select from: {', '.join(button_displays)}"
-            return self._render_error(error_msg, mode)
+            return self._render_error(error_msg, mode, context)
 
         # Success: return validated values
         return LLMResult(
@@ -612,9 +653,18 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    def _render_error(self, error_message: str, mode: ProcessMode) -> LLMResult | Generator[LLMResult, None, None]:
+    def _render_error(
+        self,
+        error_message: str,
+        mode: ProcessMode,
+        context: list[dict[str, str]] | None = None,
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Render user-friendly error message."""
-        messages = self._build_error_render_messages(error_message)
+        # Truncate context to configured maximum length
+        truncated_context = self._truncate_context(context)
+
+        # Build error messages with context
+        messages = self._build_error_render_messages(error_message, truncated_context)
 
         if mode == ProcessMode.PROMPT_ONLY:
             return LLMResult(
@@ -645,6 +695,7 @@ class MarkdownFlow:
         self,
         block_index: int,
         variables: dict[str, str | list[str]] | None,
+        context: list[dict[str, str]] | None = None,
     ) -> list[dict[str, str]]:
         """Build content block messages."""
         block = self.get_block(block_index)
@@ -671,18 +722,22 @@ class MarkdownFlow:
             # No document prompt but has preserved content, add explanation alone
             messages.append({"role": "system", "content": OUTPUT_INSTRUCTION_EXPLANATION.strip()})
 
-        # For most content blocks, historical conversation context is not needed
-        # because each document block is an independent instruction
-        # If future specific scenarios need context, logic can be added here
-        # if context:
-        #     messages.extend(context)
+        # Add conversation history context if provided
+        # Context is inserted after system message and before current user message
+        truncated_context = self._truncate_context(context)
+        if truncated_context:
+            messages.extend(truncated_context)
 
         # Add processed content as user message (as instruction to LLM)
         messages.append({"role": "user", "content": block_content})
 
         return messages
 
-    def _build_interaction_render_messages(self, question_text: str) -> list[dict[str, str]]:
+    def _build_interaction_render_messages(
+        self,
+        question_text: str,
+        context: list[dict[str, str]] | None = None,
+    ) -> list[dict[str, str]]:
         """Build interaction rendering messages."""
         # Check if using custom interaction prompt
         if self._interaction_prompt != DEFAULT_INTERACTION_PROMPT:
@@ -696,14 +751,29 @@ class MarkdownFlow:
         messages = []
 
         messages.append({"role": "system", "content": render_prompt})
+
+        # Add conversation history context if provided
+        truncated_context = self._truncate_context(context)
+        if truncated_context:
+            messages.extend(truncated_context)
+
         messages.append({"role": "user", "content": question_text})
 
         return messages
 
-    def _build_validation_messages(self, block_index: int, user_input: dict[str, list[str]], target_variable: str) -> list[dict[str, str]]:
+    def _build_validation_messages(
+        self,
+        block_index: int,
+        user_input: dict[str, list[str]],
+        target_variable: str,
+        context: list[dict[str, str]] | None = None,
+    ) -> list[dict[str, str]]:
         """Build validation messages."""
         block = self.get_block(block_index)
         config = self.get_interaction_validation_config(block_index)
+
+        # Truncate context to configured maximum length
+        truncated_context = self._truncate_context(context)
 
         if config and config.validation_template:
             # Use custom validation template
@@ -723,10 +793,10 @@ class MarkdownFlow:
             # Extract interaction question
             interaction_question = extract_interaction_question(block.content)
 
-            # Generate smart validation template
+            # Generate smart validation template with context
             validation_template = generate_smart_validation_template(
                 target_variable,
-                context=None,  # Could consider passing context here
+                context=truncated_context,
                 interaction_question=interaction_question,
             )
 
@@ -740,6 +810,11 @@ class MarkdownFlow:
         messages = []
 
         messages.append({"role": "system", "content": system_message})
+
+        # Add conversation history context if provided (only if not using custom template)
+        if truncated_context and not (config and config.validation_template):
+            messages.extend(truncated_context)
+
         messages.append({"role": "user", "content": validation_prompt})
 
         return messages
@@ -770,7 +845,11 @@ class MarkdownFlow:
 
         return messages
 
-    def _build_error_render_messages(self, error_message: str) -> list[dict[str, str]]:
+    def _build_error_render_messages(
+        self,
+        error_message: str,
+        context: list[dict[str, str]] | None = None,
+    ) -> list[dict[str, str]]:
         """Build error rendering messages."""
         render_prompt = f"""{self._interaction_error_prompt}
 
@@ -783,6 +862,12 @@ Original Error: {error_message}
             messages.append({"role": "system", "content": self._document_prompt})
 
         messages.append({"role": "system", "content": render_prompt})
+
+        # Add conversation history context if provided
+        truncated_context = self._truncate_context(context)
+        if truncated_context:
+            messages.extend(truncated_context)
+
         messages.append({"role": "user", "content": error_message})
 
         return messages
