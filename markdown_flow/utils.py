@@ -68,7 +68,7 @@ def is_preserved_content_block(content: str) -> bool:
     Check if content is completely preserved content block.
 
     Preserved blocks are entirely wrapped by markers with no external content.
-    Supports inline (===content===) and multiline (!=== ... !===) formats.
+    Supports inline (===content===), multiline (!=== ... !===) formats, and mixed formats.
 
     Args:
         content: Content to check
@@ -82,61 +82,50 @@ def is_preserved_content_block(content: str) -> bool:
 
     lines = content.split("\n")
 
-    # Check if all non-empty lines are inline format (!===content!===)
-    all_inline_format = True
-    has_any_content = False
-
-    for line in lines:
-        stripped_line = line.strip()
-        if stripped_line:  # Non-empty line
-            has_any_content = True
-            # Check if inline format: ===content===
-            match = COMPILED_INLINE_PRESERVE_REGEX.match(stripped_line)
-            if match:
-                # Ensure inner content exists and contains no ===
-                inner_content = match.group(1).strip()
-                if not inner_content or "===" in inner_content:
-                    all_inline_format = False
-                    break
-            else:
-                all_inline_format = False  # type: ignore[unreachable]
-                break
-
-    # If all lines are inline format, return directly
-    if has_any_content and all_inline_format:
-        return True
-
-    # Check multiline format using state machine
+    # Use state machine to validate that all non-empty content is preserved
     state = "OUTSIDE"  # States: OUTSIDE, INSIDE
-    has_content_outside = False  # Has external content
-    has_preserve_blocks = False  # Has preserve blocks
+    has_preserve_content = False
 
     for line in lines:
         stripped_line = line.strip()
 
+        # Check if this line is a fence marker (!===)
         if COMPILED_PRESERVE_FENCE_REGEX.match(stripped_line):
             if state == "OUTSIDE":
                 # Enter preserve block
                 state = "INSIDE"
-                has_preserve_blocks = True
+                has_preserve_content = True
             elif state == "INSIDE":
                 # Exit preserve block
                 state = "OUTSIDE"
-            # !=== lines don't count as external content
-        else:
-            # Non-!=== lines
-            if stripped_line:  # type: ignore[unreachable]  # Non-empty line
-                if state == "OUTSIDE":
-                    # External content found
-                    has_content_outside = True
-                    break
-                # Internal content doesn't affect judgment
+            # Fence markers themselves are valid preserved content
+            continue
+
+        # Non-fence lines
+        if stripped_line:  # Non-empty line
+            if state == "INSIDE":
+                # Inside fence block, this is valid preserved content
+                has_preserve_content = True
+            else:
+                # Outside fence block, check if it's inline format
+                match = COMPILED_INLINE_PRESERVE_REGEX.match(stripped_line)
+                if match:
+                    # Ensure inner content exists and contains no ===
+                    inner_content = match.group(1).strip()
+                    if inner_content and "===" not in inner_content:
+                        # Valid inline format
+                        has_preserve_content = True
+                    else:
+                        # Invalid inline format
+                        return False
+                else:
+                    # Not fence, not inline format -> external content
+                    return False
 
     # Judgment conditions:
-    # 1. Must have preserve blocks
-    # 2. Cannot have external content
-    # 3. Final state must be OUTSIDE (all blocks closed)
-    return has_preserve_blocks and not has_content_outside and state == "OUTSIDE"
+    # 1. Must have preserved content
+    # 2. Final state must be OUTSIDE (all fence blocks closed)
+    return has_preserve_content and state == "OUTSIDE"
 
 
 def extract_interaction_question(content: str) -> str | None:
