@@ -43,7 +43,8 @@ class LLMProvider(ABC):
         Non-streaming LLM call.
 
         Args:
-            messages: Message list in format [{"role": "system/user/assistant", "content": "..."}]
+            messages: Message list in format [{"role": "system/user/assistant", "content": "..."}].
+                      This list already includes conversation history context merged by MarkdownFlow.
 
         Returns:
             str: LLM response content
@@ -58,7 +59,8 @@ class LLMProvider(ABC):
         Streaming LLM call.
 
         Args:
-            messages: Message list in format [{"role": "system/user/assistant", "content": "..."}]
+            messages: Message list in format [{"role": "system/user/assistant", "content": "..."}].
+                      This list already includes conversation history context merged by MarkdownFlow.
 
         Yields:
             str: Incremental LLM response content
