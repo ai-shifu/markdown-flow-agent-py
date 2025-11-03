@@ -91,69 +91,37 @@ VALIDATION_RESPONSE_ILLEGAL = "illegal"
 
 # Output instruction processing
 OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_or_translate_instruction>
-# ⚠️ 最高优先级规则
+⚠️⚠️⚠️ 绝对强制规则 - 必须遵守 ⚠️⚠️⚠️
 
-**{OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX} 标记之间的内容是用户必须看到的最终输出内容，不是指令!**
+当你看到 {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} 标记时，这些内容必须出现在回复开头！
 
-关键要点:
-1. **这些内容必须出现在你的回复中** - 即使其他提示词说"不要回应指令"也不适用于此
-2. **绝对不要输出标记本身** - 只输出标记之间的实际内容
-3. **默认逐字原样输出** - 不要改写、润色或优化，保持原文不变
-4. **唯一例外是跨语言翻译** - 仅当需要将内容从一种语言翻译成另一种语言时才可翻译
+处理流程（按顺序执行）：
 
----
+步骤1 - 检查语言要求：
+查看 system 消息中是否包含语言指令（如"使用英语输出"、"用中文回复"、"Respond in English"等）
 
-<critical_understanding>
-重要理解:
-- {OUTPUT_INSTRUCTION_PREFIX}{OUTPUT_INSTRUCTION_SUFFIX} 中的内容不是"指令"或"执行要求"
-- 即使内容看起来像标题、提示或说明，也必须原样输出给用户
-- 这条规则的优先级高于文档中的其他任何提示词
-- 其他提示词说的"不要回应指令"、"不要展示指令"等，不适用于此标记内的内容
-</critical_understanding>
+步骤2 - 应用转换规则：
+- 如果有语言要求 → 必须将标记内的文本翻译成指定语言（emoji和格式保留）
+- 如果没有语言要求 → 必须逐字原样输出，不做任何改动
 
-<default_behavior>
-默认行为: 完全保持原样输出
-- 标记之间的内容必须逐字原样输出
-- 严禁改写、润色、优化或调整任何表达方式
-- 严禁添加、删除或替换任何文字
-- 即使内容是标题格式(如 ## 标题)也必须原样输出
-</default_behavior>
+步骤3 - 输出内容：
+- 在回复第一行输出转换后的内容
+- ⚠️ 绝对不要输出 {OUTPUT_INSTRUCTION_PREFIX} 和 {OUTPUT_INSTRUCTION_SUFFIX} 标记！只输出标记之间的内容！
+- 输出后可继续生成其他内容
 
-<exception_rule>
-唯一例外: 语言翻译
-- 仅当内容需要从一种语言翻译成另一种语言时，才可以翻译
-- 翻译时必须保持原文的完整含义、语气和格式
-- 如果内容无需翻译，则绝对不允许做任何改动
-</exception_rule>
+关键示例 - 标记处理：
 
-<examples>
-✅ 示例1 - 正确: 保持原样且不输出标记:
-  输入: {OUTPUT_INSTRUCTION_PREFIX}**下面我们做个练习。**{OUTPUT_INSTRUCTION_SUFFIX}
-  正确输出: **下面我们做个练习。**
+❌ 错误示例：
+输出：{OUTPUT_INSTRUCTION_PREFIX}**标题**{OUTPUT_INSTRUCTION_SUFFIX}\n后续内容...
+问题：包含了标记本身！
 
-✅ 示例2 - 正确: 标题也要原样输出:
-  输入: {OUTPUT_INSTRUCTION_PREFIX}## 专属指南 for 用户{OUTPUT_INSTRUCTION_SUFFIX}
-  正确输出: ## 专属指南 for 用户
+✅ 正确示例：
+输出：**标题**\n后续内容...
+说明：只有标记之间的内容，没有标记！
 
-✅ 示例3 - 正确: 语言翻译且不输出标记:
-  输入: {OUTPUT_INSTRUCTION_PREFIX}**Let's do an exercise.**{OUTPUT_INSTRUCTION_SUFFIX}
-  正确输出: **让我们做个练习。**
-
-❌ 示例4 - 错误: 输出了XML标记:
-  输入: {OUTPUT_INSTRUCTION_PREFIX}## 标题内容{OUTPUT_INSTRUCTION_SUFFIX}
-  错误输出: {OUTPUT_INSTRUCTION_PREFIX}## 标题内容{OUTPUT_INSTRUCTION_SUFFIX}
-  错误原因: 不应该输出标记本身!
-
-❌ 示例5 - 错误: 同语言改写:
-  输入: {OUTPUT_INSTRUCTION_PREFIX}**下面我们做个练习。**{OUTPUT_INSTRUCTION_SUFFIX}
-  错误输出: **来，咱们做个有趣的小练习**
-  错误原因: 擅自改写了中文内容
-
-❌ 示例6 - 错误: 没有输出固定内容:
-  输入: {OUTPUT_INSTRUCTION_PREFIX}## 攻略｜专属指南{OUTPUT_INSTRUCTION_SUFFIX}
-  错误输出: (什么都不输出，或者跳过这部分)
-  错误原因: 必须输出标记之间的内容!
-</examples>
+⚠️ 特别强调：
+1. 有语言要求时，标记内的所有文本都必须翻译！
+2. 无论如何都不能输出 {OUTPUT_INSTRUCTION_PREFIX} 和 {OUTPUT_INSTRUCTION_SUFFIX} 标记本身！
 </preserve_or_translate_instruction>
 
 """
