@@ -55,7 +55,7 @@ llm_provider = YourLLMProvider(api_key="your-key")
 mf = MarkdownFlow(document, llm_provider=llm_provider)
 
 # 使用不同模式处理
-result = await mf.process(
+result = mf.process(
     block_index=0,
     mode=ProcessMode.COMPLETE,
     variables={'name': 'Alice', 'level': '中级'}
@@ -66,7 +66,7 @@ result = await mf.process(
 
 ```python
 # 实时响应的流处理
-async for chunk in mf.process(
+for chunk in mf.process(
     block_index=0,
     mode=ProcessMode.STREAM,
     variables={'name': 'Bob'}
@@ -104,7 +104,7 @@ user_input = {
     'skills': ['Python', 'JavaScript', 'Go']  # 多选
 }
 
-result = await mf.process(
+result = mf.process(
     block_index=1,  # 处理技能交互
     user_input=user_input,
     mode=ProcessMode.COMPLETE
@@ -130,13 +130,13 @@ class MarkdownFlow:
     def get_all_blocks(self) -> List[Block]: ...
     def extract_variables(self) -> Set[str]: ...
 
-    async def process(
+    def process(
         self,
         block_index: int,
         mode: ProcessMode = ProcessMode.COMPLETE,
         variables: Optional[Dict[str, str]] = None,
         user_input: Optional[str] = None
-    ) -> LLMResult: ...
+    ) -> LLMResult | Generator[LLMResult, None, None]: ...
 ```
 
 **方法：**
@@ -174,11 +174,11 @@ class ProcessMode(Enum):
 
 ```python
 # 完整响应
-complete_result = await mf.process(0, ProcessMode.COMPLETE)
+complete_result = mf.process(0, ProcessMode.COMPLETE)
 print(complete_result.content)  # 完整的 LLM 响应
 
 # 流式响应
-async for chunk in mf.process(0, ProcessMode.STREAM):
+for chunk in mf.process(0, ProcessMode.STREAM):
     print(chunk.content, end='')
 ```
 
@@ -188,14 +188,14 @@ async for chunk in mf.process(0, ProcessMode.STREAM):
 
 ```python
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator
+from typing import Generator
 
 class LLMProvider(ABC):
     @abstractmethod
-    async def complete(self, prompt: str) -> LLMResult: ...
+    def complete(self, messages: list[dict[str, str]]) -> str: ...
 
     @abstractmethod
-    async def stream(self, prompt: str) -> AsyncGenerator[str, None]: ...
+    def stream(self, messages: list[dict[str, str]]) -> Generator[str, None, None]: ...
 ```
 
 **自定义实现：**
@@ -203,25 +203,24 @@ class LLMProvider(ABC):
 ```python
 class OpenAIProvider(LLMProvider):
     def __init__(self, api_key: str):
-        self.client = openai.AsyncOpenAI(api_key=api_key)
+        self.client = openai.OpenAI(api_key=api_key)
 
-    async def complete(self, prompt: str) -> LLMResult:
-        response = await self.client.completions.create(
+    def complete(self, messages: list[dict[str, str]]) -> str:
+        response = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
-            prompt=prompt,
-            max_tokens=500
+            messages=messages
         )
-        return LLMResult(content=response.choices[0].text.strip())
+        return response.choices[0].message.content
 
-    async def stream(self, prompt: str):
-        stream = await self.client.completions.create(
+    def stream(self, messages: list[dict[str, str]]):
+        stream = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
-            prompt=prompt,
+            messages=messages,
             stream=True
         )
-        async for chunk in stream:
-            if chunk.choices[0].text:
-                yield chunk.choices[0].text
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
 ```
 
 ### 块类型
@@ -379,7 +378,7 @@ from markdown_flow import (
 user_input = "Python"
 
 # 处理交互
-result = await mf.process(
+result = mf.process(
     block_index=1,
     user_input=user_input,
     mode=ProcessMode.COMPLETE
@@ -396,7 +395,7 @@ user_input = {
 }
 
 # 处理交互
-result = await mf.process(
+result = mf.process(
     block_index=1,
     user_input=user_input,
     mode=ProcessMode.COMPLETE
@@ -439,10 +438,10 @@ class CustomAPIProvider(LLMProvider):
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url
         self.api_key = api_key
-        self.client = httpx.AsyncClient()
+        self.client = httpx.Client()
 
-    async def complete(self, prompt: str) -> LLMResult:
-        response = await self.client.post(
+    def complete(self, prompt: str) -> LLMResult:
+        response = self.client.post(
             f"{self.base_url}/complete",
             headers={"Authorization": f"Bearer {self.api_key}"},
             json={"prompt": prompt, "max_tokens": 1000}
@@ -450,14 +449,14 @@ class CustomAPIProvider(LLMProvider):
         data = response.json()
         return LLMResult(content=data["text"])
 
-    async def stream(self, prompt: str):
-        async with self.client.stream(
+    def stream(self, prompt: str):
+        with self.client.stream(
             "POST",
             f"{self.base_url}/stream",
             headers={"Authorization": f"Bearer {self.api_key}"},
             json={"prompt": prompt}
         ) as response:
-            async for chunk in response.aiter_text():
+            for chunk in response.iter_text():
                 if chunk.strip():
                     yield chunk
 
@@ -469,7 +468,7 @@ mf = MarkdownFlow(document, llm_provider=provider)
 ### 多块文档处理
 
 ```python
-async def process_conversation():
+def process_conversation():
     conversation = """
 # AI 助手
 
@@ -506,7 +505,7 @@ async def process_conversation():
     for i, block in enumerate(blocks):
         if block.block_type == BlockType.CONTENT:
             print(f"\n--- 处理块 {i} ---")
-            result = await mf.process(
+            result = mf.process(
                 block_index=i,
                 mode=ProcessMode.COMPLETE,
                 variables=variables
@@ -521,9 +520,8 @@ async def process_conversation():
 
 ```python
 from markdown_flow import MarkdownFlow, ProcessMode
-import asyncio
 
-async def stream_with_progress():
+def stream_with_progress():
     document = """
 为 {{user_name}} 生成一个全面的 Python 教程，
 专注于 {{topic}}，包含实际示例。
@@ -537,12 +535,12 @@ async def stream_with_progress():
     content = ""
     chunk_count = 0
 
-    async for chunk in mf.process(
+    for chunk in mf.process(
         block_index=0,
         mode=ProcessMode.STREAM,
         variables={
             'user_name': '开发者',
-            'topic': '异步编程'
+            'topic': '同步编程'
         }
     ):
         content += chunk.content
@@ -576,13 +574,13 @@ class InteractiveDocumentBuilder:
         self.user_responses = {}
         self.current_block = 0
 
-    async def start_interaction(self):
+    def start_interaction(self):
         blocks = self.mf.get_all_blocks()
 
         for i, block in enumerate(blocks):
             if block.block_type == BlockType.CONTENT:
                 # 使用当前变量处理内容块
-                result = await self.mf.process(
+                result = self.mf.process(
                     block_index=i,
                     mode=ProcessMode.COMPLETE,
                     variables=self.user_responses
@@ -591,14 +589,14 @@ class InteractiveDocumentBuilder:
 
             elif block.block_type == BlockType.INTERACTION:
                 # 处理用户交互
-                response = await self.handle_interaction(block.content)
+                response = self.handle_interaction(block.content)
                 if response:
                     self.user_responses.update(response)
 
-    async def handle_interaction(self, interaction_content: str):
-        from markdown_flow.utils import InteractionParser
+    def handle_interaction(self, interaction_content: str):
+        from markdown_flow.parser import InteractionParser
 
-        interaction = InteractionParser.parse(interaction_content)
+        interaction = InteractionParser().parse(interaction_content)
         print(f"\n{interaction_content}")
 
         if interaction.name == "BUTTONS_ONLY":
@@ -612,7 +610,7 @@ class InteractiveDocumentBuilder:
                 return {interaction.variable: selected}
             except (ValueError, IndexError):
                 print("无效选择")
-                return await self.handle_interaction(interaction_content)
+                return self.handle_interaction(interaction_content)
 
         elif interaction.name == "TEXT_ONLY":
             response = input(f"{interaction.question}：")
@@ -634,7 +632,7 @@ template = """
 """
 
 builder = InteractiveDocumentBuilder(template, your_llm_provider)
-await builder.start_interaction()
+builder.start_interaction()
 ```
 
 ### 变量系统深入了解

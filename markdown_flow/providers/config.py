@@ -31,8 +31,10 @@ class ProviderConfig:
     debug: bool = field(default_factory=lambda: os.getenv("LLM_DEBUG", "false").lower() in ("true", "1", "yes"))
     """Enable debug mode (colorized console output). Default: LLM_DEBUG environment variable or False."""
 
-    timeout: float = 60.0
-    """Request timeout in seconds. Default: 60.0."""
+    timeout: float | None = field(
+        default_factory=lambda: float(os.getenv("LLM_TIMEOUT")) if os.getenv("LLM_TIMEOUT") else None
+    )
+    """Request timeout in seconds. None means no timeout. Default: LLM_TIMEOUT environment variable or None."""
 
     def __post_init__(self):
         """Validate configuration after initialization."""
@@ -42,5 +44,5 @@ class ProviderConfig:
         if self.temperature < 0.0 or self.temperature > 2.0:
             raise ValueError(f"Temperature must be between 0.0 and 2.0, got {self.temperature}")
 
-        if self.timeout <= 0:
-            raise ValueError(f"Timeout must be positive, got {self.timeout}")
+        if self.timeout is not None and self.timeout <= 0:
+            raise ValueError(f"Timeout must be positive or None, got {self.timeout}")

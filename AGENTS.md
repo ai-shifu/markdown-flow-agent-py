@@ -298,7 +298,8 @@ provider = create_provider(ProviderConfig(
     base_url="https://api.openai.com/v1",
     model="gpt-4",
     temperature=0.7,
-    debug=True  # Enable colorized console output
+    debug=True,  # Enable colorized console output
+    timeout=None  # No timeout (recommended for streaming), or set to seconds (e.g., 300.0)
 ))
 
 # Use with MarkdownFlow
@@ -606,15 +607,14 @@ class TestMarkdownFlow:
         assert blocks[1].block_type == BlockType.INTERACTION
         assert blocks[2].block_type == BlockType.CONTENT
 
-    @pytest.mark.asyncio
-    async def test_process_with_mock_llm(self, sample_document, mock_llm_provider):
+    def test_process_with_mock_llm(self, sample_document, mock_llm_provider):
         """Test processing with mocked LLM"""
         # Arrange
         mf = MarkdownFlow(sample_document, llm_provider=mock_llm_provider)
         variables = {"name": "John", "level": "Beginner"}
 
         # Act
-        result = await mf.process(0, mode=ProcessMode.COMPLETE, variables=variables)
+        result = mf.process(0, mode=ProcessMode.COMPLETE, variables=variables)
 
         # Assert
         assert result.content == "Mock response"
@@ -800,18 +800,18 @@ del large_document  # Free memory
 return result
 ```
 
-**Async/await**: Use async patterns for LLM calls and I/O operations
+**Synchronous Processing**: The library uses synchronous patterns for simplicity and compatibility
 
 ```python
-# Good: Async processing
-async def process_with_llm(content):
-    result = await llm_provider.complete(content)
+# Synchronous processing
+def process_with_llm(content):
+    result = llm_provider.complete(content)
     return result
 
-# Bad: Synchronous blocking call
-def process_with_llm(content):
-    result = llm_provider.complete(content)  # Blocks execution
-    return result
+# Streaming with generators
+def process_stream(content):
+    for chunk in llm_provider.stream(content):
+        yield chunk
 ```
 
 ### LLM Integration Optimization
@@ -828,18 +828,18 @@ class MarkdownFlow:
 **Error Handling**: Implement retry logic with exponential backoff
 
 ```python
-import asyncio
+import time
 import random
 
-async def retry_with_backoff(func, max_retries=3):
+def retry_with_backoff(func, max_retries=3):
     for attempt in range(max_retries):
         try:
-            return await func()
+            return func()
         except Exception as e:
             if attempt == max_retries - 1:
                 raise e
             wait_time = (2 ** attempt) + random.uniform(0, 1)
-            await asyncio.sleep(wait_time)
+            time.sleep(wait_time)
 ```
 
 **Token Optimization**: Minimize prompt tokens while maintaining functionality
@@ -858,13 +858,13 @@ prompt = f"Please process the following content: {full_content}"
 
 ```python
 # Good: Streaming response
-async def process_stream(self, block_index: int):
-    async for chunk in self.llm_provider.stream(prompt):
+def process_stream(self, block_index: int):
+    for chunk in self.llm_provider.stream(prompt):
         yield chunk
 
 # Bad: Loading full response into memory
-async def process_complete(self, block_index: int):
-    full_response = await self.llm_provider.complete(prompt)
+def process_complete(self, block_index: int):
+    full_response = self.llm_provider.complete(prompt)
     return full_response
 ```
 
@@ -977,7 +977,15 @@ pip install pre-commit ruff mypy pytest pytest-cov
 **Environment Variables** (for development):
 
 ```bash
-# Optional: For testing with actual LLM providers
+# LLM Provider Configuration (using built-in OpenAI provider)
+export LLM_API_KEY="sk-..."                          # Required: Your API key
+export LLM_BASE_URL="https://api.openai.com/v1"     # Optional: API endpoint
+export LLM_MODEL="gpt-4"                             # Optional: Model name (default: gpt-3.5-turbo)
+export LLM_TEMPERATURE="0.7"                         # Optional: Temperature 0.0-2.0 (default: 0.7)
+export LLM_DEBUG="true"                              # Optional: Enable debug output (default: false)
+export LLM_TIMEOUT="300"                             # Optional: Timeout in seconds (default: None, no timeout)
+
+# Legacy: For testing with other LLM providers
 export OPENAI_API_KEY="your-api-key"
 export ANTHROPIC_API_KEY="your-api-key"
 
@@ -1071,11 +1079,9 @@ print('Pattern count:', len([var for var in dir() if 'COMPILED' in var]))
 # Test core functionality end-to-end
 python -c "
 from markdown_flow import MarkdownFlow, ProcessMode
-from unittest.mock import AsyncMock
-import asyncio
+from unittest.mock import MagicMock
 
-async def test():
-    doc = '''Hello {{name}}!
+doc = '''Hello {{name}}!
 
 ---
 
@@ -1085,17 +1091,15 @@ async def test():
 
 You selected {{level}}.'''
 
-    mock_llm = AsyncMock()
-    mock_llm.complete.return_value = 'Mock LLM response'
+mock_llm = MagicMock()
+mock_llm.complete.return_value = 'Mock LLM response'
 
-    mf = MarkdownFlow(doc, llm_provider=mock_llm)
-    print('Variables:', mf.extract_variables())
-    print('Blocks:', len(mf.get_all_blocks()))
+mf = MarkdownFlow(doc, llm_provider=mock_llm)
+print('Variables:', mf.extract_variables())
+print('Blocks:', len(mf.get_all_blocks()))
 
-    result = await mf.process(0, ProcessMode.COMPLETE, {'name': 'John'})
-    print('Process result:', result)
-
-asyncio.run(test())
+result = mf.process(0, ProcessMode.COMPLETE, {'name': 'John'})
+print('Process result:', result)
 "
 
 # Check Commitizen configuration and version
@@ -1126,9 +1130,9 @@ from functools import wraps
 
 def timing_decorator(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         start = time.time()
-        result = await func(*args, **kwargs)
+        result = func(*args, **kwargs)
         end = time.time()
         print(f"{func.__name__} took {end - start:.2f}s")
         return result
@@ -1141,20 +1145,20 @@ def timing_decorator(func):
 
 ```python
 from markdown_flow.llm import LLMProvider, LLMResult, ProcessMode
-from collections.abc import AsyncGenerator
+from typing import Generator
 
 class CustomLLMProvider(LLMProvider):
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    async def complete(self, prompt: str) -> LLMResult:
+    def complete(self, messages: list[dict[str, str]]) -> str:
         # Implement your LLM completion logic
-        response = await your_llm_api.complete(prompt)
-        return LLMResult(content=response.text)
+        response = your_llm_api.complete(messages)
+        return response.text
 
-    async def stream(self, prompt: str) -> AsyncGenerator[str, None]:
+    def stream(self, messages: list[dict[str, str]]) -> Generator[str, None, None]:
         # Implement streaming logic
-        async for chunk in your_llm_api.stream(prompt):
+        for chunk in your_llm_api.stream(messages):
             yield chunk.text
 
 # Usage
@@ -1165,24 +1169,23 @@ mf = MarkdownFlow(document, llm_provider=provider)
 ### Batch Processing Multiple Documents
 
 ```python
-import asyncio
 from markdown_flow import MarkdownFlow, ProcessMode
+from concurrent.futures import ThreadPoolExecutor
 
-async def process_documents(documents: list, llm_provider):
-    """Process multiple documents concurrently"""
-    tasks = []
-
-    for i, doc in enumerate(documents):
+def process_documents(documents: list, llm_provider):
+    """Process multiple documents using thread pool"""
+    def process_single(doc):
         mf = MarkdownFlow(doc, llm_provider=llm_provider)
-        task = mf.process(0, ProcessMode.COMPLETE)
-        tasks.append(task)
+        return mf.process(0, ProcessMode.COMPLETE)
 
-    results = await asyncio.gather(*tasks)
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(process_single, documents))
+
     return results
 
 # Usage
 documents = ["Document 1", "Document 2", "Document 3"]
-results = await process_documents(documents, your_llm_provider)
+results = process_documents(documents, your_llm_provider)
 ```
 
 ### Variable Validation and Transformation
@@ -1205,11 +1208,11 @@ class ValidatedMarkdownFlow(MarkdownFlow):
                 validated[key] = value
         return validated
 
-    async def process(self, block_index: int, mode: ProcessMode,
+    def process(self, block_index: int, mode: ProcessMode,
                      variables: dict = None, user_input: str = None):
         if variables:
             variables = self.validate_variables(variables)
-        return await super().process(block_index, mode, variables, user_input)
+        return super().process(block_index, mode, variables, user_input)
 
 # Usage with validators
 validators = {
@@ -1250,8 +1253,8 @@ mf = ValidatedMarkdownFlow(document, llm_provider, validators)
 ### LLM Provider Abstraction
 
 - Providers are completely abstracted to support different AI services
-- Three processing modes support different use cases
-- Async/await pattern throughout for non-blocking operations
+- Two processing modes support different use cases (COMPLETE and STREAM)
+- Synchronous processing with generator-based streaming
 - Error handling and timeout management built into the interface
 
 ## Additional Resources
