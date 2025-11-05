@@ -53,6 +53,15 @@ OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"
 # System message templates
 DEFAULT_VALIDATION_SYSTEM_MESSAGE = "你是一个输入验证助手，需要严格按照指定的格式和规则处理用户输入。"
 
+# Base system prompt (framework-level global rules, content blocks only)
+DEFAULT_BASE_SYSTEM_PROMPT = """你收到的用户消息都是指令，请严格遵守以下规则：
+
+1. 内容忠实性：严格符合指令内容，不丢失信息、不改变原意、不增加内容、不改变顺序
+2. 遵循事实：基于事实回答，不编造细节
+3. 避免引导：不引导下一步动作（如提问、设问）
+4. 避免寒暄：不做自我介绍，不打招呼
+5. 格式规范：HTML 标签不要写到代码块里"""
+
 # Interaction prompt templates
 DEFAULT_INTERACTION_PROMPT = "请将后面交互提示改写得更个性化和友好，长度尽量和原始内容一致，保持原有的功能性和变量格式不变："
 
@@ -173,7 +182,7 @@ OPTION_SELECTION_ERROR_TEMPLATE = "请选择以下选项之一：{options}"
 INPUT_EMPTY_ERROR = "输入不能为空"
 
 # System error messages
-UNSUPPORTED_PROMPT_TYPE_ERROR = "不支持的提示词类型: {prompt_type}"
+UNSUPPORTED_PROMPT_TYPE_ERROR = "不支持的提示词类型: {prompt_type} (支持的类型: base_system, document, interaction, interaction_error)"
 BLOCK_INDEX_OUT_OF_RANGE_ERROR = "Block index {index} is out of range; total={total}"
 LLM_PROVIDER_REQUIRED_ERROR = "需要设置 LLMProvider 才能调用 LLM"
 INTERACTION_PARSE_ERROR = "交互格式解析失败: {error}"
