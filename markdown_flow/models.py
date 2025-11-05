@@ -7,7 +7,7 @@ Simplified and refactored data models focused on core functionality.
 from dataclasses import dataclass, field
 
 from .enums import BlockType, InputType
-from .utils import extract_variables_from_text
+from .parser import extract_variables_from_text
 
 
 @dataclass
