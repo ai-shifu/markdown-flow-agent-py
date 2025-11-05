@@ -351,6 +351,7 @@ def create_default_provider() -> OpenAIProvider:
     - LLM_MODEL: Model name (default: gpt-3.5-turbo)
     - LLM_TEMPERATURE: Temperature (default: 0.7)
     - LLM_DEBUG: Debug mode (default: false)
+    - LLM_TIMEOUT: Request timeout in seconds (default: None, no timeout)
 
     Returns:
         OpenAIProvider instance with default config
