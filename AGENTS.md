@@ -57,6 +57,10 @@ MarkdownFlow Agent (Python) is a specialized library designed to parse and proce
 - **Interactive Elements**: Parse and handle `?[]` syntax for user interactions
 - **Stream Processing**: Support for real-time streaming responses
 - **Type Safety**: Full TypeScript-style type hints for Python development
+- **Block Metadata**: Automatic `block_type` and `block_index` in all LLMResult metadata
+- **Instance-Level Config**: Per-instance model and temperature configuration with chainable API
+- **Built-in Provider**: Production-ready OpenAI-compatible provider with debug mode and token tracking
+- **Modular Architecture**: Clean `parser/` module structure replacing monolithic `utils.py`
 
 ## Architecture
 
@@ -78,28 +82,44 @@ The project follows a clean, modular architecture with clear separation of conce
 
 **LLM Integration (`llm.py`)** - Abstract provider interface
 
-- `PROMPT_ONLY`: Generate prompts without LLM calls
 - `COMPLETE`: Non-streaming LLM processing
 - `STREAM`: Streaming LLM responses
 
-**Utilities (`utils.py`)** - Core processing utilities
+**Parser Modules (`parser/`)** - Modular parsing utilities
 
-- Variable extraction and replacement
-- Interaction parsing and validation
-- Template generation for smart validation
+- `variable.py` - Variable extraction and replacement
+- `interaction.py` - Interaction parsing (6 types) and validation
+- `output.py` - Output instructions and preserved content processing
+- `validation.py` - Template generation and response parsing
+- `json_parser.py` - JSON parsing with code block support
+
+**Providers (`providers/`)** - Built-in LLM provider implementations
+
+- `openai.py` - Production-ready OpenAI-compatible provider
+- `config.py` - Provider configuration with environment variable support
 
 ### Module Structure
 
 ```text
 markdown_flow/
 ├── __init__.py              # Public API exports and version
-├── core.py                  # MarkdownFlow main class (30KB+)
+├── core.py                  # MarkdownFlow main class with instance-level config
 ├── enums.py                 # Type definitions (BlockType, InputType)
 ├── exceptions.py            # Custom exception classes
 ├── llm.py                   # LLM provider abstract interface
 ├── models.py                # Data classes and models
-├── utils.py                 # Utility functions (24KB+)
-└── constants.py             # Pre-compiled regex patterns and constants (7KB+)
+├── constants.py             # Pre-compiled regex patterns and constants
+├── parser/                  # Modular parsing components
+│   ├── __init__.py         # Parser module exports
+│   ├── variable.py         # Variable extraction and replacement
+│   ├── interaction.py      # Interaction parsing (6 types)
+│   ├── output.py           # Output instructions and preserved content
+│   ├── validation.py       # Validation templates and parsing
+│   └── json_parser.py      # JSON parsing utilities
+└── providers/               # Built-in provider implementations
+    ├── __init__.py         # Provider module exports
+    ├── config.py           # ProviderConfig class
+    └── openai.py           # OpenAIProvider implementation
 ```
 
 ## Development Commands
@@ -225,6 +245,125 @@ if result.stderr: print('Errors:', result.stderr)
 "
 ```
 
+## Key Features 🎉
+
+### 1. Block Type Metadata
+
+All `LLMResult` objects now automatically include block metadata:
+
+```python
+result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
+
+# result.metadata automatically contains:
+# - block_type: "content" | "interaction" | "preserved_content"
+# - block_index: 0-based index of the block
+```
+
+**Use Case**: Build custom output formatters based on block type.
+
+### 2. Instance-Level Model Configuration
+
+Configure model and temperature per-instance with chainable API:
+
+```python
+from markdown_flow import MarkdownFlow
+
+# Create instances with different configs
+mf_creative = MarkdownFlow(creative_doc, provider)
+mf_creative.set_model("gpt-4").set_temperature(0.9)
+
+mf_factual = MarkdownFlow(factual_doc, provider)
+mf_factual.set_model("gpt-3.5-turbo").set_temperature(0.1)
+
+# Override per-instance
+result = mf_creative.process(0, mode=ProcessMode.COMPLETE, variables=vars)
+# Uses: model="gpt-4", temperature=0.9
+```
+
+**Priority**: Instance config > Provider default
+
+### 3. Built-in OpenAI Provider
+
+Production-ready provider with comprehensive features:
+
+```python
+from markdown_flow.providers import create_provider, create_default_provider, ProviderConfig
+
+# Option 1: Environment variables (LLM_API_KEY, LLM_MODEL, etc.)
+provider = create_default_provider()
+
+# Option 2: Explicit configuration
+provider = create_provider(ProviderConfig(
+    api_key="sk-...",
+    base_url="https://api.openai.com/v1",
+    model="gpt-4",
+    temperature=0.7,
+    debug=True  # Enable colorized console output
+))
+
+# Use with MarkdownFlow
+mf = MarkdownFlow(document, provider)
+result = mf.process(0, mode=ProcessMode.COMPLETE)
+
+# Access provider metadata
+print(f"Tokens used: {result.metadata['total_tokens']}")
+print(f"Processing time: {result.metadata['processing_time']}ms")
+```
+
+**Features**:
+- ✅ Debug mode with colorized request/response output
+- ✅ Automatic token tracking (prompt/output/total)
+- ✅ Processing time measurement
+- ✅ Comprehensive metadata
+- ✅ Environment variable defaults
+- ✅ Streaming and non-streaming modes
+
+### 4. Modular Parser Architecture
+
+Clean separation of parsing concerns:
+
+```python
+# Import from parser module
+from markdown_flow.parser import (
+    extract_variables_from_text,
+    replace_variables_in_text,
+    InteractionParser,
+    InteractionType,
+    process_output_instructions,
+    generate_smart_validation_template,
+    parse_validation_response,
+    parse_json_response
+)
+
+# Each parser module is focused and maintainable
+parser = InteractionParser()
+result = parser.parse("?[%{{choice}} Yes|No]")
+```
+
+**Migration Note**: Replace `from markdown_flow.utils import ...` with `from markdown_flow.parser import ...`
+
+### 5. Provider Metadata Propagation
+
+LLM provider metadata automatically merged into results:
+
+```python
+result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
+
+# Available in result.metadata:
+{
+    "block_type": "content",
+    "block_index": 0,
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "provider": "openai-compatible",
+    "prompt_tokens": 150,
+    "output_tokens": 45,
+    "total_tokens": 195,
+    "processing_time": 1234,  # milliseconds
+    "timestamp": 1730851200
+}
+```
+
 ## API Reference
 
 ### Core Classes
@@ -238,7 +377,6 @@ if result.stderr: print('Errors:', result.stderr)
 
 **ProcessMode** - Processing mode enumeration
 
-- `PROMPT_ONLY`: Generate prompts without LLM calls
 - `COMPLETE`: Non-streaming LLM processing
 - `STREAM`: Streaming LLM responses
 
@@ -396,12 +534,13 @@ Support for display text different from stored value:
 ### Test File Structure
 
 ```text
-tests/                          # When test suite is added
+tests/                          # Test suite (46 unit tests)
 ├── conftest.py                # Shared fixtures
-├── test_core.py              # Core MarkdownFlow functionality tests
+├── test_markdownflow_basic.py # MarkdownFlow core tests (21 tests)
+├── test_parser_variable.py    # Variable parser tests (13 tests)
+├── test_parser_interaction.py # Interaction parser tests (12 tests)
 ├── test_models.py            # Data model tests
-├── test_utils.py             # Utility function tests
-├── test_llm.py               # LLM integration tests
+├── test_llm.py               # Custom LLM provider for testing
 ├── test_enums.py             # Enumeration tests
 └── fixtures/
     ├── test_documents.py     # Test document fixtures
@@ -579,13 +718,13 @@ class TestMarkdownFlow:
 
 **Python Modules**: Use snake_case
 
-- ✅ Correct: `markdown_flow/`, `core.py`, `utils.py`
+- ✅ Correct: `markdown_flow/`, `core.py`, `parser/variable.py`
 - ❌ Wrong: `MarkdownFlow/`, `Core.py`, `utilsHelper.py`
 
 **Test Files**: Use `test_` prefix
 
-- ✅ Correct: `test_core.py`, `test_utils.py`
-- ❌ Wrong: `core_test.py`, `CoreTests.py`
+- ✅ Correct: `test_markdownflow_basic.py`, `test_parser_variable.py`
+- ❌ Wrong: `core_test.py`, `CoreTests.py`, `parserTests.py`
 
 **Configuration Files**: Use lowercase with dots
 
@@ -919,7 +1058,6 @@ python -c "
 from markdown_flow.llm import ProcessMode
 print('ProcessMode.COMPLETE:', ProcessMode.COMPLETE)
 print('ProcessMode.STREAM:', ProcessMode.STREAM)
-print('ProcessMode.PROMPT_ONLY:', ProcessMode.PROMPT_ONLY)
 "
 
 # Check regex patterns compilation

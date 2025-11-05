@@ -36,7 +36,7 @@ from .enums import BlockType
 from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
 from .models import Block, InteractionValidationConfig
-from .utils import (
+from .parser import (
     InteractionParser,
     InteractionType,
     extract_interaction_question,
@@ -64,6 +64,8 @@ class MarkdownFlow:
     _max_context_length: int
     _blocks: list[Block] | None
     _interaction_configs: dict[int, InteractionValidationConfig]
+    _model: str | None
+    _temperature: float | None
 
     def __init__(
         self,
@@ -80,7 +82,7 @@ class MarkdownFlow:
 
         Args:
             document: Markdown document content
-            llm_provider: LLM provider, if None only PROMPT_ONLY mode is available
+            llm_provider: LLM provider (required for COMPLETE and STREAM modes)
             base_system_prompt: MarkdownFlow base system prompt (framework-level, content blocks only)
             document_prompt: Document-level system prompt
             interaction_prompt: Interaction content rendering prompt
@@ -96,10 +98,56 @@ class MarkdownFlow:
         self._max_context_length = max_context_length
         self._blocks = None
         self._interaction_configs: dict[int, InteractionValidationConfig] = {}
+        self._model: str | None = None
+        self._temperature: float | None = None
 
     def set_llm_provider(self, provider: LLMProvider) -> None:
         """Set LLM provider."""
         self._llm_provider = provider
+
+    def set_model(self, model: str) -> "MarkdownFlow":
+        """
+        Set model name for this instance.
+
+        Args:
+            model: Model name to use
+
+        Returns:
+            Self for method chaining
+        """
+        self._model = model
+        return self
+
+    def set_temperature(self, temperature: float) -> "MarkdownFlow":
+        """
+        Set temperature for this instance.
+
+        Args:
+            temperature: Temperature value (typically 0.0-2.0)
+
+        Returns:
+            Self for method chaining
+        """
+        self._temperature = temperature
+        return self
+
+    def get_model(self) -> str | None:
+        """
+        Get model name for this instance.
+
+        Returns:
+            Model name if set, None otherwise
+        """
+        return self._model
+
+    def get_temperature(self) -> float | None:
+        """
+        Get temperature for this instance.
+
+        Returns:
+            Temperature value if set, None otherwise
+        """
+        return self._temperature
 
     def set_prompt(self, prompt_type: str, value: str | None) -> None:
         """
@@ -289,14 +337,11 @@ class MarkdownFlow:
         # Build messages with context
         messages = self._build_content_messages(block_index, variables, truncated_context)
 
-        if mode == ProcessMode.PROMPT_ONLY:
-            return LLMResult(prompt=messages[-1]["content"], metadata={"messages": messages})
-
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            content = self._llm_provider.complete(messages)
+            content = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
             return LLMResult(content=content, prompt=messages[-1]["content"])
 
         if mode == ProcessMode.STREAM:
@@ -304,7 +349,7 @@ class MarkdownFlow:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
             def stream_generator():
-                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     yield LLMResult(content=chunk, prompt=messages[-1]["content"])
 
             return stream_generator()
@@ -350,20 +395,11 @@ class MarkdownFlow:
         # Build render messages with context
         messages = self._build_interaction_render_messages(question_text, truncated_context)
 
-        if mode == ProcessMode.PROMPT_ONLY:
-            return LLMResult(
-                prompt=messages[-1]["content"],
-                metadata={
-                    "original_content": processed_block.content,
-                    "question_text": question_text,
-                },
-            )
-
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 return LLMResult(content=processed_block.content)  # Fallback processing
 
-            rendered_question = self._llm_provider.complete(messages)
+            rendered_question = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
             rendered_content = self._reconstruct_interaction_content(processed_block.content, rendered_question)
 
             return LLMResult(
@@ -391,7 +427,7 @@ class MarkdownFlow:
             # With LLM provider, collect full response then return once
             def stream_generator():
                 full_response = ""
-                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     full_response += chunk
 
                 # Reconstruct final interaction content
@@ -463,10 +499,6 @@ class MarkdownFlow:
                 )
 
                 # Handle validation result based on mode
-                if mode == ProcessMode.PROMPT_ONLY:
-                    # Return validation prompt
-                    return validation_result
-
                 if mode == ProcessMode.COMPLETE:
                     # Check if validation passed
                     if isinstance(validation_result, LLMResult) and validation_result.variables:
@@ -687,21 +719,12 @@ class MarkdownFlow:
         # Build validation messages
         messages = self._build_validation_messages(block_index, user_input, target_variable, context)
 
-        if mode == ProcessMode.PROMPT_ONLY:
-            return LLMResult(
-                prompt=messages[-1]["content"],
-                metadata={
-                    "validation_target": user_input,
-                    "target_variable": target_variable,
-                },
-            )
-
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = self._llm_provider.complete(messages)
+            llm_response = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
@@ -715,7 +738,7 @@ class MarkdownFlow:
 
             def stream_generator():
                 full_response = ""
-                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     full_response += chunk
 
                 # Parse complete response and convert to LLMResult
@@ -742,23 +765,12 @@ class MarkdownFlow:
         # Build special validation messages containing button option information
         messages = self._build_validation_messages_with_options(user_input, target_variable, options, question)
 
-        if mode == ProcessMode.PROMPT_ONLY:
-            return LLMResult(
-                prompt=messages[-1]["content"],
-                metadata={
-                    "validation_target": user_input,
-                    "target_variable": target_variable,
-                    "options": options,
-                    "question": question,
-                },
-            )
-
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = self._llm_provider.complete(messages)
+            llm_response = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
@@ -772,7 +784,7 @@ class MarkdownFlow:
 
             def stream_generator():
                 full_response = ""
-                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     full_response += chunk
                     # For validation scenario, don't output chunks in real-time, only final result
 
@@ -802,17 +814,11 @@ class MarkdownFlow:
         # Build error messages with context
         messages = self._build_error_render_messages(error_message, truncated_context)
 
-        if mode == ProcessMode.PROMPT_ONLY:
-            return LLMResult(
-                prompt=messages[-1]["content"],
-                metadata={"original_error": error_message},
-            )
-
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
                 return LLMResult(content=error_message)  # Fallback processing
 
-            friendly_error = self._llm_provider.complete(messages)
+            friendly_error = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
             return LLMResult(content=friendly_error, prompt=messages[-1]["content"])
 
         if mode == ProcessMode.STREAM:
@@ -820,7 +826,7 @@ class MarkdownFlow:
                 return LLMResult(content=error_message)
 
             def stream_generator():
-                for chunk in self._llm_provider.stream(messages):  # type: ignore[attr-defined]
+                for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     yield LLMResult(content=chunk, prompt=messages[-1]["content"])
 
             return stream_generator()
@@ -933,7 +939,7 @@ class MarkdownFlow:
             system_message = DEFAULT_VALIDATION_SYSTEM_MESSAGE
         else:
             # Use smart default validation template
-            from .utils import (
+            from .parser import (
                 InteractionParser,
                 extract_interaction_question,
                 generate_smart_validation_template,

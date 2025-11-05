@@ -15,7 +15,6 @@ from .constants import NO_LLM_PROVIDER_ERROR
 class ProcessMode(Enum):
     """LLM processing modes."""
 
-    PROMPT_ONLY = "prompt_only"  # Return prompt only, no LLM call
     COMPLETE = "complete"  # Complete processing (non-streaming)
     STREAM = "stream"  # Streaming processing
 

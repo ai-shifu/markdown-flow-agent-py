@@ -9,7 +9,7 @@ Core Features:
     - Extract variable placeholders ({{variable}} and %{{variable}} formats)
     - Build LLM-ready prompts and message formats
     - Handle user interaction validation and input processing
-    - Support multiple processing modes: PROMPT_ONLY, COMPLETE, STREAM
+    - Support multiple processing modes: COMPLETE, STREAM
 
 Supported Interaction Types:
     - TEXT_ONLY: ?[%{{var}}...question] - Text input only
@@ -35,7 +35,6 @@ Basic Usage:
     result = mf.process(0, variables={'name': 'John'}, mode=ProcessMode.COMPLETE)
 
     # Different processing modes
-    prompt_result = mf.process(0, mode=ProcessMode.PROMPT_ONLY)
     complete_result = mf.process(0, mode=ProcessMode.COMPLETE)
     stream_result = mf.process(0, mode=ProcessMode.STREAM)
 
@@ -53,7 +52,7 @@ Import Guide:
 from .core import MarkdownFlow
 from .enums import BlockType, InputType
 from .llm import LLMProvider, LLMResult, ProcessMode
-from .utils import (
+from .parser import (
     InteractionParser,
     InteractionType,
     extract_interaction_question,

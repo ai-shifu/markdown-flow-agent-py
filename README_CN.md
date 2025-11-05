@@ -166,18 +166,13 @@ print("块数：", len(mf.get_all_blocks()))   # 3
 
 ```python
 class ProcessMode(Enum):
-    PROMPT_ONLY = "prompt_only"  # 仅生成提示，不调用 LLM
-    COMPLETE = "complete"        # 非流式 LLM 处理
-    STREAM = "stream"           # 流式 LLM 响应
+    COMPLETE = "complete"  # 非流式 LLM 处理
+    STREAM = "stream"      # 流式 LLM 响应
 ```
 
 **用法：**
 
 ```python
-# 仅生成提示
-prompt_result = await mf.process(0, ProcessMode.PROMPT_ONLY)
-print(prompt_result.content)  # 原始提示文本
-
 # 完整响应
 complete_result = await mf.process(0, ProcessMode.COMPLETE)
 print(complete_result.content)  # 完整的 LLM 响应

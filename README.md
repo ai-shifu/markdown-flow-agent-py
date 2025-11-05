@@ -166,18 +166,13 @@ Processing mode enumeration for different use cases.
 
 ```python
 class ProcessMode(Enum):
-    PROMPT_ONLY = "prompt_only"  # Generate prompts without LLM calls
-    COMPLETE = "complete"        # Non-streaming LLM processing
-    STREAM = "stream"           # Streaming LLM responses
+    COMPLETE = "complete"  # Non-streaming LLM processing
+    STREAM = "stream"      # Streaming LLM responses
 ```
 
 **Usage:**
 
 ```python
-# Generate prompt only
-prompt_result = await mf.process(0, ProcessMode.PROMPT_ONLY)
-print(prompt_result.content)  # Raw prompt text
-
 # Complete response
 complete_result = await mf.process(0, ProcessMode.COMPLETE)
 print(complete_result.content)  # Full LLM response
