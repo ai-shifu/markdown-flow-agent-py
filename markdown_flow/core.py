@@ -18,6 +18,7 @@ from .constants import (
     COMPILED_INTERACTION_CONTENT_RECONSTRUCT_REGEX,
     COMPILED_VARIABLE_REFERENCE_CLEANUP_REGEX,
     COMPILED_WHITESPACE_CLEANUP_REGEX,
+    DEFAULT_BASE_SYSTEM_PROMPT,
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
     DEFAULT_VALIDATION_SYSTEM_MESSAGE,
@@ -68,6 +69,7 @@ class MarkdownFlow:
         self,
         document: str,
         llm_provider: LLMProvider | None = None,
+        base_system_prompt: str | None = None,
         document_prompt: str | None = None,
         interaction_prompt: str | None = None,
         interaction_error_prompt: str | None = None,
@@ -79,6 +81,7 @@ class MarkdownFlow:
         Args:
             document: Markdown document content
             llm_provider: LLM provider, if None only PROMPT_ONLY mode is available
+            base_system_prompt: MarkdownFlow base system prompt (framework-level, content blocks only)
             document_prompt: Document-level system prompt
             interaction_prompt: Interaction content rendering prompt
             interaction_error_prompt: Interaction error rendering prompt
@@ -86,6 +89,7 @@ class MarkdownFlow:
         """
         self._document = document
         self._llm_provider = llm_provider
+        self._base_system_prompt = base_system_prompt or DEFAULT_BASE_SYSTEM_PROMPT
         self._document_prompt = document_prompt
         self._interaction_prompt = interaction_prompt or DEFAULT_INTERACTION_PROMPT
         self._interaction_error_prompt = interaction_error_prompt or DEFAULT_INTERACTION_ERROR_PROMPT
@@ -102,10 +106,12 @@ class MarkdownFlow:
         Set prompt template.
 
         Args:
-            prompt_type: Prompt type ('document', 'interaction', 'interaction_error')
+            prompt_type: Prompt type ('base_system', 'document', 'interaction', 'interaction_error')
             value: Prompt content
         """
-        if prompt_type == "document":
+        if prompt_type == "base_system":
+            self._base_system_prompt = value or DEFAULT_BASE_SYSTEM_PROMPT
+        elif prompt_type == "document":
             self._document_prompt = value
         elif prompt_type == "interaction":
             self._interaction_prompt = value or DEFAULT_INTERACTION_PROMPT
@@ -240,6 +246,10 @@ class MarkdownFlow:
         Returns:
             LLMResult or Generator[LLMResult, None, None]
         """
+        # Process base_system_prompt variable replacement
+        if self._base_system_prompt:
+            self._base_system_prompt = replace_variables_in_text(self._base_system_prompt, variables or {})
+
         # Process document_prompt variable replacement
         if self._document_prompt:
             self._document_prompt = replace_variables_in_text(self._document_prompt, variables or {})
@@ -837,16 +847,26 @@ class MarkdownFlow:
         # Build message array
         messages = []
 
-        # Conditionally add system prompts
+        # Build system message with XML tags
+        system_parts = []
+
+        # 1. Base system prompt (if exists and non-empty)
+        if self._base_system_prompt:
+            system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
+
+        # 2. Document prompt (if exists and non-empty)
         if self._document_prompt:
-            system_msg = self._document_prompt
-            # Only add output instruction explanation when preserved content detected
-            if has_preserved_content:
-                system_msg += "\n\n" + OUTPUT_INSTRUCTION_EXPLANATION.strip()
+            system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
+
+        # 3. Output instruction (if preserved content exists)
+        # Note: OUTPUT_INSTRUCTION_EXPLANATION already contains <preserve_or_translate_instruction> tags
+        if has_preserved_content:
+            system_parts.append(OUTPUT_INSTRUCTION_EXPLANATION.strip())
+
+        # Combine all parts and add as system message
+        if system_parts:
+            system_msg = "\n\n".join(system_parts)
             messages.append({"role": "system", "content": system_msg})
-        elif has_preserved_content:
-            # No document prompt but has preserved content, add explanation alone
-            messages.append({"role": "system", "content": OUTPUT_INSTRUCTION_EXPLANATION.strip()})
 
         # Add conversation history context if provided
         # Context is inserted after system message and before current user message
