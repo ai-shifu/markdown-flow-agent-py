@@ -311,6 +311,7 @@ print(f"Processing time: {result.metadata['processing_time']}ms")
 ```
 
 **Features**:
+
 - ✅ Debug mode with colorized request/response output
 - ✅ Automatic token tracking (prompt/output/total)
 - ✅ Processing time measurement

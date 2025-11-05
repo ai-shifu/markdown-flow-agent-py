@@ -514,9 +514,8 @@ class MarkdownFlow:
                                 "validated_custom_values": validated_values,
                             },
                         )
-                    else:
-                        # Validation failed, return error
-                        return validation_result
+                    # Validation failed, return error
+                    return validation_result
 
                 if mode == ProcessMode.STREAM:
                     # For stream mode, collect validation result

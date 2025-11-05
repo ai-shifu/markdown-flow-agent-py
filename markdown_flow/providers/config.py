@@ -37,10 +37,7 @@ class ProviderConfig:
     def __post_init__(self):
         """Validate configuration after initialization."""
         if not self.api_key:
-            raise ValueError(
-                "API key is required. Set it via ProviderConfig(api_key='...') "
-                "or LLM_API_KEY environment variable."
-            )
+            raise ValueError("API key is required. Set it via ProviderConfig(api_key='...') or LLM_API_KEY environment variable.")
 
         if self.temperature < 0.0 or self.temperature > 2.0:
             raise ValueError(f"Temperature must be between 0.0 and 2.0, got {self.temperature}")
