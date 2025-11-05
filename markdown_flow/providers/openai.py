@@ -12,6 +12,7 @@ from typing import Any
 from ..llm import LLMProvider
 from .config import ProviderConfig
 
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -42,10 +43,7 @@ class OpenAIProvider(LLMProvider):
             ValueError: If configuration is invalid
         """
         if OpenAI is None:
-            raise ImportError(
-                "The 'openai' package is required for OpenAIProvider. "
-                "Install it with: pip install openai"
-            )
+            raise ImportError("The 'openai' package is required for OpenAIProvider. Install it with: pip install openai")
 
         self.config = config
         self.client = OpenAI(
@@ -183,7 +181,7 @@ class OpenAIProvider(LLMProvider):
                 temperature=actual_temperature,
                 stream=True,
             )
- 
+
             for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
