@@ -531,74 +531,74 @@ Support for display text different from stored value:
 ?[%{{choice}} Yes//1|No//0|Maybe//2]
 ```
 
-### 按钮翻译最佳实践 ⭐
+### Button Translation Best Practices ⭐
 
-**问题场景：** 当交互块需要翻译时,按钮文本会变化,导致验证失败。
+**Problem Scenario:** When interaction blocks need translation, button text changes, causing validation failures.
 
 ```markdown
-原始交互: ?[%{{fruit}} 苹果|香蕉|橙子]
-翻译后（英语）: ?[%{{fruit}} Apple|Banana|Orange]
+Original interaction: ?[%{{fruit}} 苹果|香蕉|橙子]
+Translated (English): ?[%{{fruit}} Apple|Banana|Orange]
 
-用户在前端看到 "Apple" 并选择
-返回 user_input: {"fruit": ["Apple"]}
-验证时对比原始文档的 "苹果" → ❌ 校验失败
+User sees "Apple" in frontend and selects it
+Returns user_input: {"fruit": ["Apple"]}
+Validation compares against original document "苹果" → ❌ Validation fails
 ```
 
-**解决方案 1：自动 value 转换 ⚡（推荐，v1.0+）**
+**Solution 1: Automatic Value Conversion ⚡**
 
-从 v1.0 开始，MarkdownFlow 支持**自动检测翻译并添加 value**，无需手动修改文档格式：
+MarkdownFlow supports **automatic translation detection and value addition**, no manual document format modification needed:
 
 ```markdown
-# 原始文档（保持不变）
+# Original document (unchanged)
 ?[%{{fruit}} 苹果|香蕉|橙子]
 
-# 翻译后（自动添加 value）
+# After translation (automatic value addition)
 ?[%{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
 ```
 
-**工作原理：**
-1. 检测到翻译发生（苹果 → Apple）
-2. 自动添加 value 分离：`Apple//苹果`
-3. Display = 翻译后的文本（Apple），Value = 原始文本（苹果）
-4. 用户选择 "Apple"，前端提取 value = "苹果"
-5. 验证时对比原始文档：苹果 在 [苹果, 香蕉, 橙子] 中 ✅
-6. 业务层收到稳定的原始中文值
+**How It Works:**
+1. Detects translation occurred (苹果 → Apple)
+2. Automatically adds value separation: `Apple//苹果`
+3. Display = Translated text (Apple), Value = Original text (苹果)
+4. User selects "Apple", frontend extracts value = "苹果"
+5. Validation compares against original document: 苹果 is in [苹果, 香蕉, 橙子] ✅
+6. Business layer receives stable original Chinese values
 
-**关键优势：**
-- ✅ 零配置：无需修改现有文档
-- ✅ 智能检测：只在翻译发生时自动添加
-- ✅ 向后兼容：已有 display//value 格式保持不变
-- ✅ 业务层稳定：收到的始终是原始中文值
+**Key Advantages:**
+- ✅ Zero configuration: No need to modify existing documents
+- ✅ Smart detection: Only adds when translation occurs
+- ✅ Backward compatible: Existing display//value format remains unchanged
+- ✅ Business layer stability: Always receives original Chinese values
 
-**解决方案 2：手动 display//value 分离格式**
+**Solution 2: Manual display//value Separation Format**
 
-手动指定稳定的 value（适用于需要自定义 value 的场景）：
+Manually specify stable values (for scenarios requiring custom values):
 
 ```markdown
-# 推荐格式
+# Recommended format
 ?[%{{fruit}} 苹果//apple|香蕉//banana|橙子//orange]
 
-# 翻译后
+# After translation
 ?[%{{fruit}} Apple//apple|Banana//banana|Orange//orange]
 
-# 用户选择 "Apple"，但返回稳定的 value: "apple"
-user_input: {"fruit": ["apple"]}  ✅ 验证成功
+# User selects "Apple", but returns stable value: "apple"
+user_input: {"fruit": ["apple"]}  ✅ Validation succeeds
 ```
 
-**核心原则：**
+**Core Principles:**
 
-1. **Display（显示文本）**：会被翻译，用于前端展示
-2. **Value（存储值）**：保持不变，用于验证和业务逻辑
-3. **Value 命名建议**：使用英文小写、下划线分隔，保持稳定性
+1. **Display (Display Text)**: Will be translated, used for frontend presentation
+2. **Value (Stored Value)**: Remains unchanged, used for validation and business logic
+3. **Value Naming Suggestion**: Use lowercase English with underscore separation for stability
 
-**完整示例：**
+**Complete Examples:**
 
 ```python
-# Python 版本 - 自动 value 转换
+# Python version - Automatic value conversion
 from markdown_flow import MarkdownFlow
 from markdown_flow.providers import create_provider, ProviderConfig
 
-# 创建 Provider
+# Create Provider
 provider = create_provider(ProviderConfig(
     api_key="your-api-key",
     base_url="https://api.siliconflow.cn/v1",
@@ -606,74 +606,74 @@ provider = create_provider(ProviderConfig(
     temperature=0.3,
 ))
 
-# 原始文档（无 value 分离）
+# Original document (no value separation)
 document = "?[%{{fruit}} 苹果|香蕉|橙子]"
 mf = MarkdownFlow(document, llm_provider=provider)
 mf.set_prompt("document", "Please use English")
 
-# Render 阶段：自动添加 value
+# Render phase: Automatically add value
 render_result = mf.process(0)
-# 结果: ?[%{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
+# Result: ?[%{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
 print(render_result.content)
 
-# Input 阶段：用户选择 "Apple"，前端提取 value = "苹果"
+# Input phase: User selects "Apple", frontend extracts value = "苹果"
 user_input = {"fruit": ["苹果"]}
 validation_result = mf.process(0, user_input=user_input)
 # validation_result.variables["fruit"] = ["苹果"]  ✅
-print(validation_result.variables["fruit"])  # 输出: ['苹果']
+print(validation_result.variables["fruit"])  # Output: ['苹果']
 ```
 
 ```python
-# Python 版本 - 手动 display//value 格式
+# Python version - Manual display//value format
 document = "?[%{{level}} 初级//beginner|中级//intermediate|高级//advanced]"
 mf = MarkdownFlow(document, llm_provider=provider)
 mf.set_prompt("document", "Please use English")
 
-# Render 阶段：翻译 Display，保留 Value
+# Render phase: Translate Display, keep Value
 render_result = mf.process(0)
-# 结果: ?[%{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]
+# Result: ?[%{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]
 
-# Input 阶段：用户选择 "Beginner"，返回 value: "beginner"
+# Input phase: User selects "Beginner", returns value: "beginner"
 user_input = {"level": ["beginner"]}
 validation_result = mf.process(0, user_input=user_input)
 # validation_result.variables["level"] = ["beginner"]  ✅
 ```
 
-**Value 命名最佳实践：**
+**Value Naming Best Practices:**
 
-| 场景 | Display (中文) | Value (推荐) |
-|------|---------------|-------------|
-| 难度等级 | 初级/中级/高级 | beginner/intermediate/advanced |
-| 是否选择 | 是/否 | yes/no 或 true/false 或 1/0 |
-| 水果选择 | 苹果/香蕉/橙子 | apple/banana/orange |
-| 角色选择 | 小兔子/小松鼠 | rabbit/squirrel 或 role_rabbit/role_squirrel |
+| Scenario | Display (Chinese) | Value (Recommended) |
+|----------|-------------------|---------------------|
+| Difficulty Level | 初级/中级/高级 | beginner/intermediate/advanced |
+| Yes/No Selection | 是/否 | yes/no or true/false or 1/0 |
+| Fruit Selection | 苹果/香蕉/橙子 | apple/banana/orange |
+| Role Selection | 小兔子/小松鼠 | rabbit/squirrel or role_rabbit/role_squirrel |
 
-**测试验证：**
+**Testing & Validation:**
 
 ```bash
-# 自动 value 转换测试
+# Test automatic value conversion
 cd tests/demo && python test_auto_value_conversion.py
 
-# 手动 display//value 格式测试（如果存在）
+# Test manual display//value format (if exists)
 cd tests/demo && python test_button_value_separation.py
 
-# 运行所有交互相关测试
+# Run all interaction-related tests
 pytest tests/ -k "interaction" -v
 ```
 
-**方案对比：**
+**Solution Comparison:**
 
-| 特性 | 自动转换 (v1.0+) | 手动 display//value |
-|------|-----------------|---------------------|
-| 文档修改 | 不需要 | 需要 |
-| Value 类型 | 原始中文 | 自定义（如英文、数字） |
-| 适用场景 | 通用场景 | 需要稳定英文 value 的场景 |
-| 业务层影响 | 收到原始中文值 | 收到自定义 value |
+| Feature | Automatic Conversion (v1.0+) | Manual display//value |
+|---------|------------------------------|----------------------|
+| Document Modification | Not required | Required |
+| Value Type | Original Chinese | Custom (e.g., English, numbers) |
+| Use Cases | General scenarios | Scenarios requiring stable English values |
+| Business Layer Impact | Receives original Chinese values | Receives custom values |
 
-**推荐做法：**
-- ✅ 新项目：直接使用原始格式，让自动转换处理
-- ✅ 旧项目：保持现有 display//value 格式不变（自动检测跳过）
-- ✅ 需要英文 value：手动指定 display//value 格式
+**Recommended Approach:**
+- ✅ New projects: Use original format directly, let automatic conversion handle it
+- ✅ Existing projects: Keep existing display//value format unchanged (automatic detection skips)
+- ✅ Need English values: Manually specify display//value format
 
 ## Testing Guidelines
 
