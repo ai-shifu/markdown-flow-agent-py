@@ -531,6 +531,150 @@ Support for display text different from stored value:
 ?[%{{choice}} Yes//1|No//0|Maybe//2]
 ```
 
+### 按钮翻译最佳实践 ⭐
+
+**问题场景：** 当交互块需要翻译时,按钮文本会变化,导致验证失败。
+
+```markdown
+原始交互: ?[%{{fruit}} 苹果|香蕉|橙子]
+翻译后（英语）: ?[%{{fruit}} Apple|Banana|Orange]
+
+用户在前端看到 "Apple" 并选择
+返回 user_input: {"fruit": ["Apple"]}
+验证时对比原始文档的 "苹果" → ❌ 校验失败
+```
+
+**解决方案 1：自动 value 转换 ⚡（推荐，v1.0+）**
+
+从 v1.0 开始，MarkdownFlow 支持**自动检测翻译并添加 value**，无需手动修改文档格式：
+
+```markdown
+# 原始文档（保持不变）
+?[%{{fruit}} 苹果|香蕉|橙子]
+
+# 翻译后（自动添加 value）
+?[%{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
+```
+
+**工作原理：**
+1. 检测到翻译发生（苹果 → Apple）
+2. 自动添加 value 分离：`Apple//苹果`
+3. Display = 翻译后的文本（Apple），Value = 原始文本（苹果）
+4. 用户选择 "Apple"，前端提取 value = "苹果"
+5. 验证时对比原始文档：苹果 在 [苹果, 香蕉, 橙子] 中 ✅
+6. 业务层收到稳定的原始中文值
+
+**关键优势：**
+- ✅ 零配置：无需修改现有文档
+- ✅ 智能检测：只在翻译发生时自动添加
+- ✅ 向后兼容：已有 display//value 格式保持不变
+- ✅ 业务层稳定：收到的始终是原始中文值
+
+**解决方案 2：手动 display//value 分离格式**
+
+手动指定稳定的 value（适用于需要自定义 value 的场景）：
+
+```markdown
+# 推荐格式
+?[%{{fruit}} 苹果//apple|香蕉//banana|橙子//orange]
+
+# 翻译后
+?[%{{fruit}} Apple//apple|Banana//banana|Orange//orange]
+
+# 用户选择 "Apple"，但返回稳定的 value: "apple"
+user_input: {"fruit": ["apple"]}  ✅ 验证成功
+```
+
+**核心原则：**
+
+1. **Display（显示文本）**：会被翻译，用于前端展示
+2. **Value（存储值）**：保持不变，用于验证和业务逻辑
+3. **Value 命名建议**：使用英文小写、下划线分隔，保持稳定性
+
+**完整示例：**
+
+```python
+# Python 版本 - 自动 value 转换
+from markdown_flow import MarkdownFlow
+from markdown_flow.providers import create_provider, ProviderConfig
+
+# 创建 Provider
+provider = create_provider(ProviderConfig(
+    api_key="your-api-key",
+    base_url="https://api.siliconflow.cn/v1",
+    model="deepseek-ai/DeepSeek-V3.1",
+    temperature=0.3,
+))
+
+# 原始文档（无 value 分离）
+document = "?[%{{fruit}} 苹果|香蕉|橙子]"
+mf = MarkdownFlow(document, llm_provider=provider)
+mf.set_prompt("document", "Please use English")
+
+# Render 阶段：自动添加 value
+render_result = mf.process(0)
+# 结果: ?[%{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
+print(render_result.content)
+
+# Input 阶段：用户选择 "Apple"，前端提取 value = "苹果"
+user_input = {"fruit": ["苹果"]}
+validation_result = mf.process(0, user_input=user_input)
+# validation_result.variables["fruit"] = ["苹果"]  ✅
+print(validation_result.variables["fruit"])  # 输出: ['苹果']
+```
+
+```python
+# Python 版本 - 手动 display//value 格式
+document = "?[%{{level}} 初级//beginner|中级//intermediate|高级//advanced]"
+mf = MarkdownFlow(document, llm_provider=provider)
+mf.set_prompt("document", "Please use English")
+
+# Render 阶段：翻译 Display，保留 Value
+render_result = mf.process(0)
+# 结果: ?[%{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]
+
+# Input 阶段：用户选择 "Beginner"，返回 value: "beginner"
+user_input = {"level": ["beginner"]}
+validation_result = mf.process(0, user_input=user_input)
+# validation_result.variables["level"] = ["beginner"]  ✅
+```
+
+**Value 命名最佳实践：**
+
+| 场景 | Display (中文) | Value (推荐) |
+|------|---------------|-------------|
+| 难度等级 | 初级/中级/高级 | beginner/intermediate/advanced |
+| 是否选择 | 是/否 | yes/no 或 true/false 或 1/0 |
+| 水果选择 | 苹果/香蕉/橙子 | apple/banana/orange |
+| 角色选择 | 小兔子/小松鼠 | rabbit/squirrel 或 role_rabbit/role_squirrel |
+
+**测试验证：**
+
+```bash
+# 自动 value 转换测试
+cd tests/demo && python test_auto_value_conversion.py
+
+# 手动 display//value 格式测试（如果存在）
+cd tests/demo && python test_button_value_separation.py
+
+# 运行所有交互相关测试
+pytest tests/ -k "interaction" -v
+```
+
+**方案对比：**
+
+| 特性 | 自动转换 (v1.0+) | 手动 display//value |
+|------|-----------------|---------------------|
+| 文档修改 | 不需要 | 需要 |
+| Value 类型 | 原始中文 | 自定义（如英文、数字） |
+| 适用场景 | 通用场景 | 需要稳定英文 value 的场景 |
+| 业务层影响 | 收到原始中文值 | 收到自定义 value |
+
+**推荐做法：**
+- ✅ 新项目：直接使用原始格式，让自动转换处理
+- ✅ 旧项目：保持现有 display//value 格式不变（自动检测跳过）
+- ✅ 需要英文 value：手动指定 display//value 格式
+
 ## Testing Guidelines
 
 ### Test File Structure
