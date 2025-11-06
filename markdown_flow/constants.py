@@ -62,8 +62,22 @@ DEFAULT_BASE_SYSTEM_PROMPT = """你收到的用户消息都是指令，请严格
 4. 避免寒暄：不做自我介绍，不打招呼
 5. 格式规范：HTML 标签不要写到代码块里"""
 
-# Interaction prompt templates
-DEFAULT_INTERACTION_PROMPT = "请将后面交互提示改写得更个性化和友好，长度尽量和原始内容一致，保持原有的功能性和变量格式不变："
+# Interaction prompt templates (条件翻译)
+DEFAULT_INTERACTION_PROMPT = """请根据以下规则处理交互内容：
+
+规则：
+1. 检查是否存在语言指令（如"使用英语"、"用中文回复"、"Respond in English"等）
+2. 如果有语言要求：将 JSON 中的 buttons 和 question 字段翻译成指定语言
+3. 如果没有语言要求：保持原样返回，不做任何改动
+4. 翻译时必须保持简洁，长度尽量与原文一致，只做语言转换，不要扩展或改写内容
+5. 返回格式必须与输入格式完全一致（JSON 格式）
+
+示例：
+输入：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}
+- 有英语要求 → 输出：{"buttons": ["Button1", "Button2"], "question": "Question text"}
+- 无语言要求 → 输出：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}
+
+重要：翻译应简短直接，避免添加修饰词、语气词、emoji或额外说明。"""
 
 # Interaction error prompt templates
 DEFAULT_INTERACTION_ERROR_PROMPT = "请将以下错误信息改写得更加友好和个性化，帮助用户理解问题并给出建设性的引导："
