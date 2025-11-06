@@ -14,10 +14,6 @@ from .constants import (
     BLOCK_INDEX_OUT_OF_RANGE_ERROR,
     BLOCK_SEPARATOR,
     BUTTONS_WITH_TEXT_VALIDATION_TEMPLATE,
-    COMPILED_BRACKETS_CLEANUP_REGEX,
-    COMPILED_INTERACTION_CONTENT_RECONSTRUCT_REGEX,
-    COMPILED_VARIABLE_REFERENCE_CLEANUP_REGEX,
-    COMPILED_WHITESPACE_CLEANUP_REGEX,
     DEFAULT_BASE_SYSTEM_PROMPT,
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
@@ -27,7 +23,6 @@ from .constants import (
     INTERACTION_PARSE_ERROR,
     INTERACTION_PATTERN_NON_CAPTURING,
     INTERACTION_PATTERN_SPLIT,
-    INTERACTION_RENDER_INSTRUCTIONS,
     LLM_PROVIDER_REQUIRED_ERROR,
     OUTPUT_INSTRUCTION_EXPLANATION,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
@@ -383,60 +378,96 @@ class MarkdownFlow:
         processed_block = copy(block)
         processed_block.content = processed_content
 
-        # Extract question text from processed content
-        question_text = extract_interaction_question(processed_block.content)
-        if not question_text:
-            # Unable to extract, return processed content
-            return LLMResult(content=processed_block.content)
+        # 提取可翻译内容（JSON 格式）
+        translatable_json, interaction_info = self._extract_translatable_content(processed_block.content)
+        if not interaction_info:
+            # 解析失败，返回原始内容
+            return LLMResult(
+                content=processed_block.content,
+                metadata={
+                    "block_type": "interaction",
+                    "block_index": block_index,
+                },
+            )
 
-        # Truncate context to configured maximum length
-        truncated_context = self._truncate_context(context)
+        # 如果没有可翻译内容，直接返回
+        if not translatable_json or translatable_json == "{}":
+            return LLMResult(
+                content=processed_block.content,
+                metadata={
+                    "block_type": "interaction",
+                    "block_index": block_index,
+                },
+            )
 
-        # Build render messages with context
-        messages = self._build_interaction_render_messages(question_text, truncated_context)
+        # 构建翻译消息
+        messages = self._build_translation_messages(translatable_json)
 
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
-                return LLMResult(content=processed_block.content)  # Fallback processing
+                return LLMResult(
+                    content=processed_block.content,
+                    metadata={
+                        "block_type": "interaction",
+                        "block_index": block_index,
+                    },
+                )
 
-            rendered_question = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
-            rendered_content = self._reconstruct_interaction_content(processed_block.content, rendered_question)
+            # 调用 LLM 进行翻译
+            translated_json = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
+
+            # 使用翻译结果重构交互内容
+            translated_content = self._reconstruct_with_translation(
+                processed_block.content, translated_json, interaction_info
+            )
 
             return LLMResult(
-                content=rendered_content,
+                content=translated_content,
                 prompt=messages[-1]["content"],
                 metadata={
-                    "original_question": question_text,
-                    "rendered_question": rendered_question,
+                    "block_type": "interaction",
+                    "block_index": block_index,
+                    "original_content": translatable_json,
+                    "translated_content": translated_json,
                 },
             )
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
-                # For interaction blocks, return reconstructed content (one-time output)
-                rendered_content = self._reconstruct_interaction_content(processed_block.content, question_text or "")
-
+                # 降级处理，返回处理后的内容
                 def stream_generator():
                     yield LLMResult(
-                        content=rendered_content,
+                        content=processed_block.content,
                         prompt=messages[-1]["content"],
+                        metadata={
+                            "block_type": "interaction",
+                            "block_index": block_index,
+                        },
                     )
 
                 return stream_generator()
 
-            # With LLM provider, collect full response then return once
+            # 有 LLM 提供者，收集完整响应后返回一次
             def stream_generator():
                 full_response = ""
                 for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     full_response += chunk
 
-                # Reconstruct final interaction content
-                rendered_content = self._reconstruct_interaction_content(processed_block.content, full_response)
+                # 使用翻译结果重构交互内容
+                translated_content = self._reconstruct_with_translation(
+                    processed_block.content, full_response, interaction_info
+                )
 
-                # Return complete content at once, not incrementally
+                # 一次性返回完整内容（不是增量）
                 yield LLMResult(
-                    content=rendered_content,
+                    content=translated_content,
                     prompt=messages[-1]["content"],
+                    metadata={
+                        "block_type": "interaction",
+                        "block_index": block_index,
+                        "original_content": translatable_json,
+                        "translated_content": full_response,
+                    },
                 )
 
             return stream_generator()
@@ -884,35 +915,115 @@ class MarkdownFlow:
 
         return messages
 
-    def _build_interaction_render_messages(
-        self,
-        question_text: str,
-        context: list[dict[str, str]] | None = None,
-    ) -> list[dict[str, str]]:
-        """Build interaction rendering messages."""
-        # Check if using custom interaction prompt
-        if self._interaction_prompt != DEFAULT_INTERACTION_PROMPT:
-            # User custom prompt + mandatory direction protection
-            render_prompt = f"""{self._interaction_prompt}"""
-        else:
-            # Use default prompt and instructions
-            render_prompt = f"""{self._interaction_prompt}
-{INTERACTION_RENDER_INSTRUCTIONS}"""
+    def _extract_translatable_content(
+        self, interaction_content: str
+    ) -> tuple[str, dict[str, Any] | None]:
+        """提取交互内容中需要翻译的部分为 JSON 格式
 
+        Args:
+            interaction_content: 交互内容字符串
+
+        Returns:
+            tuple: (JSON 字符串, InteractionInfo 字典)
+        """
+        # 解析交互内容
+        interaction_parser = InteractionParser()
+        interaction_info = interaction_parser.parse(interaction_content)
+        if not interaction_info:
+            return "{}", None
+
+        translatable = {}
+
+        # 提取按钮的 Display 文本
+        if interaction_info.get("buttons"):
+            button_texts = [btn["display"] for btn in interaction_info["buttons"]]
+            translatable["buttons"] = button_texts
+
+        # 提取问题文本
+        if interaction_info.get("question"):
+            translatable["question"] = interaction_info["question"]
+
+        # 转换为 JSON
+        import json
+        json_str = json.dumps(translatable, ensure_ascii=False)
+
+        return json_str, interaction_info
+
+    def _build_translation_messages(
+        self, translatable_json: str
+    ) -> list[dict[str, str]]:
+        """构建翻译用的消息列表
+
+        Args:
+            translatable_json: 可翻译内容的 JSON 字符串
+
+        Returns:
+            list: 消息列表
+        """
         messages = []
 
-        messages.append({"role": "system", "content": render_prompt})
+        # 构建 system message：翻译提示词 + 文档提示词
+        system_content = self._interaction_prompt
+        if self._document_prompt:
+            system_content = f"{self._interaction_prompt}\n\n{self._document_prompt}"
 
-        # NOTE: Context is temporarily disabled for interaction rendering
-        # Mixing conversation history with interaction content rewriting can cause issues
-        # The context parameter is kept in the signature for future use
-        # truncated_context = self._truncate_context(context)
-        # if truncated_context:
-        #     messages.extend(truncated_context)
+        messages.append({"role": "system", "content": system_content})
 
-        messages.append({"role": "user", "content": question_text})
+        # 添加可翻译内容作为 user message
+        messages.append({"role": "user", "content": translatable_json})
 
         return messages
+
+    def _reconstruct_with_translation(
+        self,
+        original_content: str,
+        translated_json: str,
+        interaction_info: dict[str, Any],
+    ) -> str:
+        """使用翻译后的内容重构交互块
+
+        Args:
+            original_content: 原始交互内容
+            translated_json: 翻译后的 JSON 字符串
+            interaction_info: 交互信息字典
+
+        Returns:
+            str: 重构后的交互内容
+        """
+        import json
+
+        # 解析翻译后的 JSON
+        try:
+            translated = json.loads(translated_json)
+        except json.JSONDecodeError:
+            return original_content
+
+        reconstructed = original_content
+
+        # 替换按钮 Display 文本（保留 Value）
+        if "buttons" in translated and interaction_info.get("buttons"):
+            for i, button in enumerate(interaction_info["buttons"]):
+                if i < len(translated["buttons"]):
+                    old_display = button["display"]
+                    new_display = translated["buttons"][i]
+
+                    # 如果有 Value 分离（display//value 格式），保留 value
+                    if button["display"] != button["value"]:
+                        # 替换格式：oldDisplay//value -> newDisplay//value
+                        old_pattern = f"{old_display}//{button['value']}"
+                        new_pattern = f"{new_display}//{button['value']}"
+                        reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
+                    else:
+                        # 没有 value 分离，直接替换
+                        reconstructed = reconstructed.replace(old_display, new_display, 1)
+
+        # 替换问题文本
+        if "question" in translated and interaction_info.get("question"):
+            old_question = interaction_info["question"]
+            new_question = translated["question"]
+            reconstructed = reconstructed.replace(f"...{old_question}", f"...{new_question}", 1)
+
+        return reconstructed
 
     def _build_validation_messages(
         self,
@@ -1033,19 +1144,3 @@ Original Error: {error_message}
         return messages
 
     # Helper methods
-
-    def _reconstruct_interaction_content(self, original_content: str, rendered_question: str) -> str:
-        """Reconstruct interaction content."""
-        cleaned_question = rendered_question.strip()
-        # Use pre-compiled regex for improved performance
-        cleaned_question = COMPILED_BRACKETS_CLEANUP_REGEX.sub("", cleaned_question)
-        cleaned_question = COMPILED_VARIABLE_REFERENCE_CLEANUP_REGEX.sub("", cleaned_question)
-        cleaned_question = COMPILED_WHITESPACE_CLEANUP_REGEX.sub(" ", cleaned_question).strip()
-
-        match = COMPILED_INTERACTION_CONTENT_RECONSTRUCT_REGEX.search(original_content)
-
-        if match:
-            prefix = match.group(1)
-            suffix = match.group(2)
-            return f"{prefix}{cleaned_question}{suffix}"
-        return original_content  # type: ignore[unreachable]
