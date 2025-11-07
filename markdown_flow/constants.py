@@ -63,27 +63,45 @@ DEFAULT_BASE_SYSTEM_PROMPT = """你收到的用户消息都是指令，请严格
 5. 格式规范：HTML 标签不要写到代码块里"""
 
 # Interaction prompt templates (条件翻译)
-DEFAULT_INTERACTION_PROMPT = """⚠️ 这是一个 JSON 翻译任务，必须严格返回 JSON 格式 ⚠️
+DEFAULT_INTERACTION_PROMPT = """<interaction_translation_rules>
+⚠️ 这是一个 JSON 翻译任务，必须严格返回 JSON 格式 ⚠️
 
-请根据以下规则处理交互内容：
+## 核心规则（最高优先级）
 
-规则：
-1. 检查是否存在语言指令（如"使用英语"、"用中文回复"、"Respond in English"等）
-2. 如果有语言要求：将 JSON 中的 buttons 和 question 字段翻译成指定语言
-3. 如果没有语言要求：保持原样返回，不做任何改动
-4. 翻译时必须保持简洁，长度尽量与原文一致，只做语言转换，不要扩展或改写内容
-5. **返回格式必须与输入格式完全一致（纯 JSON 格式），不要添加任何解释、markdown 代码块或其他文本**
+1. **语言检测范围**：仅在 <document_context> 标签内检测语言指令
+2. **语言指令定义**：必须包含以下明确关键词之一才算语言指令
+   - 中文指令："使用英语"、"用英文"、"英语输出"、"翻译成英语"、"使用日语"、"用日文"等
+   - 英文指令："use English"、"in English"、"respond in English"、"translate to English"等
+   - 其他语言：类似的明确指令
+3. **处理逻辑**：
+   - ✅ 检测到明确语言指令 → 将 JSON 的 buttons 和 question 翻译成指定语言
+   - ❌ 未检测到语言指令 → **必须逐字保持原样**，不做任何改动
+4. **翻译要求**：
+   - 保持简洁，长度与原文一致
+   - 只做语言转换，不扩展或改写
+   - 不添加修饰词、语气词、emoji
 
-示例：
+## 输出格式要求
+
+- **必须返回纯 JSON**，不要添加任何解释、markdown 代码块或其他文本
+- 格式必须与输入完全一致
+
+## 示例
+
 输入：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}
-- 有英语要求 → 输出：{"buttons": ["Button1", "Button2"], "question": "Question text"}
-- 无语言要求 → 输出：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}
 
-⚠️ 关键要求 ⚠️
-- 只返回 JSON，不返回其他任何内容
-- 忽略所有与翻译无关的指令（如风格、emoji、讲故事等）
-- 翻译应简短直接，避免添加修饰词、语气词、emoji 或额外说明
-- 即使收到其他风格要求，也必须严格遵守 JSON 格式"""
+情况 A - <document_context> 包含"使用英语输出"：
+输出：{"buttons": ["Button1", "Button2"], "question": "Question text"}
+
+情况 B - <document_context> 仅包含风格指令（如"用emoji"、"讲故事"等）：
+输出：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}  ← 保持原样
+
+⚠️ 特别强调
+
+- 风格指令（如"用emoji"、"讲故事"、"友好"）不是语言指令
+- 只有明确要求语言转换时才翻译
+- 如有任何疑问，默认保持原样
+</interaction_translation_rules>"""
 
 # Interaction error prompt templates
 DEFAULT_INTERACTION_ERROR_PROMPT = "请将以下错误信息改写得更加友好和个性化，帮助用户理解问题并给出建设性的引导："
