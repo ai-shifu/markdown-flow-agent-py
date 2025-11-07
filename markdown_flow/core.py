@@ -962,12 +962,13 @@ class MarkdownFlow:
         """
         messages = []
 
-        # 构建 system message：交互翻译提示词 + 文档提示词
-        # interaction_prompt: 定义翻译规则和 JSON 格式要求（优先级最高）
-        # document_prompt: 提供语言指令（如"使用英语输出"）供 LLM 检测
+        # 构建 system message：交互翻译提示词 + 文档提示词（XML 格式）
+        # interaction_prompt: 定义翻译规则和 JSON 格式要求（包含 <interaction_translation_rules> 标签）
+        # document_prompt: 提供语言指令（如"使用英语输出"），包装在 <document_context> 标签中供 LLM 检测
         system_content = self._interaction_prompt
         if self._document_prompt:
-            system_content = f"{self._interaction_prompt}\n\n{self._document_prompt}"
+            # 将文档提示词包装在 <document_context> 标签中
+            system_content = f"{self._interaction_prompt}\n\n<document_context>\n{self._document_prompt}\n</document_context>"
 
         messages.append({"role": "system", "content": system_content})
 
