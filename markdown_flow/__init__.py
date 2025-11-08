@@ -83,4 +83,4 @@ __all__ = [
 ]
 
 # __version__ = "0.2.27"
-__version__ = "0.2.27-alpha-1"
+__version__ = "0.2.27-alpha-2"
