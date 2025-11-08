@@ -64,43 +64,83 @@ DEFAULT_BASE_SYSTEM_PROMPT = """你收到的用户消息都是指令，请严格
 
 # Interaction prompt templates (条件翻译)
 DEFAULT_INTERACTION_PROMPT = """<interaction_translation_rules>
-⚠️ 这是一个 JSON 翻译任务，必须严格返回 JSON 格式 ⚠️
+⚠️⚠️⚠️ 这是一个 JSON 原样输出任务 - 默认不翻译！⚠️⚠️⚠️
 
-## 核心规则（最高优先级）
+## 默认行为（最高优先级）
 
-1. **语言检测范围**：仅在 <document_context> 标签内检测语言指令
-2. **语言指令定义**：必须包含以下明确关键词之一才算语言指令
-   - 中文指令："使用英语"、"用英文"、"英语输出"、"翻译成英语"、"使用日语"、"用日文"等
-   - 英文指令："use English"、"in English"、"respond in English"、"translate to English"等
-   - 其他语言：类似的明确指令
-3. **处理逻辑**：
-   - ✅ 检测到明确语言指令 → 将 JSON 的 buttons 和 question 翻译成指定语言
-   - ❌ 未检测到语言指令 → **必须逐字保持原样**，不做任何改动
-4. **翻译要求**：
-   - 保持简洁，长度与原文一致
-   - 只做语言转换，不扩展或改写
-   - 不添加修饰词、语气词、emoji
+**除非明确检测到语言指令，否则必须逐字符原样返回输入的 JSON**
+- 不翻译任何文本
+- 不修改任何格式
+- 不添加任何内容（如 display//value 分离）
+- 不删除任何内容
+- 不调整任何顺序
+
+## 语言指令检测规则
+
+**仅在以下情况才翻译：**
+
+1. **检测范围**：仅在 <document_context> 标签内检测
+2. **必须包含明确的语言转换关键词**：
+   - 中文："使用英语"、"用英文"、"英语输出"、"翻译成英语"、"Translate to English"
+   - 英文："use English"、"in English"、"respond in English"、"translate to"
+   - 其他语言：类似的明确转换指令
+3. **不算语言指令的情况**：
+   - ❌ 风格要求："用emoji"、"讲故事"、"友好"、"简洁"
+   - ❌ 任务描述："内容营销"、"吸引用户"、"引人入胜"
+   - ❌ 输出要求："内容简洁"、"使用吸引人的语言"
+
+## 处理逻辑
+
+步骤1：在 <document_context> 中搜索语言转换关键词
+步骤2：
+- 如果找到 → 将 buttons 和 question 翻译成指定语言（仅翻译文本，不改格式）
+- 如果未找到 → 逐字符原样返回输入的 JSON
 
 ## 输出格式要求
 
-- **必须返回纯 JSON**，不要添加任何解释、markdown 代码块或其他文本
-- 格式必须与输入完全一致
+- **必须返回纯 JSON**，不要添加任何解释或 markdown 代码块
+- **格式必须与输入完全一致**，包括空格、标点、引号
 
 ## 示例
 
-输入：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}
+### 示例 1：无语言指令（默认情况）
 
-情况 A - <document_context> 包含"使用英语输出"：
-输出：{"buttons": ["Button1", "Button2"], "question": "Question text"}
+输入：{"buttons": ["产品经理", "开发者", "大学生"], "question": "其他身份"}
 
-情况 B - <document_context> 仅包含风格指令（如"用emoji"、"讲故事"等）：
-输出：{"buttons": ["按钮1", "按钮2"], "question": "问题文本"}  ← 保持原样
+<document_context>
+你是一个内容营销，擅长结合用户特点，给到引人入胜的内容。
+任务说明：认真理解给定的内容，站在用户角度...
+输出要求：内容简洁有力，使用吸引用户的语言...
+</document_context>
 
-⚠️ 特别强调
+✅ 正确输出：{"buttons": ["产品经理", "开发者", "大学生"], "question": "其他身份"}
+❌ 错误输出：{"buttons": ["Product Manager//产品经理", ...], ...}  ← 不要添加翻译！
 
-- 风格指令（如"用emoji"、"讲故事"、"友好"）不是语言指令
-- 只有明确要求语言转换时才翻译
-- 如有任何疑问，默认保持原样
+### 示例 2：有明确语言指令
+
+输入：{"buttons": ["苹果", "香蕉"], "question": "其他水果"}
+
+<document_context>
+请使用英语输出所有内容。
+</document_context>
+
+✅ 正确输出：{"buttons": ["Apple", "Banana"], "question": "Other fruit"}
+
+### 示例 3：仅有风格指令（不算语言指令）
+
+输入：{"buttons": ["选项A", "选项B"], "question": "其他"}
+
+<document_context>
+请用emoji和故事化的方式呈现内容。
+</document_context>
+
+✅ 正确输出：{"buttons": ["选项A", "选项B"], "question": "其他"}  ← 保持原样！
+
+⚠️⚠️⚠️ 最终强调 ⚠️⚠️⚠️
+
+- 默认行为：原样输出，不做任何改动
+- 只有在 <document_context> 中明确看到"使用XX语言"、"translate to"等关键词时才翻译
+- 如有任何疑问，必须原样输出
 </interaction_translation_rules>"""
 
 # Interaction error prompt templates
