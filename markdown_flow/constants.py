@@ -178,37 +178,101 @@ VALIDATION_RESPONSE_ILLEGAL = "illegal"
 
 # Output instruction processing
 OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_or_translate_instruction>
-⚠️⚠️⚠️ 绝对强制规则 - 必须遵守 ⚠️⚠️⚠️
+⚠️⚠️⚠️ 保留内容输出任务 - 默认原样输出！⚠️⚠️⚠️
 
-当你看到 {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} 标记时，这些内容必须出现在回复开头！
+## 默认行为（最高优先级）
 
-处理流程（按顺序执行）：
+**看到 {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} 标记时，必须将标记内的内容输出到回复中（保持原位置）**
+- 默认：逐字符原样输出，不做任何改动
+- 绝对不要输出 {OUTPUT_INSTRUCTION_PREFIX} 和 {OUTPUT_INSTRUCTION_SUFFIX} 标记本身
+- 始终保留 emoji、格式、特殊字符
 
-步骤1 - 检查语言要求：
-查看 system 消息中是否包含语言指令（如"使用英语输出"、"用中文回复"、"Respond in English"等）
+## 语言指令检测规则
 
-步骤2 - 应用转换规则：
-- 如果有语言要求 → 必须将标记内的文本翻译成指定语言（emoji和格式保留）
-- 如果没有语言要求 → 必须逐字原样输出，不做任何改动
+**仅在以下情况才翻译：**
 
-步骤3 - 输出内容：
-- 在回复第一行输出转换后的内容
-- ⚠️ 绝对不要输出 {OUTPUT_INSTRUCTION_PREFIX} 和 {OUTPUT_INSTRUCTION_SUFFIX} 标记！只输出标记之间的内容！
-- 输出后可继续生成其他内容
+1. **检测范围**：仅在 <document_prompt> 标签内检测
+2. **必须包含明确的语言转换关键词**：
+   - 中文："使用英语"、"用韩文"、"英语输出"、"翻译成英语"、"Translate to English"
+   - 英文："use English"、"in English"、"respond in English"、"translate to"
+   - 其他语言：类似的明确转换指令
+3. **不算语言指令的情况**：
+   - ❌ 风格要求："用emoji"、"讲故事"、"友好"、"简洁"
+   - ❌ 任务描述："内容营销"、"吸引用户"、"引人入胜"
+   - ❌ 输出要求："内容简洁"、"使用吸引人的语言"
 
-关键示例 - 标记处理：
+## 处理逻辑
 
-❌ 错误示例：
-输出：{OUTPUT_INSTRUCTION_PREFIX}**标题**{OUTPUT_INSTRUCTION_SUFFIX}\n后续内容...
-问题：包含了标记本身！
+步骤1：在 <document_prompt> 中搜索语言转换关键词
+步骤2：
+- 如果找到 → 保持原意与风格，翻译成指定语言
+- 如果未找到 → 逐字符原样输出，不做任何改动
 
-✅ 正确示例：
-输出：**标题**\n后续内容...
-说明：只有标记之间的内容，没有标记！
+## 输出位置规则
 
-⚠️ 特别强调：
-1. 有语言要求时，标记内的所有文本都必须翻译！
-2. 无论如何都不能输出 {OUTPUT_INSTRUCTION_PREFIX} 和 {OUTPUT_INSTRUCTION_SUFFIX} 标记本身！
+- 保持内容在原文档中的位置（开头/中间/结尾）
+- 不要强制移到开头或其他位置
+
+## 示例
+
+### 示例 1：无语言指令（默认情况）
+
+输入: {OUTPUT_INSTRUCTION_PREFIX}🌟 欢迎冒险！{OUTPUT_INSTRUCTION_SUFFIX}
+
+询问小朋友的名字：
+
+<document_prompt>
+你是一个故事大王，擅长讲故事。
+用一些语气词，多用emoji。
+</document_prompt>
+
+✅ 正确输出: 🌟 欢迎冒险！
+
+询问小朋友的名字：...（保留内容在开头，原样输出）
+
+❌ 错误输出: 询问小朋友的名字：...（完全不输出保留内容 ← 绝对禁止！）
+
+### 示例 2：有明确语言指令
+
+输入: {OUTPUT_INSTRUCTION_PREFIX}🌟 欢迎冒险！{OUTPUT_INSTRUCTION_SUFFIX}
+
+询问小朋友的名字：
+
+<document_prompt>
+请使用韩语输出所有内容。
+</document_prompt>
+
+✅ 正确输出: 🌟 모험에 오신 것을 환영합니다!
+
+아이의 이름을 물어보세요：...（保留内容翻译为韩语）
+
+### 示例 3：仅有风格指令（不算语言指令）
+
+输入: {OUTPUT_INSTRUCTION_PREFIX}**重要提示**{OUTPUT_INSTRUCTION_SUFFIX}
+
+后续内容...
+
+<document_prompt>
+请用emoji和故事化的方式呈现内容。
+</document_prompt>
+
+✅ 正确输出: **重要提示**
+
+后续内容...（保持原样！）
+
+### 示例 4：标记剥离错误
+
+输入: {OUTPUT_INSTRUCTION_PREFIX}**Title**{OUTPUT_INSTRUCTION_SUFFIX}
+
+❌ 绝对不要: {OUTPUT_INSTRUCTION_PREFIX}**Title**{OUTPUT_INSTRUCTION_SUFFIX}（包含了标记）
+✅ 正确输出: **Title**（排除了标记）
+
+⚠️⚠️⚠️ 最终强调 ⚠️⚠️⚠️
+
+- 默认行为：原样输出保留内容，不做任何改动
+- 只有在 <document_prompt> 中明确看到"使用XX语言"、"translate to"等关键词时才翻译
+- 如有任何疑问，必须原样输出
+- 此规则优先级最高，覆盖所有其他指令
 </preserve_or_translate_instruction>
 
 """
