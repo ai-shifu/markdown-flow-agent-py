@@ -884,20 +884,21 @@ class MarkdownFlow:
         messages = []
 
         # Build system message with XML tags
+        # Priority order: preserve_or_translate_instruction > base_system > document_prompt
         system_parts = []
 
-        # 1. Base system prompt (if exists and non-empty)
-        if self._base_system_prompt:
-            system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
-
-        # 2. Document prompt (if exists and non-empty)
-        if self._document_prompt:
-            system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
-
-        # 3. Output instruction (if preserved content exists)
+        # 1. Output instruction (highest priority - if preserved content exists)
         # Note: OUTPUT_INSTRUCTION_EXPLANATION already contains <preserve_or_translate_instruction> tags
         if has_preserved_content:
             system_parts.append(OUTPUT_INSTRUCTION_EXPLANATION.strip())
+
+        # 2. Base system prompt (if exists and non-empty)
+        if self._base_system_prompt:
+            system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
+
+        # 3. Document prompt (if exists and non-empty)
+        if self._document_prompt:
+            system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
 
         # Combine all parts and add as system message
         if system_parts:
