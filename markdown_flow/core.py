@@ -1120,7 +1120,9 @@ class MarkdownFlow:
         if config and config.validation_template:
             # Use custom validation template
             validation_prompt = config.validation_template
-            user_input_str = json.dumps(user_input, ensure_ascii=False)
+            # Extract actual user input values for target variable
+            target_values = user_input.get(target_variable, [])
+            user_input_str = ", ".join(target_values) if target_values else ""
             validation_prompt = validation_prompt.replace("{sys_user_input}", user_input_str)
             validation_prompt = validation_prompt.replace("{block_content}", block.content)
             validation_prompt = validation_prompt.replace("{target_variable}", target_variable)
@@ -1150,7 +1152,9 @@ class MarkdownFlow:
             )
 
             # Replace template variables
-            user_input_str = json.dumps(user_input, ensure_ascii=False)
+            # Extract actual user input values for target variable
+            target_values = user_input.get(target_variable, [])
+            user_input_str = ", ".join(target_values) if target_values else ""
             validation_prompt = validation_template.replace("{sys_user_input}", user_input_str)
             validation_prompt = validation_prompt.replace("{block_content}", block.content)
             validation_prompt = validation_prompt.replace("{target_variable}", target_variable)

@@ -300,7 +300,7 @@ SMART_VALIDATION_TEMPLATE = """# 任务
 # 提取要求
 1. 仔细阅读上述相关问题，理解这个问题想要获取什么信息
 2. 从用户回答中提取与该问题相关的信息
-3. 如果提供了预定义选项，用户选择这些选项时都应该接受；自定义输入应与选项主题相关
+3. 如果提供了预定义选项，用户选择这些选项时都应该接受；自定义输入只要是对问题的合理回答即可接受
 4. 对于昵称/姓名类问题，任何非空的合理字符串（包括简短的如"ee"、"aa"、"007"等）都应该接受
 5. 只有当用户回答完全无关、包含不当内容或明显不合理时才标记为不合法
 6. 确保提取的信息准确、完整且符合预期格式"""
@@ -355,5 +355,5 @@ CONTEXT_BUTTON_OPTIONS_MARKER = "## 预定义选项"
 CONTEXT_QUESTION_TEMPLATE = f"{CONTEXT_QUESTION_MARKER}\n{{question}}"
 CONTEXT_CONVERSATION_TEMPLATE = f"{CONTEXT_CONVERSATION_MARKER}\n{{content}}"
 CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
-    f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n可选的预定义选项包括：{{button_options}}\n注意：用户如果选择了这些选项，都应该接受；如果输入了自定义内容，应检查是否与选项主题相关。"
+    f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n可选的预定义选项包括：{{button_options}}\n注意：用户如果选择了这些选项，都应该接受；如果输入了自定义内容，只要是对问题的合理回答即可接受。"
 )

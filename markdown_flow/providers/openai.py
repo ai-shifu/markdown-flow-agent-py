@@ -281,7 +281,7 @@ class OpenAIProvider(LLMProvider):
             role = message.get("role", "user")
             content = message.get("content", "")
             # Truncate long content for readability
-            display_content = content if len(content) <= 200 else content[:200] + "..."
+            display_content = content
             print(f"\033[30m\033[43m{role}\033[0m: {display_content}")
 
         print("\033[97m\033[44m[ ====== LLM Request End ====== ]\033[0m")

@@ -101,6 +101,10 @@ def parse_validation_response(llm_response: str, original_input: str, target_var
                 if target_variable not in parse_vars:
                     parse_vars[target_variable] = original_input.strip()
 
+                # Ensure the variable value is in list format (user_input format)
+                if target_variable in parse_vars and not isinstance(parse_vars[target_variable], list):
+                    parse_vars[target_variable] = [parse_vars[target_variable]]
+
                 return {"content": "", "variables": parse_vars}
 
             if result == VALIDATION_RESPONSE_ILLEGAL:
@@ -117,5 +121,6 @@ def parse_validation_response(llm_response: str, original_input: str, target_var
 
     # Check against standard response format
     if "ok" in response_lower or "valid" in response_lower:
-        return {"content": "", "variables": {target_variable: original_input.strip()}}
+        # Return in list format to match user_input format
+        return {"content": "", "variables": {target_variable: [original_input.strip()]}}
     return {"content": llm_response, "variables": None}
