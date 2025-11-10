@@ -82,5 +82,5 @@ __all__ = [
     "replace_variables_in_text",
 ]
 
-__version__ = "0.2.28"
-# __version__ = "0.2.27-alpha-8"
+__version__ = "0.2.29"
+# __version__ = "0.2.28-alpha-1"
