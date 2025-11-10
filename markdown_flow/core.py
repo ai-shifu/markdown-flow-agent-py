@@ -991,7 +991,6 @@ class MarkdownFlow:
             translatable["question"] = interaction_info["question"]
 
         # 转换为 JSON
-        import json
 
         json_str = json.dumps(translatable, ensure_ascii=False)
 
@@ -1041,7 +1040,6 @@ class MarkdownFlow:
         Returns:
             str: 重构后的交互内容
         """
-        import json
 
         # 解析原始 JSON
         try:
