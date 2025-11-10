@@ -54,6 +54,7 @@ class MarkdownFlow:
 
     _llm_provider: LLMProvider | None
     _document: str
+    _processed_document: str
     _document_prompt: str | None
     _interaction_prompt: str | None
     _interaction_error_prompt: str | None
@@ -97,11 +98,58 @@ class MarkdownFlow:
         self._interaction_configs: dict[int, InteractionValidationConfig] = {}
         self._model: str | None = None
         self._temperature: float | None = None
+
+        # Preprocess document: extract code blocks and replace with placeholders
+        # This is done once during initialization, similar to Go implementation
         self._preprocessor = CodeBlockPreprocessor()
+        self._processed_document = self._preprocessor.extract_code_blocks(document)
 
     def set_llm_provider(self, provider: LLMProvider) -> None:
         """Set LLM provider."""
         self._llm_provider = provider
+
+    def get_processed_document(self) -> str:
+        """
+        Get preprocessed document (for debugging and testing).
+
+        Returns the document content after code blocks have been replaced with placeholders.
+
+        Use cases:
+            - Verify that code block preprocessing was executed correctly
+            - Check placeholder format (__MDFLOW_CODE_BLOCK_N__)
+            - Debug preprocessing stage issues
+
+        Returns:
+            Preprocessed document string
+        """
+        return self._processed_document
+
+    def get_content_messages(
+        self,
+        block_index: int,
+        variables: dict[str, str | list[str]] | None,
+        context: list[dict[str, str]] | None = None,
+    ) -> list[dict[str, str]]:
+        """
+        Get content messages (for debugging and inspection).
+
+        Builds and returns the complete message list that will be sent to LLM.
+
+        Use cases:
+            - Debug: View actual content sent to LLM
+            - Verify: Check if code blocks are correctly restored
+            - Inspect: Verify variable replacement and prompt building logic
+            - Review: Confirm system/user message assembly results
+
+        Args:
+            block_index: Block index
+            variables: Variable mapping
+            context: Context message list
+
+        Returns:
+            List of message dictionaries
+        """
+        return self._build_content_messages(block_index, variables, context)
 
     def set_model(self, model: str) -> "MarkdownFlow":
         """
@@ -219,12 +267,9 @@ class MarkdownFlow:
         if self._blocks is not None:
             return self._blocks
 
-        # Step 1: Extract code blocks (replace with placeholders)
-        # This ensures that MarkdownFlow syntax inside code blocks is ignored during subsequent parsing
-        processed_document = self._preprocessor.extract_code_blocks(self._document.strip())
-
-        # Step 2: Parse the processed document
-        segments = re.split(BLOCK_SEPARATOR, processed_document)
+        # Parse the preprocessed document (code blocks already replaced with placeholders)
+        # The preprocessing was done once during initialization
+        segments = re.split(BLOCK_SEPARATOR, self._processed_document)
         final_blocks: list[Block] = []
 
         for segment in segments:
@@ -365,6 +410,9 @@ class MarkdownFlow:
 
         # Replace variables
         content = replace_variables_in_text(content, variables or {})
+
+        # Restore code blocks (replace placeholders with original code blocks)
+        content = self._preprocessor.restore_code_blocks(content)
 
         return LLMResult(content=content)
 
@@ -886,6 +934,12 @@ class MarkdownFlow:
 
         # Replace variables
         block_content = replace_variables_in_text(block_content, variables or {})
+
+        # Restore code blocks (让 LLM 看到真实的代码块内容)
+        # Code block preprocessing is to prevent the parser from misinterpreting
+        # MarkdownFlow syntax inside code blocks, but the LLM needs to see
+        # the real content to correctly understand and generate responses
+        block_content = self._preprocessor.restore_code_blocks(block_content)
 
         # Build message array
         messages = []
