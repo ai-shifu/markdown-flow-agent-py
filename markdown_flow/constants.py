@@ -46,6 +46,15 @@ COMPILED_PRESERVE_FENCE_REGEX = re.compile(PRESERVE_FENCE_PATTERN)
 INLINE_PRESERVE_PATTERN = r"^===(.+)=== *$"
 COMPILED_INLINE_PRESERVE_REGEX = re.compile(INLINE_PRESERVE_PATTERN)
 
+# Code fence patterns (CommonMark specification compliant)
+# Code block fence start: 0-3 spaces + at least 3 backticks or tildes + optional info string
+CODE_FENCE_START_PATTERN = r"^[ ]{0,3}([`~]{3,})(.*)$"
+COMPILED_CODE_FENCE_START_REGEX = re.compile(CODE_FENCE_START_PATTERN)
+
+# Code block fence end: 0-3 spaces + at least 3 backticks or tildes + optional whitespace
+CODE_FENCE_END_PATTERN = r"^[ ]{0,3}([`~]{3,})\s*$"
+COMPILED_CODE_FENCE_END_REGEX = re.compile(CODE_FENCE_END_PATTERN)
+
 # Output instruction markers
 OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"
 OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"

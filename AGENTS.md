@@ -92,6 +92,8 @@ The project follows a clean, modular architecture with clear separation of conce
 - `output.py` - Output instructions and preserved content processing
 - `validation.py` - Template generation and response parsing
 - `json_parser.py` - JSON parsing with code block support
+- `code_fence_utils.py` - CommonMark-compliant code fence parsing utilities
+- `preprocessor.py` - Code block preprocessor for syntax protection
 
 **Providers (`providers/`)** - Built-in LLM provider implementations
 
@@ -674,6 +676,223 @@ pytest tests/ -k "interaction" -v
 - ✅ New projects: Use original format directly, let automatic conversion handle it
 - ✅ Existing projects: Keep existing display//value format unchanged (automatic detection skips)
 - ✅ Need English values: Manually specify display//value format
+
+## Code Block Processing
+
+### Overview
+
+MarkdownFlow supports syntax-ignoring functionality for Markdown code blocks. MarkdownFlow syntax (`===`, `?[]`, `---`) inside code blocks will not be parsed, allowing safe demonstration of code examples in documents.
+
+### Supported Code Block Formats
+
+**Fenced Code Blocks:**
+
+Supports two standard Markdown fence formats:
+
+1. **Backtick Fences** (`` ``` ``)
+2. **Tilde Fences** (`~~~`)
+
+**CommonMark Specification Compliant:**
+
+- Fence Length: At least 3 characters (`` ``` `` or `~~~`), can be longer
+- Indentation: Maximum 3 spaces
+- Info String: Supports language identifiers (e.g., `` ```python ``、`~~~markdown`)
+- Closing Fence: Must be same type, length ≥ opening fence
+
+### How It Works
+
+**Preprocessing Mechanism:**
+
+```
+Raw Document
+  ↓
+Code Block Preprocessor (CodeBlockPreprocessor)
+  ↓ State machine scanning
+  ↓ Extract code blocks → Replace with placeholders
+  ↓
+Preprocessed Document
+  ↓
+Block Parser (BlockParser)
+  ↓ Normal parsing (code blocks protected by placeholders)
+  ↓
+Parsed Block Structure
+```
+
+**Core Flow:**
+
+1. **Extract Phase**: Preprocessor runs automatically during `MarkdownFlow()` initialization
+2. **Placeholder Replacement**: Code blocks replaced with `__MDFLOW_CODE_BLOCK_N__` format placeholders
+3. **Normal Parsing**: Block parser processes preprocessed document
+4. **Transparent Handling**: Completely transparent to users, no additional configuration needed
+
+### Usage Examples
+
+**Tutorial Document Example:**
+
+```markdown
+# MarkdownFlow Syntax Tutorial
+
+?[%{{ready}} Ready|Need Help]
+
+---
+
+## Interaction Syntax Example
+
+Below shows how to use interaction syntax:
+
+` + "```markdown" + `
+?[%{{choice}} Option A|Option B|Option C]
+` + "```" + `
+
+---
+
+?[%{{next}} Continue Learning|Exit]
+```
+
+**Parse Results:**
+- ✅ Recognizes 2 interaction blocks (outside code blocks)
+- ✅ `?[%{{choice}}...]` inside code block not parsed
+- ✅ Recognizes 2 block separators (`---` inside code blocks ignored)
+
+**API Documentation Example:**
+
+```markdown
+# API Request Example
+
+?[%{{format}} JSON|XML]
+
+---
+
+` + "```bash" + `
+curl -X POST https://api.example.com/data \
+  -d '{
+    "filter": "=== active ===",
+    "query": "?[Sample Content]"
+  }'
+` + "```" + `
+```
+
+**Parse Results:**
+- ✅ MarkdownFlow syntax in JSON strings not parsed
+- ✅ Variable extraction excludes code block content
+
+### Implementation Details
+
+**State Machine Design:**
+
+```python
+STATE_NORMAL = "NORMAL"              # Normal content
+STATE_IN_CODE_BLOCK = "IN_CODE_BLOCK"  # Inside code block
+
+# Fence information
+@dataclass
+class FenceInfo:
+    char: str      # '`' or '~'
+    length: int    # Fence length (≥3)
+    indent: int    # Indent spaces (≤3)
+```
+
+**Key Features:**
+
+1. **Strict Fence Matching**
+   - Closing fence must use same type character as opening fence
+   - Closing fence length must be ≥ opening fence length
+   - Mixed types (`` ``` `` opening, `~~~` closing) don't match
+
+2. **Unclosed Code Block Handling**
+   - Unclosed code blocks remain as-is
+   - Won't be misidentified as fenced code blocks
+
+3. **Performance Optimization**
+   - Precompiled regular expressions
+   - Single document traversal
+   - Placeholder mechanism avoids re-parsing
+
+### Testing & Validation
+
+**Unit Tests (`tests/test_preprocessor.py`):**
+
+```bash
+# Run preprocessor unit tests
+python -m pytest tests/test_preprocessor.py -v
+```
+
+**Test Coverage:**
+- ✅ Basic backtick fences
+- ✅ Tilde fences
+- ✅ Code blocks with language identifiers
+- ✅ Multiple code blocks
+- ✅ Code blocks containing MarkdownFlow syntax
+- ✅ Unclosed code blocks
+- ✅ Empty code blocks
+- ✅ Long fences (4+ characters)
+- ✅ Indented code blocks (0-3 spaces)
+- ✅ Mixed fence types (non-matching scenarios)
+
+**Integration Tests:**
+
+```python
+from markdown_flow import MarkdownFlow
+
+document = """
+` + "```markdown" + `
+?[%{{example}} Should not be parsed]
+` + "```" + `
+
+---
+
+?[%{{real}} Will be parsed]
+"""
+
+mf = MarkdownFlow(document)
+blocks = mf.get_all_blocks()
+
+# Verify:
+# - Code block content replaced with placeholder
+# - Only outside ?[] parsed as interaction block
+```
+
+**Validation Content:**
+- ✅ `?[]` syntax inside code blocks not parsed as interaction blocks
+- ✅ `===` syntax inside code blocks not parsed as preserved content
+- ✅ `---` inside code blocks not parsed as block separators
+- ✅ Syntax outside code blocks works normally
+- ✅ Variable extraction excludes code block content
+
+### Notes
+
+**Limitations:**
+
+1. **Indented Code Blocks Not Supported**
+   - Only supports fenced code blocks (`` ``` `` and `~~~`)
+   - Traditional 4-space indent code blocks not supported
+
+2. **Nested Code Blocks Not Supported**
+   - Fence markers inside code blocks treated as plain text
+   - To display nesting, use longer outer fence:
+
+```markdown
+` + "````markdown" + `
+` + "```python" + `
+print('nested')
+` + "```" + `
+` + "````" + `
+```
+
+3. **Automatic Processing**
+   - Preprocessing happens automatically
+   - No manual control over enable/disable
+   - All fenced code blocks will be extracted
+
+### Architecture Files
+
+**Related Files:**
+
+- `markdown_flow/constants.py` - Code fence regex patterns
+- `markdown_flow/parser/code_fence_utils.py` - Fence parsing utilities
+- `markdown_flow/parser/preprocessor.py` - Code block preprocessor
+- `markdown_flow/core.py` - Integration point
+- `tests/test_preprocessor.py` - Unit tests
 
 ## Testing Guidelines
 
