@@ -35,7 +35,6 @@ from .parser import (
     CodeBlockPreprocessor,
     InteractionParser,
     InteractionType,
-    extract_interaction_question,
     extract_preserved_content,
     extract_variables_from_text,
     is_preserved_content_block,
@@ -472,9 +471,7 @@ class MarkdownFlow:
             translated_json = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
 
             # 使用翻译结果重构交互内容
-            translated_content = self._reconstruct_with_translation(
-                processed_block.content, translatable_json, translated_json, interaction_info
-            )
+            translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, translated_json, interaction_info)
 
             return LLMResult(
                 content=translated_content,
@@ -509,9 +506,7 @@ class MarkdownFlow:
                     full_response += chunk
 
                 # 使用翻译结果重构交互内容
-                translated_content = self._reconstruct_with_translation(
-                    processed_block.content, translatable_json, full_response, interaction_info
-                )
+                translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, full_response, interaction_info)
 
                 # 一次性返回完整内容（不是增量）
                 yield LLMResult(
@@ -977,9 +972,7 @@ class MarkdownFlow:
 
         return messages
 
-    def _extract_translatable_content(
-        self, interaction_content: str
-    ) -> tuple[str, dict[str, Any] | None]:
+    def _extract_translatable_content(self, interaction_content: str) -> tuple[str, dict[str, Any] | None]:
         """提取交互内容中需要翻译的部分为 JSON 格式
 
         Args:
@@ -1007,13 +1000,12 @@ class MarkdownFlow:
 
         # 转换为 JSON
         import json
+
         json_str = json.dumps(translatable, ensure_ascii=False)
 
         return json_str, interaction_info
 
-    def _build_translation_messages(
-        self, translatable_json: str
-    ) -> list[dict[str, str]]:
+    def _build_translation_messages(self, translatable_json: str) -> list[dict[str, str]]:
         """构建翻译用的消息列表
 
         Args:
