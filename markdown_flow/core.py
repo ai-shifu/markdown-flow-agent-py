@@ -32,6 +32,7 @@ from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
 from .models import Block, InteractionValidationConfig
 from .parser import (
+    CodeBlockPreprocessor,
     InteractionParser,
     InteractionType,
     extract_interaction_question,
@@ -61,6 +62,7 @@ class MarkdownFlow:
     _interaction_configs: dict[int, InteractionValidationConfig]
     _model: str | None
     _temperature: float | None
+    _preprocessor: CodeBlockPreprocessor
 
     def __init__(
         self,
@@ -95,6 +97,7 @@ class MarkdownFlow:
         self._interaction_configs: dict[int, InteractionValidationConfig] = {}
         self._model: str | None = None
         self._temperature: float | None = None
+        self._preprocessor = CodeBlockPreprocessor()
 
     def set_llm_provider(self, provider: LLMProvider) -> None:
         """Set LLM provider."""
@@ -216,8 +219,12 @@ class MarkdownFlow:
         if self._blocks is not None:
             return self._blocks
 
-        content = self._document.strip()
-        segments = re.split(BLOCK_SEPARATOR, content)
+        # Step 1: Extract code blocks (replace with placeholders)
+        # This ensures that MarkdownFlow syntax inside code blocks is ignored during subsequent parsing
+        processed_document = self._preprocessor.extract_code_blocks(self._document.strip())
+
+        # Step 2: Parse the processed document
+        segments = re.split(BLOCK_SEPARATOR, processed_document)
         final_blocks: list[Block] = []
 
         for segment in segments:

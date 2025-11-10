@@ -11,6 +11,7 @@ from .output import (
     is_preserved_content_block,
     process_output_instructions,
 )
+from .preprocessor import CodeBlockPreprocessor
 from .validation import generate_smart_validation_template, parse_validation_response
 from .variable import extract_variables_from_text, replace_variables_in_text
 
@@ -27,6 +28,8 @@ __all__ = [
     "is_preserved_content_block",
     "extract_preserved_content",
     "process_output_instructions",
+    # Code block preprocessing
+    "CodeBlockPreprocessor",
     # Validation
     "generate_smart_validation_template",
     "parse_validation_response",
