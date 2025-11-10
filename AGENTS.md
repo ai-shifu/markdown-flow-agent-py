@@ -378,6 +378,8 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 - `get_all_blocks() -> List[Block]`
 - `extract_variables() -> Set[str]`
 - `process(block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] = None, user_input: dict[str, list[str]] = None)`
+- `get_processed_document() -> str` - **Debug method**: Get preprocessed document with code block placeholders
+- `get_content_messages(block_index: int, variables: dict, context: list = None) -> list[dict]` - **Debug method**: Get complete message list sent to LLM
 
 **ProcessMode** - Processing mode enumeration
 
@@ -1501,6 +1503,186 @@ def timing_decorator(func):
         return result
     return wrapper
 ```
+
+### Debugging Methods
+
+MarkdownFlow provides two specialized debugging methods to help developers inspect preprocessing and message building processes:
+
+**1. get_processed_document() - View Preprocessing Results**
+
+```python
+mf = MarkdownFlow(document, provider)
+
+# Get preprocessed document (code blocks replaced with placeholders)
+processed_doc = mf.get_processed_document()
+print(f"Placeholders: {processed_doc.count('__MDFLOW_CODE_BLOCK_')}")
+
+# Check if extraction worked correctly
+if "__MDFLOW_CODE_BLOCK_1__" not in processed_doc:
+    print("Warning: Code block not extracted")
+```
+
+**Use cases:**
+- ✓ Verify code block preprocessing was executed correctly
+- ✓ Check placeholder format and count
+- ✓ Debug block parsing issues
+- ✓ Ensure MarkdownFlow syntax in code blocks doesn't interfere
+
+**2. get_content_messages() - View LLM Input**
+
+```python
+# Get complete message list that will be sent to LLM
+messages = mf.get_content_messages(0, vars_map, context_messages)
+
+# Check system message
+if messages and messages[0]["role"] == "system":
+    print(f"System Message:\n{messages[0]['content']}")
+
+# Check user message (last one)
+user_msg = messages[-1]
+print(f"User Message:\n{user_msg['content']}")
+
+# Verify code blocks are restored
+if "__MDFLOW_CODE_BLOCK_" in user_msg["content"]:
+    print("Warning: Code block placeholder not restored!")
+
+# Verify variables are replaced
+if "{{" in user_msg["content"]:
+    print("Warning: Variable not replaced!")
+```
+
+**Use cases:**
+- ✓ View actual content sent to LLM
+- ✓ Verify code blocks are correctly restored
+- ✓ Check variable replacement results
+- ✓ Confirm system/user message assembly
+- ✓ Debug prompt building logic
+
+### Debugging Scenarios
+
+**Scenario 1: Code Block Content Not Processed Correctly**
+
+```python
+# Issue: Code block examples show as placeholders
+document = """Explain how to use:
+
+```python
+print("Hello")
+```"""
+
+mf = MarkdownFlow(document, provider)
+
+# Step 1: Check preprocessing
+processed = mf.get_processed_document()
+print(f"Preprocessed:\n{processed}")
+# Should see: __MDFLOW_CODE_BLOCK_1__
+
+# Step 2: Check messages sent to LLM
+messages = mf.get_content_messages(0, None, None)
+user_content = messages[-1]["content"]
+print(f"Sent to LLM:\n{user_content}")
+# Should see: ```python\nprint("Hello")\n```
+
+# Step 3: Process and check output
+result = mf.process(0, ProcessMode.COMPLETE, None, None)
+print(f"LLM Output:\n{result.content}")
+```
+
+**Scenario 2: Variable Replacement Issues**
+
+```python
+document = "Hello {{name}}, you are {{age}} years old"
+mf = MarkdownFlow(document, provider)
+
+vars_map = {
+    "name": "Alice",
+    # Note: forgot to provide age variable
+}
+
+# Debug variable replacement
+messages = mf.get_content_messages(0, vars_map, None)
+user_content = messages[-1]["content"]
+
+# Check for unreplaced variables
+if "{{" in user_content:
+    import re
+    print("Found unreplaced variables:")
+    matches = re.findall(r'{{(.+?)}}', user_content)
+    for var in matches:
+        print(f"  - {var}")
+```
+
+**Scenario 3: Compare Before/After Preprocessing**
+
+```python
+document = """说明：
+
+```markdown
+!===
+固定输出
+!===
+```"""
+
+mf = MarkdownFlow(document, provider)
+
+# Original document
+original = mf._document
+print(f"Original length: {len(original)}")
+
+# Preprocessed
+processed = mf.get_processed_document()
+print(f"Processed length: {len(processed)}")
+
+# Sent to LLM
+messages = mf.get_content_messages(0, None, None)
+llm_input = messages[-1]["content"]
+print(f"LLM input length: {len(llm_input)}")
+
+# Compare
+print(f"\nOriginal contains code fence: {'```' in original}")
+print(f"Processed contains code fence: {'```' in processed}")
+print(f"LLM input contains code fence: {'```' in llm_input}")
+```
+
+### Debugging Best Practices
+
+1. **Check in Stages**
+   - First check preprocessing results (`get_processed_document`)
+   - Then check message building (`get_content_messages`)
+   - Finally check LLM output
+
+2. **Use Assertions**
+   ```python
+   # In tests, use assertions
+   messages = mf.get_content_messages(0, None, None)
+   user_content = messages[-1]["content"]
+
+   assert "__MDFLOW_CODE_BLOCK_" not in user_content
+   assert "```" in user_content
+   ```
+
+3. **Log Key Information**
+   ```python
+   # In production, log debug info
+   if config.debug:
+       messages = mf.get_content_messages(block_index, vars_map, ctx)
+       logger.debug(f"Block {block_index} messages: {messages}")
+   ```
+
+4. **Write Verification Scripts**
+   ```python
+   # Create dedicated verification functions
+   def verify_preprocessing(mf: MarkdownFlow) -> bool:
+       processed = mf.get_processed_document()
+
+       # Check placeholder format
+       import re
+       pattern = r'__MDFLOW_CODE_BLOCK_\d+__'
+       if not re.search(pattern, processed):
+           raise ValueError("Invalid placeholder format")
+
+       return True
+   ```
 
 ## Advanced Usage Patterns
 
