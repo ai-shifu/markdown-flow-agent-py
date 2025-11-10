@@ -31,9 +31,7 @@ class ProviderConfig:
     debug: bool = field(default_factory=lambda: os.getenv("LLM_DEBUG", "false").lower() in ("true", "1", "yes"))
     """Enable debug mode (colorized console output). Default: LLM_DEBUG environment variable or False."""
 
-    timeout: float | None = field(
-        default_factory=lambda: float(os.getenv("LLM_TIMEOUT")) if os.getenv("LLM_TIMEOUT") else None
-    )
+    timeout: float | None = field(default_factory=lambda: float(os.getenv("LLM_TIMEOUT")) if os.getenv("LLM_TIMEOUT") else None)
     """Request timeout in seconds. None means no timeout. Default: LLM_TIMEOUT environment variable or None."""
 
     def __post_init__(self):

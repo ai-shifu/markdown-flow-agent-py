@@ -561,6 +561,7 @@ MarkdownFlow supports **automatic translation detection and value addition**, no
 ```
 
 **How It Works:**
+
 1. Detects translation occurred (苹果 → Apple)
 2. Automatically adds value separation: `Apple//苹果`
 3. Display = Translated text (Apple), Value = Original text (苹果)
@@ -569,6 +570,7 @@ MarkdownFlow supports **automatic translation detection and value addition**, no
 6. Business layer receives stable original Chinese values
 
 **Key Advantages:**
+
 - ✅ Zero configuration: No need to modify existing documents
 - ✅ Smart detection: Only adds when translation occurs
 - ✅ Backward compatible: Existing display//value format remains unchanged
@@ -675,6 +677,7 @@ pytest tests/ -k "interaction" -v
 | Business Layer Impact | Receives original Chinese values | Receives custom values |
 
 **Recommended Approach:**
+
 - ✅ New projects: Use original format directly, let automatic conversion handle it
 - ✅ Existing projects: Keep existing display//value format unchanged (automatic detection skips)
 - ✅ Need English values: Manually specify display//value format
@@ -752,6 +755,7 @@ Below shows how to use interaction syntax:
 ```
 
 **Parse Results:**
+
 - ✅ Recognizes 2 interaction blocks (outside code blocks)
 - ✅ `?[%{{choice}}...]` inside code block not parsed
 - ✅ Recognizes 2 block separators (`---` inside code blocks ignored)
@@ -775,6 +779,7 @@ curl -X POST https://api.example.com/data \
 ```
 
 **Parse Results:**
+
 - ✅ MarkdownFlow syntax in JSON strings not parsed
 - ✅ Variable extraction excludes code block content
 
@@ -820,6 +825,7 @@ python -m pytest tests/test_preprocessor.py -v
 ```
 
 **Test Coverage:**
+
 - ✅ Basic backtick fences
 - ✅ Tilde fences
 - ✅ Code blocks with language identifiers
@@ -855,6 +861,7 @@ blocks = mf.get_all_blocks()
 ```
 
 **Validation Content:**
+
 - ✅ `?[]` syntax inside code blocks not parsed as interaction blocks
 - ✅ `===` syntax inside code blocks not parsed as preserved content
 - ✅ `---` inside code blocks not parsed as block separators
@@ -1523,6 +1530,7 @@ if "__MDFLOW_CODE_BLOCK_1__" not in processed_doc:
 ```
 
 **Use cases:**
+
 - ✓ Verify code block preprocessing was executed correctly
 - ✓ Check placeholder format and count
 - ✓ Debug block parsing issues
@@ -1552,6 +1560,7 @@ if "{{" in user_msg["content"]:
 ```
 
 **Use cases:**
+
 - ✓ View actual content sent to LLM
 - ✓ Verify code blocks are correctly restored
 - ✓ Check variable replacement results
@@ -1652,6 +1661,7 @@ print(f"LLM input contains code fence: {'```' in llm_input}")
    - Finally check LLM output
 
 2. **Use Assertions**
+
    ```python
    # In tests, use assertions
    messages = mf.get_content_messages(0, None, None)
@@ -1662,6 +1672,7 @@ print(f"LLM input contains code fence: {'```' in llm_input}")
    ```
 
 3. **Log Key Information**
+
    ```python
    # In production, log debug info
    if config.debug:
@@ -1670,6 +1681,7 @@ print(f"LLM input contains code fence: {'```' in llm_input}")
    ```
 
 4. **Write Verification Scripts**
+
    ```python
    # Create dedicated verification functions
    def verify_preprocessing(mf: MarkdownFlow) -> bool:
