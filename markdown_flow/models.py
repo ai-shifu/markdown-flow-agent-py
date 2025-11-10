@@ -27,22 +27,6 @@ class UserInput:
 
 
 @dataclass
-class InteractionValidationConfig:
-    """
-    Simplified interaction validation configuration.
-
-    Attributes:
-        validation_template (Optional[str]): Validation prompt template
-        target_variable (Optional[str]): Target variable name
-        enable_custom_validation (bool): Enable custom validation, defaults to True
-    """
-
-    validation_template: str | None = None
-    target_variable: str | None = None
-    enable_custom_validation: bool = True
-
-
-@dataclass
 class Block:
     """
     Simplified document block data class.

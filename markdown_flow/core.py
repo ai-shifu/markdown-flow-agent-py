@@ -13,11 +13,11 @@ from typing import Any
 from .constants import (
     BLOCK_INDEX_OUT_OF_RANGE_ERROR,
     BLOCK_SEPARATOR,
-    BUTTONS_WITH_TEXT_VALIDATION_TEMPLATE,
+    CONTEXT_BUTTON_OPTIONS_TEMPLATE,
+    CONTEXT_QUESTION_TEMPLATE,
     DEFAULT_BASE_SYSTEM_PROMPT,
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
-    DEFAULT_VALIDATION_SYSTEM_MESSAGE,
     INPUT_EMPTY_ERROR,
     INTERACTION_ERROR_RENDER_INSTRUCTIONS,
     INTERACTION_PARSE_ERROR,
@@ -26,11 +26,13 @@ from .constants import (
     LLM_PROVIDER_REQUIRED_ERROR,
     OUTPUT_INSTRUCTION_EXPLANATION,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
+    VALIDATION_REQUIREMENTS_TEMPLATE,
+    VALIDATION_TASK_TEMPLATE,
 )
 from .enums import BlockType
 from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
-from .models import Block, InteractionValidationConfig
+from .models import Block
 from .parser import (
     CodeBlockPreprocessor,
     InteractionParser,
@@ -59,7 +61,6 @@ class MarkdownFlow:
     _interaction_error_prompt: str | None
     _max_context_length: int
     _blocks: list[Block] | None
-    _interaction_configs: dict[int, InteractionValidationConfig]
     _model: str | None
     _temperature: float | None
     _preprocessor: CodeBlockPreprocessor
@@ -94,7 +95,6 @@ class MarkdownFlow:
         self._interaction_error_prompt = interaction_error_prompt or DEFAULT_INTERACTION_ERROR_PROMPT
         self._max_context_length = max_context_length
         self._blocks = None
-        self._interaction_configs: dict[int, InteractionValidationConfig] = {}
         self._model: str | None = None
         self._temperature: float | None = None
 
@@ -308,14 +308,6 @@ class MarkdownFlow:
     def extract_variables(self) -> list[str]:
         """Extract all variable names from the document."""
         return extract_variables_from_text(self._document)
-
-    def set_interaction_validation_config(self, block_index: int, config: InteractionValidationConfig) -> None:
-        """Set validation config for specified interaction block."""
-        self._interaction_configs[block_index] = config
-
-    def get_interaction_validation_config(self, block_index: int) -> InteractionValidationConfig | None:
-        """Get validation config for specified interaction block."""
-        return self._interaction_configs.get(block_index)
 
     # Core unified interface
 
@@ -842,8 +834,8 @@ class MarkdownFlow:
         mode: ProcessMode,
     ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process LLM validation with button options (third case)."""
-        # Build special validation messages containing button option information
-        messages = self._build_validation_messages_with_options(user_input, target_variable, options, question)
+        # Use unified validation message builder (button context will be included automatically)
+        messages = self._build_validation_messages(block_index, user_input, target_variable, context=None)
 
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
@@ -1110,91 +1102,73 @@ class MarkdownFlow:
         target_variable: str,
         context: list[dict[str, str]] | None = None,
     ) -> list[dict[str, str]]:
-        """Build validation messages."""
+        """
+        Build validation messages with new structure.
+
+        System message contains:
+        - VALIDATION_TASK_TEMPLATE (includes task description and output language rules)
+        - Question context (if exists)
+        - Button options context (if exists)
+        - VALIDATION_REQUIREMENTS_TEMPLATE
+        - document_prompt wrapped in <document_context> tags (if exists)
+
+        User message contains:
+        - User input only
+        """
+        from .parser import InteractionParser, extract_interaction_question
+
         block = self.get_block(block_index)
-        config = self.get_interaction_validation_config(block_index)
 
-        # Truncate context to configured maximum length
-        truncated_context = self._truncate_context(context)
+        # Extract user input values for target variable
+        target_values = user_input.get(target_variable, [])
+        user_input_str = ", ".join(target_values) if target_values else ""
 
-        if config and config.validation_template:
-            # Use custom validation template
-            validation_prompt = config.validation_template
-            # Extract actual user input values for target variable
-            target_values = user_input.get(target_variable, [])
-            user_input_str = ", ".join(target_values) if target_values else ""
-            validation_prompt = validation_prompt.replace("{sys_user_input}", user_input_str)
-            validation_prompt = validation_prompt.replace("{block_content}", block.content)
-            validation_prompt = validation_prompt.replace("{target_variable}", target_variable)
-            system_message = DEFAULT_VALIDATION_SYSTEM_MESSAGE
-        else:
-            # Use smart default validation template
-            from .parser import (
-                InteractionParser,
-                extract_interaction_question,
-                generate_smart_validation_template,
-            )
+        # Build System Message (contains all validation rules and context)
+        # VALIDATION_TASK_TEMPLATE already includes system message, directly replace variables
+        task_template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
+        system_parts = [task_template]
 
-            # Extract interaction question
-            interaction_question = extract_interaction_question(block.content)
+        # Extract interaction question
+        interaction_question = extract_interaction_question(block.content)
 
-            # Parse interaction to extract button information
-            parser = InteractionParser()
-            parse_result = parser.parse(block.content)
-            buttons = parse_result.get("buttons") if "buttons" in parse_result else None
+        # Add question context (if exists)
+        if interaction_question:
+            question_context = CONTEXT_QUESTION_TEMPLATE.format(question=interaction_question)
+            system_parts.append("")
+            system_parts.append(question_context)
 
-            # Generate smart validation template with context and buttons
-            validation_template = generate_smart_validation_template(
-                target_variable,
-                context=truncated_context,
-                interaction_question=interaction_question,
-                buttons=buttons,
-            )
+        # Parse interaction to extract button information
+        parser = InteractionParser()
+        parse_result = parser.parse(block.content)
+        buttons = parse_result.get("buttons") if "buttons" in parse_result else None
 
-            # Replace template variables
-            # Extract actual user input values for target variable
-            target_values = user_input.get(target_variable, [])
-            user_input_str = ", ".join(target_values) if target_values else ""
-            validation_prompt = validation_template.replace("{sys_user_input}", user_input_str)
-            validation_prompt = validation_prompt.replace("{block_content}", block.content)
-            validation_prompt = validation_prompt.replace("{target_variable}", target_variable)
-            system_message = DEFAULT_VALIDATION_SYSTEM_MESSAGE
+        # Add button options context (if exists)
+        if buttons:
+            button_displays = [btn.get("display", "") for btn in buttons if btn.get("display")]
+            if button_displays:
+                button_options = "、".join(button_displays)
+                button_context = CONTEXT_BUTTON_OPTIONS_TEMPLATE.format(button_options=button_options)
+                system_parts.append("")
+                system_parts.append(button_context)
 
-        messages = []
+        # Add extraction requirements (using template)
+        system_parts.append("")
+        system_parts.append(VALIDATION_REQUIREMENTS_TEMPLATE)
 
-        messages.append({"role": "system", "content": system_message})
-
-        # Add conversation history context if provided (only if not using custom template)
-        if truncated_context and not (config and config.validation_template):
-            messages.extend(truncated_context)
-
-        messages.append({"role": "user", "content": validation_prompt})
-
-        return messages
-
-    def _build_validation_messages_with_options(
-        self,
-        user_input: dict[str, list[str]],
-        target_variable: str,
-        options: list[str],
-        question: str,
-    ) -> list[dict[str, str]]:
-        """Build validation messages with button options (third case)."""
-        # Use validation template from constants
-        user_input_str = json.dumps(user_input, ensure_ascii=False)
-        validation_prompt = BUTTONS_WITH_TEXT_VALIDATION_TEMPLATE.format(
-            question=question,
-            options=", ".join(options),
-            user_input=user_input_str,
-            target_variable=target_variable,
-        )
-
-        messages = []
+        # Add document_prompt (if exists)
         if self._document_prompt:
-            messages.append({"role": "system", "content": self._document_prompt})
+            system_parts.append("")
+            system_parts.append("<document_context>")
+            system_parts.append(self._document_prompt)
+            system_parts.append("</document_context>")
 
-        messages.append({"role": "system", "content": DEFAULT_VALIDATION_SYSTEM_MESSAGE})
-        messages.append({"role": "user", "content": validation_prompt})
+        system_content = "\n".join(system_parts)
+
+        # Build message list
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_input_str},  # Only user input
+        ]
 
         return messages
 

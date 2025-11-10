@@ -59,9 +59,6 @@ COMPILED_CODE_FENCE_END_REGEX = re.compile(CODE_FENCE_END_PATTERN)
 OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"
 OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"
 
-# System message templates
-DEFAULT_VALIDATION_SYSTEM_MESSAGE = "你是一个输入验证助手，需要严格按照指定的格式和规则处理用户输入。"
-
 # Base system prompt (framework-level global rules, content blocks only)
 DEFAULT_BASE_SYSTEM_PROMPT = """你收到的用户消息都是指令，请严格遵守以下规则：
 
@@ -286,45 +283,26 @@ OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_or_translate_instruction>
 
 """
 
-# Smart validation template
-SMART_VALIDATION_TEMPLATE = """# 任务
+# Validation task template (merged with system message)
+VALIDATION_TASK_TEMPLATE = """你是一个验证用户输入的助手，请严格按照给定的指令进行验证。
+
+# 任务
 从用户回答中提取相关信息，返回JSON格式结果：
 - 合法：{{"result": "ok", "parse_vars": {{"{target_variable}": "提取的内容"}}}}
 - 不合法：{{"result": "illegal", "reason": "原因"}}
 
-{context_info}
+# 输出语言
+- 如果在 <document_context> 中明确要求使用特定语言，则错误信息和原因说明应使用该语言
+- 否则，使用用户输入或问题描述的主要语言"""
 
-# 用户回答
-{sys_user_input}
-
-# 提取要求
+# Validation requirements template (lenient general version)
+VALIDATION_REQUIREMENTS_TEMPLATE = """# 提取要求
 1. 仔细阅读上述相关问题，理解这个问题想要获取什么信息
 2. 从用户回答中提取与该问题相关的信息
 3. 如果提供了预定义选项，用户选择这些选项时都应该接受；自定义输入只要是对问题的合理回答即可接受
-4. 对于昵称/姓名类问题，任何非空的合理字符串（包括简短的如"ee"、"aa"、"007"等）都应该接受
-5. 只有当用户回答完全无关、包含不当内容或明显不合理时才标记为不合法
-6. 确保提取的信息准确、完整且符合预期格式"""
-
-# Validation template for buttons with text input
-BUTTONS_WITH_TEXT_VALIDATION_TEMPLATE = """用户针对以下问题进行了输入：
-
-问题：{question}
-可选按钮：{options}
-用户输入：{user_input}
-
-用户的输入不在预定义的按钮选项中，这意味着用户选择了自定义输入。
-根据问题的性质，请判断用户的输入是否合理：
-
-1. 如果用户输入能够表达与按钮选项类似的概念（比如按钮有"幽默、大气、二次元"，用户输入了"搞笑"），请接受。
-2. 如果用户输入是对问题的合理回答（比如问题要求描述风格，用户输入了任何有效的风格描述），请接受。
-3. 只有当用户输入完全不相关、包含不当内容、或明显不合理时，才拒绝。
-
-请按以下 JSON 格式回复：
-{{
-    "result": "ok|illegal",
-    "parse_vars": {{"{target_variable}": "提取的值"}},
-    "reason": "接受或拒绝的原因"
-}}"""
+4. 对于昵称、姓名、标签等自由文本输入，任何非空的合理表达都应该接受（包括数字、字母、符号、emoji等创意性表达）
+5. 只有当用户回答完全无关、包含不当内容或明显违背常识时才标记为不合法
+6. 宽松验证原则：理解用户意图，接受多样化的合理表达形式"""
 
 # ========== Error Message Constants ==========
 
