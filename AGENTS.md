@@ -378,6 +378,8 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 - `get_all_blocks() -> List[Block]`
 - `extract_variables() -> Set[str]`
 - `process(block_index: int, mode: ProcessMode, variables: dict[str, str | list[str]] = None, user_input: dict[str, list[str]] = None)`
+- `set_text_validation_enabled(enabled: bool) -> MarkdownFlow` - **Text validation control**: Enable/disable LLM validation for text inputs (default: False)
+- `is_text_validation_enabled() -> bool` - Check if text validation is enabled
 - `get_processed_document() -> str` - **Debug method**: Get preprocessed document with code block placeholders
 - `get_content_messages(block_index: int, variables: dict, context: list = None) -> list[dict]` - **Debug method**: Get complete message list sent to LLM
 
@@ -681,6 +683,114 @@ pytest tests/ -k "interaction" -v
 - ✅ New projects: Use original format directly, let automatic conversion handle it
 - ✅ Existing projects: Keep existing display//value format unchanged (automatic detection skips)
 - ✅ Need English values: Manually specify display//value format
+
+### Text Validation Toggle ⭐
+
+MarkdownFlow provides a text validation toggle to control whether text inputs undergo LLM validation.
+
+#### Default Behavior
+
+**Validation disabled by default**: For performance and cost optimization, text validation is disabled by default.
+
+```python
+mf = MarkdownFlow(document, llm_provider=provider)
+
+# Default: validation is disabled
+print(mf.is_text_validation_enabled())  # False
+```
+
+#### Affected Interaction Types
+
+The text validation toggle affects these three interaction types that include text input:
+
+1. **TEXT_ONLY** - Pure text input: `?[%{{var}} ...question]`
+2. **BUTTONS_WITH_TEXT** - Buttons + text fallback: `?[%{{var}} A|B|...question]`
+3. **BUTTONS_MULTI_WITH_TEXT** - Multi-select + text fallback: `?[%{{var}} A||B||...question]`
+
+**Not affected:**
+- BUTTONS_ONLY - Uses local validation only, no LLM call
+- NON_ASSIGNMENT_BUTTON - No validation needed
+
+#### Toggle State Comparison
+
+| State | Behavior | Performance | Use Cases |
+|-------|----------|-------------|-----------|
+| **Disabled (default)** | Directly accept all text inputs | Fastest, no LLM calls | Dev/testing, trusted input, cost priority |
+| **Enabled** | Use LLM to validate text inputs | Slower, requires LLM | Production, need input validation |
+
+#### Usage Examples
+
+**Example 1: Default Behavior (Validation Disabled)**
+
+```python
+document = "?[%{{answer}} ...What is your favorite fruit?]"
+mf = MarkdownFlow(document, llm_provider=provider)
+
+# Submit any input, directly accepted
+user_input = {"answer": ["I love programming"]}  # Even unrelated input is accepted
+
+result = mf.process(0, user_input=user_input)
+# ✅ Directly extracted variable: result.variables["answer"] = ["I love programming"]
+# ✅ No LLM call, optimal performance
+# ✅ Metadata contains "validation_bypassed": True marker
+```
+
+**Example 2: Enable Validation**
+
+```python
+document = "?[%{{fruit}} ...What is your favorite fruit?]"
+mf = MarkdownFlow(document, llm_provider=provider)
+mf.set_text_validation_enabled(True)  # Enable validation
+
+# Submit reasonable input
+user_input1 = {"fruit": ["Apple"]}
+result1 = mf.process(0, user_input=user_input1)
+# ✅ Reasonable input passes LLM validation: result1.variables["fruit"] = ["Apple"]
+
+# Submit unreasonable input
+user_input2 = {"fruit": ["I don't want to tell you"]}
+result2 = mf.process(0, user_input=user_input2)
+# ❌ Unreasonable input rejected: result2.content contains error message
+```
+
+**Example 3: Buttons + Custom Text (Validation Disabled)**
+
+```python
+document = "?[%{{level}} Beginner|Advanced|...Please specify your level]"
+mf = MarkdownFlow(document, llm_provider=provider)
+
+# Mixed input: button value + custom text
+user_input = {"level": ["Intermediate"]}  # Doesn't match button, but accepted
+
+result = mf.process(0, user_input=user_input)
+# ✅ Directly accept custom text: result.variables["level"] = ["Intermediate"]
+```
+
+**Example 4: Method Chaining**
+
+```python
+mf = MarkdownFlow(document, llm_provider=provider)
+mf.set_text_validation_enabled(True).set_model("gpt-4").set_temperature(0.3)
+# Supports chaining with other configuration methods
+```
+
+#### API Methods
+
+```python
+# Set validation toggle
+def set_text_validation_enabled(enabled: bool) -> MarkdownFlow
+
+# Query validation status
+def is_text_validation_enabled() -> bool
+```
+
+#### Best Practices
+
+1. **Dev/Testing Environment**: Keep default (disabled) for rapid iteration
+2. **Production Environment**: Decide based on business requirements
+3. **Special Cases**: For sensitive inputs (Email, phone), recommend frontend validation first, don't rely on LLM validation
+4. **Cost Optimization**: Disabling validation significantly reduces LLM API calls
+5. **User Experience**: Disabling validation provides faster response times
 
 ## Code Block Processing
 
