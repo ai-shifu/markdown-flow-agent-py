@@ -608,8 +608,10 @@ class MarkdownFlow:
                     )
                     # Return generator for STREAM mode, direct result for COMPLETE mode
                     if mode == ProcessMode.STREAM:
+
                         def stream_generator():
                             yield result
+
                         return stream_generator()
                     return result
 
@@ -677,8 +679,10 @@ class MarkdownFlow:
                 )
                 # Return generator for STREAM mode, direct result for COMPLETE mode
                 if mode == ProcessMode.STREAM:
+
                     def stream_generator():
                         yield result
+
                     return stream_generator()
                 return result
 
@@ -709,8 +713,10 @@ class MarkdownFlow:
             )
             # Return generator for STREAM mode, direct result for COMPLETE mode
             if mode == ProcessMode.STREAM:
+
                 def stream_generator():
                     yield result
+
                 return stream_generator()
             return result
 
@@ -729,8 +735,10 @@ class MarkdownFlow:
                 )
                 # Return generator for STREAM mode, direct result for COMPLETE mode
                 if mode == ProcessMode.STREAM:
+
                     def stream_generator():
                         yield result
+
                     return stream_generator()
                 return result
 
@@ -821,8 +829,10 @@ class MarkdownFlow:
                 )
                 # Return generator for STREAM mode, direct result for COMPLETE mode
                 if mode == ProcessMode.STREAM:
+
                     def stream_generator():
                         yield result
+
                     return stream_generator()
                 return result
             # Pure button mode requires input
@@ -869,8 +879,10 @@ class MarkdownFlow:
         )
         # Return generator for STREAM mode, direct result for COMPLETE mode
         if mode == ProcessMode.STREAM:
+
             def stream_generator():
                 yield result
+
             return stream_generator()
         return result
 
