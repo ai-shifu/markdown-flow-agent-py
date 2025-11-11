@@ -26,12 +26,6 @@ COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Par
 COMPILED_BRACE_VARIABLE_REGEX = re.compile(
     r"(?<!%)\{\{([^}]+)\}\}"  # Match {{variable}} format for replaceable variables
 )
-COMPILED_INTERACTION_CONTENT_RECONSTRUCT_REGEX = re.compile(
-    r"(\?\[[^]]*\.\.\.)([^]]*\])"  # Reconstruct interaction content: prefix + question + suffix
-)
-COMPILED_BRACKETS_CLEANUP_REGEX = re.compile(r"[\[\]()]")
-COMPILED_VARIABLE_REFERENCE_CLEANUP_REGEX = re.compile(r"%\{\{[^}]*\}\}")
-COMPILED_WHITESPACE_CLEANUP_REGEX = re.compile(r"\s+")
 COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
 
 # Document parsing constants (using shared INTERACTION_PATTERN defined above)
@@ -151,28 +145,6 @@ DEFAULT_INTERACTION_PROMPT = """<interaction_translation_rules>
 
 # Interaction error prompt templates
 DEFAULT_INTERACTION_ERROR_PROMPT = "请将以下错误信息改写得更加友好和个性化，帮助用户理解问题并给出建设性的引导："
-
-# Detailed interaction rendering instructions
-INTERACTION_RENDER_INSTRUCTIONS = """
-核心要求：
-1. **绝对禁止改变问题的含义和方向** - 这是最重要的原则
-2. 只能改变表达方式，不能改变问题的核心内容
-3. 必须保持问题的主体和客体关系不变
-4. 只返回改写后的问题文本，不要包含任何其他内容
-5. 保持专业友好的语气，禁止可爱化表达
-
-关键示例说明：
-✅ 正确改写（保持含义）：
-- "希望我怎么称呼你？" → "请问我应该如何称呼您？"
-- "请输入您的姓名" → "请告诉我您的姓名"
-- "你的年龄是多少？" → "请问您今年多大了？"
-
-❌ 严重错误（改变含义）：
-- "希望我怎么称呼你？" → "你想叫我什么名字？" （方向颠倒）
-- "请输入您的姓名" → "我叫什么好呢？" （主客体颠倒）
-- "你喜欢什么？" → "我应该喜欢什么？" （完全改变意思）
-
-请严格按照以上要求改写，确保不改变问题的原始含义："""
 
 # Interaction error rendering instructions
 INTERACTION_ERROR_RENDER_INSTRUCTIONS = """
