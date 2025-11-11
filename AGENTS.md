@@ -708,6 +708,7 @@ The text validation toggle affects these three interaction types that include te
 3. **BUTTONS_MULTI_WITH_TEXT** - Multi-select + text fallback: `?[%{{var}} A||B||...question]`
 
 **Not affected:**
+
 - BUTTONS_ONLY - Uses local validation only, no LLM call
 - NON_ASSIGNMENT_BUTTON - No validation needed
 
