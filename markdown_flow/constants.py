@@ -256,25 +256,63 @@ OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_or_translate_instruction>
 """
 
 # Validation task template (merged with system message)
-VALIDATION_TASK_TEMPLATE = """你是一个验证用户输入的助手，请严格按照给定的指令进行验证。
+VALIDATION_TASK_TEMPLATE = """你是字符串验证程序，不是对话助手。
 
-# 任务
-从用户回答中提取相关信息，返回JSON格式结果：
-- 合法：{{"result": "ok", "parse_vars": {{"{target_variable}": "提取的内容"}}}}
-- 不合法：{{"result": "illegal", "reason": "原因"}}
+你的唯一任务：按后续规则检查输入，输出 JSON：
+{{"result": "ok", "parse_vars": {{"{target_variable}": "用户输入"}}}} 或 {{"result": "illegal", "reason": "原因"}}
 
-# 输出语言
-- 如果在 <document_context> 中明确要求使用特定语言，则错误信息和原因说明应使用该语言
-- 否则，使用用户输入或问题描述的主要语言"""
+严禁输出任何自然语言解释。
 
-# Validation requirements template (lenient general version)
-VALIDATION_REQUIREMENTS_TEMPLATE = """# 提取要求
-1. 仔细阅读上述相关问题，理解这个问题想要获取什么信息
-2. 从用户回答中提取与该问题相关的信息
-3. 如果提供了预定义选项，用户选择这些选项时都应该接受；自定义输入只要是对问题的合理回答即可接受
-4. 对于昵称、姓名、标签等自由文本输入，任何非空的合理表达都应该接受（包括数字、字母、符号、emoji等创意性表达）
-5. 只有当用户回答完全无关、包含不当内容或明显违背常识时才标记为不合法
-6. 宽松验证原则：理解用户意图，接受多样化的合理表达形式"""
+# reason 语言
+从 <document_context> 中仅提取语言要求（如"使用英文"、"use English"）
+- 如果有明确语言要求 → reason 使用该语言
+- 否则 → reason 使用用户输入或问题的语言
+"""
+
+# Validation requirements template (极致宽松版本)
+VALIDATION_REQUIREMENTS_TEMPLATE = """# 验证算法（按顺序执行）
+
+步骤 1：空值检查（字符串长度检查）
+
+检查规则：input.trim().length == 0 ?
+- YES → 空
+- NO  → 非空
+
+⚠️ 只要去除首尾空格后字符数 > 0，就是非空
+⚠️ 不判断语义！所有可见字符（a、1、@、中）都计入长度
+⚠️ 示例：
+  - ""      → 长度0 → 空
+  - "  "    → 长度0 → 空
+  - "aa"    → 长度2 → 非空
+  - "@_@"   → 长度3 → 非空
+  - "棒棒糖" → 长度3 → 非空
+
+步骤 2：模糊回答检查
+
+拒绝以下模糊回答："不知道"、"不清楚"、"没有"、"不告诉你"
+
+步骤 3：宗教政治检查
+
+只拒绝明确的宗教政治立场表达（宗教教义、政治口号等）
+地名,地区等（北京、上海等）、普通词汇都不算
+
+步骤 4：输出结果（reason 语言跟随 <document_context> 中的语言要求）
+
+伪代码逻辑：
+  if 空:
+      输出 {{"result": "illegal", "reason": "输入为空（或对应语言的翻译）"}}
+  else if 模糊回答:
+      输出 {{"result": "illegal", "reason": "请提供具体内容（或对应语言的翻译）"}}
+  else if 宗教政治:
+      输出 {{"result": "illegal", "reason": "包含敏感内容（或对应语言的翻译）"}}
+  else:
+      输出 {{"result": "ok", "parse_vars": {{"{target_variable}": "用户输入"}}}}
+
+⚠️ 极致重要：
+- len(去除空格后的输入) > 0 → 必须视为非空
+- 符号、数字、品牌名、地名等都不是"空"，也不是"无效"
+- 默认通过，只在明确违规时才拒绝
+"""
 
 # ========== Error Message Constants ==========
 

@@ -97,6 +97,7 @@ class MarkdownFlow:
         self._blocks = None
         self._model: str | None = None
         self._temperature: float | None = None
+        self._enable_text_validation: bool = False  # Default: validation disabled for performance
 
         # Preprocess document: extract code blocks and replace with placeholders
         # This is done once during initialization, similar to Go implementation
@@ -193,6 +194,37 @@ class MarkdownFlow:
             Temperature value if set, None otherwise
         """
         return self._temperature
+
+    def set_text_validation_enabled(self, enabled: bool) -> "MarkdownFlow":
+        """
+        Set whether to enable text input LLM validation.
+
+        Default is False (disabled) for performance and cost optimization.
+        When disabled, text inputs are accepted directly without LLM validation.
+        When enabled, uses ValidationTaskTemplate for LLM validation.
+
+        Affects interaction types:
+        - TEXT_ONLY: Pure text input
+        - BUTTONS_WITH_TEXT: Buttons + text fallback
+        - BUTTONS_MULTI_WITH_TEXT: Multi-select buttons + text fallback
+
+        Args:
+            enabled: True to enable validation, False to disable
+
+        Returns:
+            Self for method chaining
+        """
+        self._enable_text_validation = enabled
+        return self
+
+    def is_text_validation_enabled(self) -> bool:
+        """
+        Check if text input validation is enabled.
+
+        Returns:
+            True if validation is enabled, False otherwise
+        """
+        return self._enable_text_validation
 
     def set_prompt(self, prompt_type: str, value: str | None) -> None:
         """
@@ -558,9 +590,30 @@ class MarkdownFlow:
             # Step 1: Match button values
             matched_values, unmatched_values = self._match_button_values(buttons, target_values)
 
-            # Step 2: If there are unmatched values (custom text), validate with LLM
+            # Step 2: If there are unmatched values (custom text)
             if unmatched_values:
-                # Create user_input for LLM validation (only custom text)
+                # Check if text validation is enabled
+                if not self._enable_text_validation:
+                    # Validation disabled: directly accept unmatched custom text
+                    all_values = matched_values + unmatched_values
+                    result = LLMResult(
+                        content="",
+                        variables={target_variable: all_values},
+                        metadata={
+                            "interaction_type": str(interaction_type),
+                            "matched_button_values": matched_values,
+                            "custom_text_values": unmatched_values,
+                            "validation_bypassed": True,  # Mark validation was skipped
+                        },
+                    )
+                    # Return generator for STREAM mode, direct result for COMPLETE mode
+                    if mode == ProcessMode.STREAM:
+                        def stream_generator():
+                            yield result
+                        return stream_generator()
+                    return result
+
+                # Validation enabled: create user_input for LLM validation (only custom text)
                 custom_input = {target_variable: unmatched_values}
 
                 validation_result = self._process_llm_validation(
@@ -614,7 +667,7 @@ class MarkdownFlow:
                     return stream_merge_generator()
             else:
                 # All values matched buttons, return directly
-                return LLMResult(
+                result = LLMResult(
                     content="",
                     variables={target_variable: matched_values},
                     metadata={
@@ -622,6 +675,12 @@ class MarkdownFlow:
                         "all_matched_buttons": True,
                     },
                 )
+                # Return generator for STREAM mode, direct result for COMPLETE mode
+                if mode == ProcessMode.STREAM:
+                    def stream_generator():
+                        yield result
+                    return stream_generator()
+                return result
 
         if interaction_type in [
             InteractionType.BUTTONS_ONLY,
@@ -640,7 +699,7 @@ class MarkdownFlow:
         if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
             # Non-assignment buttons: ?[Continue] or ?[Continue|Cancel]
             # These buttons don't assign variables, any input completes the interaction
-            return LLMResult(
+            result = LLMResult(
                 content="",  # Empty content indicates interaction complete
                 variables={},  # Non-assignment buttons don't set variables
                 metadata={
@@ -648,10 +707,34 @@ class MarkdownFlow:
                     "user_input": user_input,
                 },
             )
+            # Return generator for STREAM mode, direct result for COMPLETE mode
+            if mode == ProcessMode.STREAM:
+                def stream_generator():
+                    yield result
+                return stream_generator()
+            return result
 
         # Text-only input type: ?[%{{sys_user_nickname}}...question]
-        # Use LLM validation to check if input is relevant to the question
         if target_values:
+            # Check if text validation is enabled
+            if not self._enable_text_validation:
+                # Validation disabled: directly accept all text input
+                result = LLMResult(
+                    content="",
+                    variables={target_variable: target_values},
+                    metadata={
+                        "interaction_type": "text_only",
+                        "validation_bypassed": True,  # Mark validation was skipped
+                    },
+                )
+                # Return generator for STREAM mode, direct result for COMPLETE mode
+                if mode == ProcessMode.STREAM:
+                    def stream_generator():
+                        yield result
+                    return stream_generator()
+                return result
+
+            # Validation enabled: use LLM validation to check if input is relevant to the question
             return self._process_llm_validation(
                 block_index=block_index,
                 user_input=user_input,
@@ -728,7 +811,7 @@ class MarkdownFlow:
         if not target_values:
             if allow_text_input:
                 # Allow empty input for buttons+text mode
-                return LLMResult(
+                result = LLMResult(
                     content="",
                     variables={target_variable: []},
                     metadata={
@@ -736,6 +819,12 @@ class MarkdownFlow:
                         "empty_input": True,
                     },
                 )
+                # Return generator for STREAM mode, direct result for COMPLETE mode
+                if mode == ProcessMode.STREAM:
+                    def stream_generator():
+                        yield result
+                    return stream_generator()
+                return result
             # Pure button mode requires input
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Please select from: {', '.join(button_displays)}"
@@ -767,7 +856,7 @@ class MarkdownFlow:
             return self._render_error(error_msg, mode, context)
 
         # Success: return validated values
-        return LLMResult(
+        result = LLMResult(
             content="",
             variables={target_variable: valid_values},
             metadata={
@@ -778,6 +867,12 @@ class MarkdownFlow:
                 "total_input_count": len(target_values),
             },
         )
+        # Return generator for STREAM mode, direct result for COMPLETE mode
+        if mode == ProcessMode.STREAM:
+            def stream_generator():
+                yield result
+            return stream_generator()
+        return result
 
     def _process_llm_validation(
         self,
