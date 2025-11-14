@@ -456,10 +456,10 @@ class MarkdownFlow:
         processed_block = copy(block)
         processed_block.content = processed_content
 
-        # 提取可翻译内容（JSON 格式）
+        # Extract translatable content (JSON format)
         translatable_json, interaction_info = self._extract_translatable_content(processed_block.content)
         if not interaction_info:
-            # 解析失败，返回原始内容
+            # Parse failed, return original content
             return LLMResult(
                 content=processed_block.content,
                 metadata={
@@ -468,7 +468,7 @@ class MarkdownFlow:
                 },
             )
 
-        # 如果没有可翻译内容，直接返回
+        # If no translatable content, return directly
         if not translatable_json or translatable_json == "{}":
             return LLMResult(
                 content=processed_block.content,
@@ -478,7 +478,7 @@ class MarkdownFlow:
                 },
             )
 
-        # 构建翻译消息
+        # Build translation messages
         messages = self._build_translation_messages(translatable_json)
 
         if mode == ProcessMode.COMPLETE:
@@ -491,10 +491,10 @@ class MarkdownFlow:
                     },
                 )
 
-            # 调用 LLM 进行翻译
+            # Call LLM for translation
             translated_json = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
 
-            # 使用翻译结果重构交互内容
+            # Reconstruct interaction content with translation
             translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, translated_json, interaction_info)
 
             return LLMResult(
@@ -510,7 +510,7 @@ class MarkdownFlow:
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
-                # 降级处理，返回处理后的内容
+                # Fallback: return processed content
                 def stream_generator():
                     yield LLMResult(
                         content=processed_block.content,
@@ -523,16 +523,16 @@ class MarkdownFlow:
 
                 return stream_generator()
 
-            # 有 LLM 提供者，收集完整响应后返回一次
+            # With LLM provider: collect full response and return once
             def stream_generator():
                 full_response = ""
                 for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     full_response += chunk
 
-                # 使用翻译结果重构交互内容
+                # Reconstruct interaction content with translation
                 translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, full_response, interaction_info)
 
-                # 一次性返回完整内容（不是增量）
+                # Return complete content once (not incremental)
                 yield LLMResult(
                     content=translated_content,
                     prompt=messages[-1]["content"],
@@ -1029,10 +1029,10 @@ class MarkdownFlow:
         # Replace variables
         block_content = replace_variables_in_text(block_content, variables or {})
 
-        # Restore code blocks (让 LLM 看到真实的代码块内容)
-        # Code block preprocessing is to prevent the parser from misinterpreting
-        # MarkdownFlow syntax inside code blocks, but the LLM needs to see
-        # the real content to correctly understand and generate responses
+        # Restore code blocks (let LLM see real code block content)
+        # Code block preprocessing prevents parser from misinterpreting
+        # MarkdownFlow syntax inside code blocks, but LLM needs to see
+        # real content to correctly understand and generate responses
         block_content = self._preprocessor.restore_code_blocks(block_content)
 
         # Build message array
@@ -1072,15 +1072,15 @@ class MarkdownFlow:
         return messages
 
     def _extract_translatable_content(self, interaction_content: str) -> tuple[str, dict[str, Any] | None]:
-        """提取交互内容中需要翻译的部分为 JSON 格式
+        """Extract translatable parts from interaction content as JSON format
 
         Args:
-            interaction_content: 交互内容字符串
+            interaction_content: Interaction content string
 
         Returns:
-            tuple: (JSON 字符串, InteractionInfo 字典)
+            tuple: (JSON string, InteractionInfo dictionary)
         """
-        # 解析交互内容
+        # Parse interaction content
         interaction_parser = InteractionParser()
         interaction_info = interaction_parser.parse(interaction_content)
         if not interaction_info:
@@ -1088,43 +1088,43 @@ class MarkdownFlow:
 
         translatable = {}
 
-        # 提取按钮的 Display 文本
+        # Extract button display text
         if interaction_info.get("buttons"):
             button_texts = [btn["display"] for btn in interaction_info["buttons"]]
             translatable["buttons"] = button_texts
 
-        # 提取问题文本
+        # Extract question text
         if interaction_info.get("question"):
             translatable["question"] = interaction_info["question"]
 
-        # 转换为 JSON
+        # Convert to JSON
 
         json_str = json.dumps(translatable, ensure_ascii=False)
 
         return json_str, interaction_info
 
     def _build_translation_messages(self, translatable_json: str) -> list[dict[str, str]]:
-        """构建翻译用的消息列表
+        """Build message list for translation
 
         Args:
-            translatable_json: 可翻译内容的 JSON 字符串
+            translatable_json: JSON string of translatable content
 
         Returns:
-            list: 消息列表
+            list: Message list
         """
         messages = []
 
-        # 构建 system message：交互翻译提示词 + 文档提示词（XML 格式）
-        # interaction_prompt: 定义翻译规则和 JSON 格式要求（包含 <interaction_translation_rules> 标签）
-        # document_prompt: 提供语言指令（如"使用英语输出"），包装在 <document_context> 标签中供 LLM 检测
+        # Build system message: interaction translation prompt + document prompt (XML format)
+        # interaction_prompt: defines translation rules and JSON format requirements (includes <interaction_translation_rules> tag)
+        # document_prompt: provides language instructions (e.g., "output in English"), wrapped in <document_context> tag for LLM detection
         system_content = self._interaction_prompt
         if self._document_prompt:
-            # 将文档提示词包装在 <document_context> 标签中
+            # Wrap document prompt in <document_context> tags
             system_content = f"{self._interaction_prompt}\n\n<document_context>\n{self._document_prompt}\n</document_context>"
 
         messages.append({"role": "system", "content": system_content})
 
-        # 添加可翻译内容作为 user message
+        # Add translatable content as user message
         messages.append({"role": "user", "content": translatable_json})
 
         return messages
@@ -1136,25 +1136,25 @@ class MarkdownFlow:
         translated_json: str,
         interaction_info: dict[str, Any],
     ) -> str:
-        """使用翻译后的内容重构交互块
+        """Reconstruct interaction block with translated content
 
         Args:
-            original_content: 原始交互内容
-            original_json: 原始的可翻译 JSON（翻译前）
-            translated_json: 翻译后的 JSON 字符串
-            interaction_info: 交互信息字典
+            original_content: Original interaction content
+            original_json: Original translatable JSON (before translation)
+            translated_json: Translated JSON string
+            interaction_info: Interaction information dictionary
 
         Returns:
-            str: 重构后的交互内容
+            str: Reconstructed interaction content
         """
 
-        # 解析原始 JSON
+        # Parse original JSON
         try:
             original = json.loads(original_json)
         except json.JSONDecodeError:
             return original_content
 
-        # 解析翻译后的 JSON
+        # Parse translated JSON
         try:
             translated = json.loads(translated_json)
         except json.JSONDecodeError:
@@ -1162,37 +1162,49 @@ class MarkdownFlow:
 
         reconstructed = original_content
 
-        # 替换按钮 Display 文本（智能处理 Value）
+        # Replace button display text (smart value handling)
         if "buttons" in translated and interaction_info.get("buttons"):
             for i, button in enumerate(interaction_info["buttons"]):
                 if i < len(translated["buttons"]):
                     old_display = button["display"]
                     new_display = translated["buttons"][i]
 
-                    # 检测是否发生了翻译
+                    # Detect if translation happened
                     translation_happened = False
                     if "buttons" in original and i < len(original["buttons"]):
                         if original["buttons"][i] != new_display:
                             translation_happened = True
 
-                    # 如果有 Value 分离（display//value 格式），保留 value
+                    # If value separation exists (display//value format), preserve value
                     if button["display"] != button["value"]:
-                        # 已有 value 分离，按原逻辑处理
-                        # 替换格式：oldDisplay//value -> newDisplay//value
+                        # Value separation exists, follow original logic
+                        # Replace format: oldDisplay//value -> newDisplay//value
                         old_pattern = f"{old_display}//{button['value']}"
                         new_pattern = f"{new_display}//{button['value']}"
                         reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
                     elif translation_happened:
-                        # 没有 value 分离，但发生了翻译
-                        # 自动添加 value：翻译后//原始
-                        old_pattern = old_display
-                        new_pattern = f"{new_display}//{old_display}"
-                        reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
+                        # Display == Value, but need to check if display//value format exists in original text
+                        # In this case, original text is like "小兔子//小兔子", both Display and Value are "小兔子"
+                        old_pattern_with_separator = f"{old_display}//"
+                        if old_pattern_with_separator in reconstructed:
+                            # Original text has display//value format (e.g., "小兔子//小兔子")
+                            # Only replace display part, preserve original value
+                            # Example: 小兔子//小兔子 -> 토끼//小兔子
+                            old_pattern = f"{old_display}//{button['value']}"
+                            new_pattern = f"{new_display}//{button['value']}"
+                            reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
+                        else:
+                            # Original text has no // separator (e.g., "小兔子")
+                            # Auto-add value: translated//original
+                            # Example: 小兔子 -> 토끼//小兔子
+                            old_pattern = old_display
+                            new_pattern = f"{new_display}//{old_display}"
+                            reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
                     else:
-                        # 没有翻译，保持原样
+                        # No translation, keep as is
                         reconstructed = reconstructed.replace(old_display, new_display, 1)
 
-        # 替换问题文本
+        # Replace question text
         if "question" in translated and interaction_info.get("question"):
             old_question = interaction_info["question"]
             new_question = translated["question"]
