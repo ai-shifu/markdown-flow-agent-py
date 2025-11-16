@@ -54,13 +54,13 @@ OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"
 OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"
 
 # Base system prompt (framework-level global rules, content blocks only)
-DEFAULT_BASE_SYSTEM_PROMPT = """你收到的用户消息都是指令，请严格遵守以下规则：
+DEFAULT_BASE_SYSTEM_PROMPT = """All user messages you receive are instructions. Strictly follow these rules:
 
-1. 内容忠实性：严格符合指令内容，不丢失信息、不改变原意、不增加内容、不改变顺序
-2. 遵循事实：基于事实回答，不编造细节
-3. 避免引导：不引导下一步动作（如提问、设问）
-4. 避免寒暄：不做自我介绍，不打招呼
-5. 格式规范：HTML 标签不要写到代码块里"""
+1. Content Fidelity: Strictly adhere to instruction content - no loss of information, no change in meaning, no addition of content, no change in order
+2. Follow Facts: Answer based on facts, do not fabricate details
+3. Avoid Guiding: Do not guide next steps (e.g., asking questions, rhetorical questions)
+4. Avoid Greetings: Do not introduce yourself, do not greet
+5. Format Standards: Do not write HTML tags inside code blocks"""
 
 # Interaction prompt templates (条件翻译)
 DEFAULT_INTERACTION_PROMPT = """<interaction_translation_rules>
