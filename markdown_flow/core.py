@@ -23,11 +23,17 @@ from .constants import (
     INTERACTION_PARSE_ERROR,
     INTERACTION_PATTERN_NON_CAPTURING,
     INTERACTION_PATTERN_SPLIT,
+    INTERACTION_PROMPT_BASE,
+    INTERACTION_PROMPT_WITH_TRANSLATION,
     LLM_PROVIDER_REQUIRED_ERROR,
     OUTPUT_INSTRUCTION_EXPLANATION,
+    OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM,
+    OUTPUT_LANGUAGE_INSTRUCTION_TOP,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
     VALIDATION_REQUIREMENTS_TEMPLATE,
+    VALIDATION_TASK_BASE,
     VALIDATION_TASK_TEMPLATE,
+    VALIDATION_TASK_WITH_LANGUAGE,
 )
 from .enums import BlockType
 from .exceptions import BlockIndexError
@@ -98,6 +104,7 @@ class MarkdownFlow:
         self._model: str | None = None
         self._temperature: float | None = None
         self._enable_text_validation: bool = False  # Default: validation disabled for performance
+        self._output_language: str | None = None  # Output language control (affects all output scenarios)
 
         # Preprocess document: extract code blocks and replace with placeholders
         # This is done once during initialization, similar to Go implementation
@@ -231,7 +238,7 @@ class MarkdownFlow:
         Set prompt template.
 
         Args:
-            prompt_type: Prompt type ('base_system', 'document', 'interaction', 'interaction_error')
+            prompt_type: Prompt type ('base_system', 'document', 'interaction', 'interaction_error', 'output_language')
             value: Prompt content
         """
         if prompt_type == "base_system":
@@ -242,8 +249,35 @@ class MarkdownFlow:
             self._interaction_prompt = value or DEFAULT_INTERACTION_PROMPT
         elif prompt_type == "interaction_error":
             self._interaction_error_prompt = value or DEFAULT_INTERACTION_ERROR_PROMPT
+        elif prompt_type == "output_language":
+            self._output_language = value
         else:
             raise ValueError(UNSUPPORTED_PROMPT_TYPE_ERROR.format(prompt_type=prompt_type))
+
+    def set_output_language(self, language: str) -> "MarkdownFlow":
+        """
+        Set output language control.
+
+        When set, adds explicit language anchoring instructions in system message.
+        Affects all output scenarios: Content blocks, Interaction rendering, Validation errors, Preserved content.
+
+        Args:
+            language: Output language (e.g., "English", "Simplified Chinese", "日本語")
+
+        Returns:
+            self (for method chaining)
+        """
+        self._output_language = language
+        return self
+
+    def get_output_language(self) -> str | None:
+        """
+        Get current output language setting.
+
+        Returns:
+            Output language string, or None if not set
+        """
+        return self._output_language
 
     def _truncate_context(
         self,
@@ -1039,21 +1073,29 @@ class MarkdownFlow:
         messages = []
 
         # Build system message with XML tags
-        # Priority order: preserve_or_translate_instruction > base_system > document_prompt
+        # Priority order: output_language_top > preserve_or_translate > base_system > document_prompt > output_language_bottom
         system_parts = []
 
-        # 1. Output instruction (highest priority - if preserved content exists)
-        # Note: OUTPUT_INSTRUCTION_EXPLANATION already contains <preserve_or_translate_instruction> tags
+        # 1. Output language anchoring (top - highest priority)
+        if self._output_language:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
+
+        # 2. Output instruction (preserved content processing rules - if preserved content exists)
+        # Note: OUTPUT_INSTRUCTION_EXPLANATION already contains <preserve_tag_rule> tags
         if has_preserved_content:
             system_parts.append(OUTPUT_INSTRUCTION_EXPLANATION.strip())
 
-        # 2. Base system prompt (if exists and non-empty)
+        # 3. Base system prompt (if exists and non-empty)
         if self._base_system_prompt:
             system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
 
-        # 3. Document prompt (if exists and non-empty)
+        # 4. Document prompt (if exists and non-empty)
         if self._document_prompt:
             system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
+
+        # 5. Output language anchoring (bottom - final reminder)
+        if self._output_language:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
 
         # Combine all parts and add as system message
         if system_parts:
@@ -1066,8 +1108,27 @@ class MarkdownFlow:
         if truncated_context:
             messages.extend(truncated_context)
 
+        # Build user message
+        # Step 1: If has preserved content, add inline processing instruction (Solution A: minimal inline instruction)
+        # Build User Message (layer by layer from inside to outside)
+        user_content = block_content
+
+        # Step 1: If has preserved content, add inline processing instruction
+        if has_preserved_content:
+            if self._output_language:
+                # When output language is set: explicitly require translation of tag content
+                instruction = f"[INSTRUCTION: Remove <preserve_or_translate> tags, translate content inside tags to {self._output_language}, keep formatting.]\n\n"
+            else:
+                # When no output language: keep original language
+                instruction = "[INSTRUCTION: Remove <preserve_or_translate> tags, keep content with all formatting and position.]\n\n"
+            user_content = instruction + block_content
+
+        # Step 2: If has outputLanguage, add language wrapper (outermost layer, highest priority)
+        if self._output_language:
+            user_content = f"🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨\n\n{user_content}"
+
         # Add processed content as user message (as instruction to LLM)
-        messages.append({"role": "user", "content": block_content})
+        messages.append({"role": "user", "content": user_content})
 
         return messages
 
@@ -1114,13 +1175,29 @@ class MarkdownFlow:
         """
         messages = []
 
-        # Build system message: interaction translation prompt + document prompt (XML format)
-        # interaction_prompt: defines translation rules and JSON format requirements (includes <interaction_translation_rules> tag)
-        # document_prompt: provides language instructions (e.g., "output in English"), wrapped in <document_context> tag for LLM detection
-        system_content = self._interaction_prompt
-        if self._document_prompt:
-            # Wrap document prompt in <document_context> tags
-            system_content = f"{self._interaction_prompt}\n\n<document_context>\n{self._document_prompt}\n</document_context>"
+        # Build system message: choose template based on whether outputLanguage exists
+        system_parts = []
+
+        # Determine if translation is needed
+        need_translation = self._output_language is not None and self._output_language != ""
+
+        if need_translation:
+            # Translation scenario: language anchoring + translation rules
+            # 1. Output language anchoring (top)
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
+
+            # 2. Interaction processing base + translation rules
+            system_parts.append(INTERACTION_PROMPT_BASE + "\n" + INTERACTION_PROMPT_WITH_TRANSLATION)
+
+            # 3. Output language anchoring (bottom)
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
+        else:
+            # No translation scenario: use default no-translation prompt
+            # Use default prompt (includes Base + NoTranslation)
+            system_parts.append(self._interaction_prompt)
+
+        # Combine all parts
+        system_content = "\n\n".join(system_parts)
 
         messages.append({"role": "system", "content": system_content})
 
@@ -1240,10 +1317,26 @@ class MarkdownFlow:
         target_values = user_input.get(target_variable, [])
         user_input_str = ", ".join(target_values) if target_values else ""
 
-        # Build System Message (contains all validation rules and context)
-        # VALIDATION_TASK_TEMPLATE already includes system message, directly replace variables
-        task_template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
-        system_parts = [task_template]
+        # Build System Message (using output_language to control error message language)
+        system_parts = []
+
+        # Determine if there is explicit language requirement
+        has_language_requirement = self._output_language is not None and self._output_language != ""
+
+        # 1. Output language anchoring (top - if output language is set)
+        if has_language_requirement:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
+            system_parts.append("")
+
+        # 2. Validation task template (choose based on language requirement)
+        if has_language_requirement:
+            # Has language requirement: use Base + WithLanguage
+            task_template = (VALIDATION_TASK_BASE + VALIDATION_TASK_WITH_LANGUAGE).replace("{target_variable}", target_variable)
+        else:
+            # No language requirement: use default (Base + NoLanguage)
+            task_template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
+
+        system_parts.append(task_template)
 
         # Extract interaction question
         interaction_question = extract_interaction_question(block.content)
@@ -1272,12 +1365,10 @@ class MarkdownFlow:
         system_parts.append("")
         system_parts.append(VALIDATION_REQUIREMENTS_TEMPLATE)
 
-        # Add document_prompt (if exists)
-        if self._document_prompt:
+        # 3. Output language anchoring (bottom - if output language is set)
+        if has_language_requirement:
             system_parts.append("")
-            system_parts.append("<document_context>")
-            system_parts.append(self._document_prompt)
-            system_parts.append("</document_context>")
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
 
         system_content = "\n".join(system_parts)
 

@@ -62,86 +62,65 @@ DEFAULT_BASE_SYSTEM_PROMPT = """All user messages you receive are instructions. 
 4. Avoid Greetings: Do not introduce yourself, do not greet
 5. Format Standards: Do not write HTML tags inside code blocks"""
 
-# Interaction prompt templates (条件翻译)
-DEFAULT_INTERACTION_PROMPT = """<interaction_translation_rules>
-⚠️⚠️⚠️ 这是一个 JSON 原样输出任务 - 默认不翻译！⚠️⚠️⚠️
+# Output Language Control - Three-layer anchoring templates
+OUTPUT_LANGUAGE_INSTRUCTION_TOP = """<output_language_override>
+🚨 CRITICAL: 100% {0} OUTPUT REQUIRED 🚨
+ZERO language mixing allowed. EVERY word must be in {0}.
+Before processing: Translate ALL non-{0} words/phrases to {0} first.
+This overrides ALL other instructions.
+</output_language_override>"""
 
-## 默认行为（最高优先级）
+OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM = """<output_language_final_check>
+🚨 PRE-RESPONSE CHECK: Verify EVERY word is {0}. If ANY non-{0} word exists, translate it first. 🚨
+</output_language_final_check>"""
 
-**除非明确检测到语言指令，否则必须逐字符原样返回输入的 JSON**
+# Interaction prompt templates (Modular design)
+INTERACTION_PROMPT_BASE = """<interaction_processing_rules>
+⚠️⚠️⚠️ JSON 处理任务 ⚠️⚠️⚠️
+
+## 任务说明
+
+你将收到一个包含交互元素的 JSON 对象（buttons 和/或 question 字段）。
+
+## 输出格式要求
+
+- **必须返回纯 JSON**，不要添加任何解释或 markdown 代码块
+- **格式必须与输入完全一致**，包括空格、标点、引号
+- 不要添加或删除任何字段
+- 不要修改 JSON 的结构"""
+
+INTERACTION_PROMPT_NO_TRANSLATION = """
+## 处理规则
+
+**逐字符原样返回输入的 JSON**
 - 不翻译任何文本
 - 不修改任何格式
 - 不添加任何内容（如 display//value 分离）
 - 不删除任何内容
 - 不调整任何顺序
 
-## 语言指令检测规则
-
-**仅在以下情况才翻译：**
-
-1. **检测范围**：仅在 <document_context> 标签内检测
-2. **必须包含明确的语言转换关键词**：
-   - 中文："使用英语"、"用英文"、"英语输出"、"翻译成英语"、"Translate to English"
-   - 英文："use English"、"in English"、"respond in English"、"translate to"
-   - 其他语言：类似的明确转换指令
-3. **不算语言指令的情况**：
-   - ❌ 风格要求："用emoji"、"讲故事"、"友好"、"简洁"
-   - ❌ 任务描述："内容营销"、"吸引用户"、"引人入胜"
-   - ❌ 输出要求："内容简洁"、"使用吸引人的语言"
-
-## 处理逻辑
-
-步骤1：在 <document_context> 中搜索语言转换关键词
-步骤2：
-- 如果找到 → 将 buttons 和 question 翻译成指定语言（仅翻译文本，不改格式）
-- 如果未找到 → 逐字符原样返回输入的 JSON
-
-## 输出格式要求
-
-- **必须返回纯 JSON**，不要添加任何解释或 markdown 代码块
-- **格式必须与输入完全一致**，包括空格、标点、引号
-
 ## 示例
 
-### 示例 1：无语言指令（默认情况）
+输入：{"buttons": ["产品经理", "开发者"], "question": "其他身份"}
 
-输入：{"buttons": ["产品经理", "开发者", "大学生"], "question": "其他身份"}
+✅ 输出：{"buttons": ["产品经理", "开发者"], "question": "其他身份"}
+</interaction_processing_rules>"""
 
-<document_context>
-你是一个内容营销，擅长结合用户特点，给到引人入胜的内容。
-任务说明：认真理解给定的内容，站在用户角度...
-输出要求：内容简洁有力，使用吸引用户的语言...
-</document_context>
+INTERACTION_PROMPT_WITH_TRANSLATION = """
+## 处理规则
 
-✅ 正确输出：{"buttons": ["产品经理", "开发者", "大学生"], "question": "其他身份"}
-❌ 错误输出：{"buttons": ["Product Manager//产品经理", ...], ...}  ← 不要添加翻译！
+**将 buttons 和 question 文本翻译到指定语言**
+- 保持 JSON 格式完全不变
+- 仅翻译显示文本（Display 部分），不改变结构
+- 如果存在 display//value 分离，只翻译 display 部分，保留 value 不变
+- 100% 纯目标语言，ZERO 混排
+- 先翻译所有非目标语言的词，再输出
 
-### 示例 2：有明确语言指令
+示例：{"buttons": ["Yes//1", "No//0"]} → 西班牙语 → {"buttons": ["Sí//1", "No//0"]}
+</interaction_processing_rules>"""
 
-输入：{"buttons": ["苹果", "香蕉"], "question": "其他水果"}
-
-<document_context>
-请使用英语输出所有内容。
-</document_context>
-
-✅ 正确输出：{"buttons": ["Apple", "Banana"], "question": "Other fruit"}
-
-### 示例 3：仅有风格指令（不算语言指令）
-
-输入：{"buttons": ["选项A", "选项B"], "question": "其他"}
-
-<document_context>
-请用emoji和故事化的方式呈现内容。
-</document_context>
-
-✅ 正确输出：{"buttons": ["选项A", "选项B"], "question": "其他"}  ← 保持原样！
-
-⚠️⚠️⚠️ 最终强调 ⚠️⚠️⚠️
-
-- 默认行为：原样输出，不做任何改动
-- 只有在 <document_context> 中明确看到"使用XX语言"、"translate to"等关键词时才翻译
-- 如有任何疑问，必须原样输出
-</interaction_translation_rules>"""
+# Default: use no translation version (backward compatible)
+DEFAULT_INTERACTION_PROMPT = INTERACTION_PROMPT_BASE + "\n" + INTERACTION_PROMPT_NO_TRANSLATION
 
 # Interaction error prompt templates
 DEFAULT_INTERACTION_ERROR_PROMPT = "请将以下错误信息改写得更加友好和个性化，帮助用户理解问题并给出建设性的引导："
@@ -154,120 +133,38 @@ INTERACTION_ERROR_RENDER_INSTRUCTIONS = """
 VALIDATION_RESPONSE_OK = "ok"
 VALIDATION_RESPONSE_ILLEGAL = "illegal"
 
-# Output instruction processing
-OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_or_translate_instruction>
-⚠️⚠️⚠️ 保留内容输出任务 - 默认原样输出！⚠️⚠️⚠️
-
-## 默认行为（最高优先级）
-
-**看到 {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} 标记时，必须将标记内的内容输出到回复中（保持原位置）**
-- 默认：逐字符原样输出，不做任何改动
-- 绝对不要输出 {OUTPUT_INSTRUCTION_PREFIX} 和 {OUTPUT_INSTRUCTION_SUFFIX} 标记本身
-- 始终保留 emoji、格式、特殊字符
-
-## 语言指令检测规则
-
-**仅在以下情况才翻译：**
-
-1. **检测范围**：仅在 <document_prompt> 标签内检测
-2. **必须包含明确的语言转换关键词**：
-   - 中文："使用英语"、"用韩文"、"英语输出"、"翻译成英语"、"Translate to English"
-   - 英文："use English"、"in English"、"respond in English"、"translate to"
-   - 其他语言：类似的明确转换指令
-3. **不算语言指令的情况**：
-   - ❌ 风格要求："用emoji"、"讲故事"、"友好"、"简洁"
-   - ❌ 任务描述："内容营销"、"吸引用户"、"引人入胜"
-   - ❌ 输出要求："内容简洁"、"使用吸引人的语言"
-
-## 处理逻辑
-
-步骤1：在 <document_prompt> 中搜索语言转换关键词
-步骤2：
-- 如果找到 → 保持原意与风格，翻译成指定语言
-- 如果未找到 → 逐字符原样输出，不做任何改动
-
-## 输出位置规则
-
-- 保持内容在原文档中的位置（开头/中间/结尾）
-- 不要强制移到开头或其他位置
-
-## 示例
-
-### 示例 1：无语言指令（默认情况）
-
-输入: {OUTPUT_INSTRUCTION_PREFIX}🌟 欢迎冒险！{OUTPUT_INSTRUCTION_SUFFIX}
-
-询问小朋友的名字：
-
-<document_prompt>
-你是一个故事大王，擅长讲故事。
-用一些语气词，多用emoji。
-</document_prompt>
-
-✅ 正确输出: 🌟 欢迎冒险！
-
-询问小朋友的名字：...（保留内容在开头，原样输出）
-
-❌ 错误输出: 询问小朋友的名字：...（完全不输出保留内容 ← 绝对禁止！）
-
-### 示例 2：有明确语言指令
-
-输入: {OUTPUT_INSTRUCTION_PREFIX}🌟 欢迎冒险！{OUTPUT_INSTRUCTION_SUFFIX}
-
-询问小朋友的名字：
-
-<document_prompt>
-请使用韩语输出所有内容。
-</document_prompt>
-
-✅ 正确输出: 🌟 모험에 오신 것을 환영합니다!
-
-아이의 이름을 물어보세요：...（保留内容翻译为韩语）
-
-### 示例 3：仅有风格指令（不算语言指令）
-
-输入: {OUTPUT_INSTRUCTION_PREFIX}**重要提示**{OUTPUT_INSTRUCTION_SUFFIX}
-
-后续内容...
-
-<document_prompt>
-请用emoji和故事化的方式呈现内容。
-</document_prompt>
-
-✅ 正确输出: **重要提示**
-
-后续内容...（保持原样！）
-
-### 示例 4：标记剥离错误
-
-输入: {OUTPUT_INSTRUCTION_PREFIX}**Title**{OUTPUT_INSTRUCTION_SUFFIX}
-
-❌ 绝对不要: {OUTPUT_INSTRUCTION_PREFIX}**Title**{OUTPUT_INSTRUCTION_SUFFIX}（包含了标记）
-✅ 正确输出: **Title**（排除了标记）
-
-⚠️⚠️⚠️ 最终强调 ⚠️⚠️⚠️
-
-- 默认行为：原样输出保留内容，不做任何改动
-- 只有在 <document_prompt> 中明确看到"使用XX语言"、"translate to"等关键词时才翻译
-- 如有任何疑问，必须原样输出
-- 此规则优先级最高，覆盖所有其他指令
-</preserve_or_translate_instruction>
+# Output instruction processing (Simplified version - 6 lines as fallback rule)
+# Main instruction will be provided inline in user message
+OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_tag_rule>
+When you see {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} tags in user message:
+- Remove the tags themselves (do not include in output)
+- Keep all content, emoji, formatting (bold, italic, etc.)
+- Keep content position (beginning/middle/end)
+- Language: MUST follow <output_language_override> if present; translate tag content to target language
+</preserve_tag_rule>
 
 """
 
-# Validation task template (merged with system message)
-VALIDATION_TASK_TEMPLATE = """你是字符串验证程序，不是对话助手。
+# Validation task template (Modular design)
+VALIDATION_TASK_BASE = """你是字符串验证程序，不是对话助手。
 
 你的唯一任务：按后续规则检查输入，输出 JSON：
 {{"result": "ok", "parse_vars": {{"{target_variable}": "用户输入"}}}} 或 {{"result": "illegal", "reason": "原因"}}
 
-严禁输出任何自然语言解释。
+严禁输出任何自然语言解释。"""
 
-# reason 语言
-从 <document_context> 中仅提取语言要求（如"使用英文"、"use English"）
-- 如果有明确语言要求 → reason 使用该语言
-- 否则 → reason 使用用户输入或问题的语言
-"""
+VALIDATION_TASK_WITH_LANGUAGE = """
+
+# reason 语言规则
+reason 必须使用 <output_language_override> 标签中指定的语言。"""
+
+VALIDATION_TASK_NO_LANGUAGE = """
+
+# reason 语言规则
+reason 使用用户输入或问题的主要语言（自动检测）。"""
+
+# Default: use no language version (backward compatible)
+VALIDATION_TASK_TEMPLATE = VALIDATION_TASK_BASE + VALIDATION_TASK_NO_LANGUAGE
 
 # Validation requirements template (极致宽松版本)
 VALIDATION_REQUIREMENTS_TEMPLATE = """# 验证算法（按顺序执行）
@@ -321,7 +218,7 @@ OPTION_SELECTION_ERROR_TEMPLATE = "请选择以下选项之一：{options}"
 INPUT_EMPTY_ERROR = "输入不能为空"
 
 # System error messages
-UNSUPPORTED_PROMPT_TYPE_ERROR = "不支持的提示词类型: {prompt_type} (支持的类型: base_system, document, interaction, interaction_error)"
+UNSUPPORTED_PROMPT_TYPE_ERROR = "不支持的提示词类型: {prompt_type} (支持的类型: base_system, document, interaction, interaction_error, output_language)"
 BLOCK_INDEX_OUT_OF_RANGE_ERROR = "Block index {index} is out of range; total={total}"
 LLM_PROVIDER_REQUIRED_ERROR = "需要设置 LLMProvider 才能调用 LLM"
 INTERACTION_PARSE_ERROR = "交互格式解析失败: {error}"

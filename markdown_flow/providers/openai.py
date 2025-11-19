@@ -293,7 +293,7 @@ class OpenAIProvider(LLMProvider):
         Args:
             metadata: Response metadata dictionary
         """
-        print("\033[97m\033[42m[ ====== LLM Response Metadata ====== ]\033[0m")
+        print("\n\033[97m\033[42m[ ====== LLM Response Metadata ====== ]\033[0m")
 
         # Essential fields
         print(f"\033[36mmodel:\033[0m {metadata.get('model', 'N/A')}")
