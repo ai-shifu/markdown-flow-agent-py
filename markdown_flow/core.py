@@ -372,8 +372,16 @@ class MarkdownFlow:
         return blocks[index]
 
     def extract_variables(self) -> list[str]:
-        """Extract all variable names from the document."""
-        return extract_variables_from_text(self._document)
+        """
+        Extract all variable names from the document.
+
+        Variables inside code blocks and HTML comments are excluded.
+
+        Returns:
+            List of unique variable names
+        """
+        # Extract from preprocessed document to exclude variables in code blocks and HTML comments
+        return extract_variables_from_text(self._processed_document)
 
     # Core unified interface
 
@@ -1063,11 +1071,14 @@ class MarkdownFlow:
         # Replace variables
         block_content = replace_variables_in_text(block_content, variables or {})
 
-        # Restore code blocks (let LLM see real code block content)
+        # Restore code blocks only (let LLM see real code block content)
         # Code block preprocessing prevents parser from misinterpreting
         # MarkdownFlow syntax inside code blocks, but LLM needs to see
         # real content to correctly understand and generate responses
-        block_content = self._preprocessor.restore_code_blocks(block_content)
+        block_content = self._preprocessor.restore_code_blocks_only(block_content)
+
+        # Remove HTML comment placeholders (comments should not be sent to LLM)
+        block_content = self._preprocessor.remove_html_comment_placeholders(block_content)
 
         # Build message array
         messages = []
