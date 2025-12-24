@@ -89,7 +89,8 @@ def replace_variables_in_text(text: str, variables: dict[str, str | list[str]]) 
             value_str = str(var_value) if var_value is not None else VARIABLE_DEFAULT_VALUE
 
         # Use negative lookbehind assertion to exclude %{{var_name}} format
+        # Add triple quotes around the value
         pattern = f"(?<!%){{{{{re.escape(var_name)}}}}}"
-        result = re.sub(pattern, value_str, result)
+        result = re.sub(pattern, f'"""{value_str}"""', result)
 
     return result
