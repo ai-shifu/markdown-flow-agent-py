@@ -7,6 +7,7 @@ Handles output instructions and preserved content processing for MarkdownFlow do
 import re
 
 from ..constants import (
+    COMPILED_INLINE_EXCLAMATION_PRESERVE_REGEX,
     COMPILED_INLINE_PRESERVE_REGEX,
     COMPILED_PRESERVE_FENCE_REGEX,
     OUTPUT_INSTRUCTION_PREFIX,
@@ -81,9 +82,12 @@ def is_preserved_content_block(content: str) -> bool:
 
 def process_output_instructions(content: str) -> tuple[str, bool]:
     """
-    Process output instruction markers, converting !=== format to [output] format.
+    Process output instruction markers, converting === and !=== formats to XML format.
 
-    Uses unified state machine to handle inline (===content===) and multiline (!===...!===) formats.
+    Priority rules (to avoid conflicts):
+      1. !===content!=== → <preserve_or_translate>content</preserve_or_translate> (single line !===, highest priority)
+      2. !===\ncontent\n!=== → <preserve_or_translate>content</preserve_or_translate> (multiline fence)
+      3. ===content=== → <preserve_or_translate>content</preserve_or_translate> (single line ===, historical compatibility)
 
     Args:
         content: Raw content containing output instructions
@@ -100,30 +104,35 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
 
     while i < len(lines):
         line = lines[i]
+        processed = False
 
-        # Check if contains preserved markers (inline ===...=== or multiline !===...)
-        # Check inline format first: ===content===
-        inline_match = re.search(r"===\s*(.+?)\s*===", line)
-        if inline_match and line.count("===") == 2 and not line.strip().startswith("!"):
-            inner_content = inline_match.group(1).strip()
-            # Validate that inner content doesn't contain ===
-            if not inner_content or "===" in inner_content:
+        # ===== Priority 1: Single-line !===...!=== format =====
+        # Check if contains !===, highest priority to avoid mismatch by later rules
+        if "!===" in line:
+            # Try matching single-line !===content!=== format
+            inline_exclamation_matches = list(COMPILED_INLINE_EXCLAMATION_PRESERVE_REGEX.finditer(line))
+            if inline_exclamation_matches:
+                # Replace from back to front to avoid index offset
+                for match in reversed(inline_exclamation_matches):
+                    full_match_start = match.start()
+                    full_match_end = match.end()
+                    inner_content = match.group(1)
+
+                    # Extract content (no strip, keep as-is to preserve all whitespace)
+                    # Build output instruction
+                    output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
+
+                    # Replace
+                    line = line[:full_match_start] + output_instruction + line[full_match_end:]
+
                 result_lines.append(line)
+                has_output_instruction = True
+                processed = True
                 i += 1
                 continue
-            # Process inline format
-            full_match = inline_match.group(0)
 
-            # Build output instruction - keep inline format on same line
-            output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
-
-            # Replace ===...=== part in original line
-            processed_line = line.replace(full_match, output_instruction)
-            result_lines.append(processed_line)
-            has_output_instruction = True
-            i += 1
-
-        elif COMPILED_PRESERVE_FENCE_REGEX.match(line.strip()):
+        # ===== Priority 2: Multiline fence format !===\n...\n!=== =====
+        if not processed and COMPILED_PRESERVE_FENCE_REGEX.match(line.strip()):
             # Multiline format start
             i += 1
             output_content_lines: list[str] = []
@@ -164,10 +173,34 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
                 # No end marker found, rollback processing
                 result_lines.append(lines[i - len(output_content_lines) - 1])
                 result_lines.extend(output_content_lines)
-        else:
-            # Normal line
-            result_lines.append(line)  # type: ignore[unreachable]
-            i += 1
+
+            processed = True
+            continue
+
+        # ===== Priority 3: Single-line ===...=== format (historical compatibility) =====
+        # Only process when not handled by previous two rules and doesn't contain !===, to avoid mismatch
+        if not processed and "!===" not in line and line.count("===") == 2:
+            inline_match = re.search(r"===\s*(.+?)\s*===", line)
+            if inline_match:
+                inner_content = inline_match.group(1).strip()
+                # Validate that inner content doesn't contain === and is not empty
+                if inner_content and "===" not in inner_content:
+                    # Process inline format
+                    full_match = inline_match.group(0)
+
+                    # Build output instruction - keep inline format on same line
+                    output_instruction = f"{OUTPUT_INSTRUCTION_PREFIX}{inner_content}{OUTPUT_INSTRUCTION_SUFFIX}"
+
+                    # Replace ===...=== part in original line
+                    processed_line = line.replace(full_match, output_instruction, 1)
+                    result_lines.append(processed_line)
+                    has_output_instruction = True
+                    i += 1
+                    continue
+
+        # Normal line
+        result_lines.append(line)
+        i += 1
 
     # Assemble final content
     processed_content = "\n".join(result_lines)
