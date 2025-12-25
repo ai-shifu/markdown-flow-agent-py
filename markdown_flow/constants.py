@@ -36,9 +36,19 @@ BLOCK_SEPARATOR = r"\n\s*---\s*\n"
 PRESERVE_FENCE_PATTERN = r"^!={3,}\s*$"
 COMPILED_PRESERVE_FENCE_REGEX = re.compile(PRESERVE_FENCE_PATTERN)
 
-# Inline preserved content pattern: ===content=== format
+# Inline preserved content pattern: ===content=== format (historical compatibility)
 INLINE_PRESERVE_PATTERN = r"^===(.+)=== *$"
 COMPILED_INLINE_PRESERVE_REGEX = re.compile(INLINE_PRESERVE_PATTERN)
+
+# Inline exclamation preserved content pattern: !===content!=== format (higher priority than INLINE_PRESERVE_PATTERN)
+# Supports scenarios:
+#   - !===content!===                            (compact format)
+#   - !=== content !===                          (with spaces)
+#   - prefix !===content!=== suffix              (inline mixed)
+#   - !===content\n!===                          (cross-line format)
+# Uses (?s) flag to make . match newlines, supports cross-line content
+INLINE_EXCLAMATION_PRESERVE_PATTERN = r"(?s)!===(.*?)!==="
+COMPILED_INLINE_EXCLAMATION_PRESERVE_REGEX = re.compile(INLINE_EXCLAMATION_PRESERVE_PATTERN)
 
 # Code fence patterns (CommonMark specification compliant)
 # Code block fence start: 0-3 spaces + at least 3 backticks or tildes + optional info string
@@ -136,11 +146,16 @@ VALIDATION_RESPONSE_ILLEGAL = "illegal"
 # Output instruction processing (Simplified version - 6 lines as fallback rule)
 # Main instruction will be provided inline in user message
 OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_tag_rule>
-When you see {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} tags in user message:
-- Remove the tags themselves (do not include in output)
-- Keep all content, emoji, formatting (bold, italic, etc.)
-- Keep content position (beginning/middle/end)
-- Language: MUST follow <output_language_override> if present; translate tag content to target language
+⚠️ When you see {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} tags in user message:
+
+1. If <output_language_override> exists → Translate tag content to target language (ONLY modification allowed)
+2. If no <output_language_override> → Keep original language
+3. Remove tags ({OUTPUT_INSTRUCTION_PREFIX}, {OUTPUT_INSTRUCTION_SUFFIX}), keep ALL content/formatting verbatim
+4. Preserve exact position in response
+
+Key: Content INSIDE tags = fixed output | Content OUTSIDE tags = instructions to follow
+
+Example: "介绍你是谁，包含：{OUTPUT_INSTRUCTION_PREFIX}我的使命{OUTPUT_INSTRUCTION_SUFFIX}" → Follow "介绍你是谁" instruction, output "我的使命" verbatim
 </preserve_tag_rule>
 
 """

@@ -1124,15 +1124,10 @@ class MarkdownFlow:
         # Build User Message (layer by layer from inside to outside)
         user_content = block_content
 
-        # Step 1: If has preserved content, add inline processing instruction
-        if has_preserved_content:
-            if self._output_language:
-                # When output language is set: explicitly require translation of tag content
-                instruction = f"[INSTRUCTION: Remove <preserve_or_translate> tags, translate content inside tags to {self._output_language}, keep formatting.]\n\n"
-            else:
-                # When no output language: keep original language
-                instruction = "[INSTRUCTION: Remove <preserve_or_translate> tags, keep content with all formatting and position.]\n\n"
-            user_content = instruction + block_content
+        # Step 1: Preserved content needs no extra instruction
+        # preserve_tag_rule already explains how to handle <preserve_or_translate> tags in system message
+        # Use block_content directly, let LLM process according to system rules
+        # (Remove [INSTRUCTION: ...] prefix to avoid LLM confusing task instructions with fixed content)
 
         # Step 2: If has outputLanguage, add language wrapper (outermost layer, highest priority)
         if self._output_language:
