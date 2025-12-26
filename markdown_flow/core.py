@@ -1130,8 +1130,9 @@ class MarkdownFlow:
         # (Remove [INSTRUCTION: ...] prefix to avoid LLM confusing task instructions with fixed content)
 
         # Step 2: If has outputLanguage, add language wrapper (outermost layer, highest priority)
+        # Use XML tags to clarify this is a processing instruction, not content to output
         if self._output_language:
-            user_content = f"🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨\n\n{user_content}"
+            user_content = f"<output_language_instruction>\n🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨\n</output_language_instruction>\n\n{user_content}"
 
         # Add processed content as user message (as instruction to LLM)
         messages.append({"role": "user", "content": user_content})
