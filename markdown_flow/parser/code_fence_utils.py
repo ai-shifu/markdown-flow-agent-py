@@ -91,7 +91,7 @@ def parse_code_fence_start(line: str) -> CodeFenceInfo | None:
     """
     match = COMPILED_CODE_FENCE_START_REGEX.match(line)
     if not match:
-        return None
+        return None  # type: ignore[unreachable]
 
     # match.group(1) is the fence string (e.g., ```, ~~~~)
     # match.group(2) is the info string (e.g., go, python)
@@ -99,7 +99,7 @@ def parse_code_fence_start(line: str) -> CodeFenceInfo | None:
 
     # Validate all characters are the same (backticks or tildes)
     if not validate_fence_characters(fence_str):
-        return None
+        return None  # type: ignore[unreachable]
 
     # Calculate indent
     indent = len(line) - len(line.lstrip(" "))
@@ -113,7 +113,7 @@ def parse_code_fence_start(line: str) -> CodeFenceInfo | None:
 
     # Validate fence length ≥ 3 (regex already ensures this, but check to be safe)
     if fence_length < 3:
-        return None
+        return None  # type: ignore[unreachable]
 
     return CodeFenceInfo(
         char=fence_str[0],
@@ -155,14 +155,14 @@ def is_code_fence_end(line: str, start_fence: CodeFenceInfo) -> bool:
     """
     match = COMPILED_CODE_FENCE_END_REGEX.match(line)
     if not match:
-        return False
+        return False  # type: ignore[unreachable]
 
     # Extract indent
     indent = len(line) - len(line.lstrip(" "))
 
     # Validate indent ≤ 3
     if indent > 3:
-        return False
+        return False  # type: ignore[unreachable]
 
     # Extract fence string (remove indent and trailing whitespace)
     fence_str = line.strip()
@@ -175,7 +175,7 @@ def is_code_fence_end(line: str, start_fence: CodeFenceInfo) -> bool:
 
     # Character type must match
     if first_char != start_fence.char:
-        return False
+        return False  # type: ignore[unreachable]
 
     # Calculate fence length (count consecutive same characters)
     fence_length = 0

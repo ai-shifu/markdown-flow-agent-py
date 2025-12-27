@@ -819,7 +819,7 @@ Supports two standard Markdown fence formats:
 
 **Preprocessing Mechanism:**
 
-```
+```text
 Raw Document
   ↓
 Code Block Preprocessor (CodeBlockPreprocessor)
@@ -999,7 +999,9 @@ print('nested')
 ` + "````" + `
 ```
 
-3. **Automatic Processing**
+**Limitations:**
+
+1. **Automatic Processing**
    - Preprocessing happens automatically
    - No manual control over enable/disable
    - All fenced code blocks will be extracted

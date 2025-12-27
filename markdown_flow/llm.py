@@ -37,13 +37,15 @@ class LLMProvider(ABC):
     """Abstract LLM provider interface."""
 
     @abstractmethod
-    def complete(self, messages: list[dict[str, str]]) -> str:
+    def complete(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None) -> str:
         """
         Non-streaming LLM call.
 
         Args:
             messages: Message list in format [{"role": "system/user/assistant", "content": "..."}].
                       This list already includes conversation history context merged by MarkdownFlow.
+            model: Optional model name override
+            temperature: Optional temperature override
 
         Returns:
             str: LLM response content
@@ -53,13 +55,15 @@ class LLMProvider(ABC):
         """
 
     @abstractmethod
-    def stream(self, messages: list[dict[str, str]]):
+    def stream(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None):
         """
         Streaming LLM call.
 
         Args:
             messages: Message list in format [{"role": "system/user/assistant", "content": "..."}].
                       This list already includes conversation history context merged by MarkdownFlow.
+            model: Optional model name override
+            temperature: Optional temperature override
 
         Yields:
             str: Incremental LLM response content
@@ -72,8 +76,8 @@ class LLMProvider(ABC):
 class NoLLMProvider(LLMProvider):
     """Empty LLM provider for prompt-only scenarios."""
 
-    def complete(self, messages: list[dict[str, str]]) -> str:
+    def complete(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None) -> str:
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
 
-    def stream(self, messages: list[dict[str, str]]):
+    def stream(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None):
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
