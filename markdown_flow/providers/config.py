@@ -27,10 +27,7 @@ def _parse_float_env(env_var: str, default: str, var_name: str) -> float:
     try:
         return float(value_str)
     except ValueError as e:
-        raise ValueError(
-            f"Invalid {var_name} value in {env_var} environment variable: '{value_str}'. "
-            f"Expected a numeric value (e.g., '0.7')."
-        ) from e
+        raise ValueError(f"Invalid {var_name} value in {env_var} environment variable: '{value_str}'. Expected a numeric value (e.g., '0.7').") from e
 
 
 def _parse_optional_float_env(env_var: str) -> float | None:
@@ -52,10 +49,7 @@ def _parse_optional_float_env(env_var: str) -> float | None:
     try:
         return float(value_str)
     except ValueError as e:
-        raise ValueError(
-            f"Invalid timeout value in {env_var} environment variable: '{value_str}'. "
-            f"Expected a numeric value (e.g., '300.0')."
-        ) from e
+        raise ValueError(f"Invalid timeout value in {env_var} environment variable: '{value_str}'. Expected a numeric value (e.g., '300.0').") from e
 
 
 @dataclass
