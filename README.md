@@ -431,7 +431,7 @@ variables = {
 ### Custom LLM Provider Integration
 
 ```python
-from markdown_flow import MarkdownFlow, LLMProvider, LLMResult
+from markdown_flow import MarkdownFlow, LLMProvider
 import httpx
 
 class CustomAPIProvider(LLMProvider):
@@ -440,16 +440,22 @@ class CustomAPIProvider(LLMProvider):
         self.api_key = api_key
         self.client = httpx.Client()
 
-    def complete(self, prompt: str) -> LLMResult:
+    def complete(self, messages: list[dict[str, str]]) -> str:
+        # Convert messages to your API format
+        prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+
         response = self.client.post(
             f"{self.base_url}/complete",
             headers={"Authorization": f"Bearer {self.api_key}"},
             json={"prompt": prompt, "max_tokens": 1000}
         )
         data = response.json()
-        return LLMResult(content=data["text"])
+        return data["text"]
 
-    def stream(self, prompt: str):
+    def stream(self, messages: list[dict[str, str]]):
+        # Convert messages to your API format
+        prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+
         with self.client.stream(
             "POST",
             f"{self.base_url}/stream",

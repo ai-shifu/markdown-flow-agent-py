@@ -40,6 +40,11 @@ COMPILED_PRESERVE_FENCE_REGEX = re.compile(PRESERVE_FENCE_PATTERN)
 INLINE_PRESERVE_PATTERN = r"^===(.+)=== *$"
 COMPILED_INLINE_PRESERVE_REGEX = re.compile(INLINE_PRESERVE_PATTERN)
 
+# Inline preserved content search pattern (for finding ===...=== within a line)
+# Non-greedy match to handle multiple occurrences on same line
+INLINE_PRESERVE_SEARCH_PATTERN = r"===\s*(.+?)\s*==="
+COMPILED_INLINE_PRESERVE_SEARCH_REGEX = re.compile(INLINE_PRESERVE_SEARCH_PATTERN)
+
 # Inline exclamation preserved content pattern: !===content!=== format (higher priority than INLINE_PRESERVE_PATTERN)
 # Supports scenarios:
 #   - !===content!===                            (compact format)
@@ -58,6 +63,11 @@ COMPILED_CODE_FENCE_START_REGEX = re.compile(CODE_FENCE_START_PATTERN)
 # Code block fence end: 0-3 spaces + at least 3 backticks or tildes + optional whitespace
 CODE_FENCE_END_PATTERN = r"^[ ]{0,3}([`~]{3,})\s*$"
 COMPILED_CODE_FENCE_END_REGEX = re.compile(CODE_FENCE_END_PATTERN)
+
+# JSON extraction pattern for nested objects
+# Matches JSON objects including nested structures using balanced braces
+JSON_OBJECT_PATTERN = r"\{(?:[^{}]|(?:\{[^{}]*\}))*\}"
+COMPILED_JSON_OBJECT_REGEX = re.compile(JSON_OBJECT_PATTERN)
 
 # Output instruction markers
 OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"

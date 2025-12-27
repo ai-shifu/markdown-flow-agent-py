@@ -973,55 +973,6 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    def _process_llm_validation_with_options(
-        self,
-        block_index: int,
-        user_input: dict[str, list[str]],
-        target_variable: str,
-        options: list[str],
-        question: str,
-        mode: ProcessMode,
-    ) -> LLMResult | Generator[LLMResult, None, None]:
-        """Process LLM validation with button options (third case)."""
-        # Use unified validation message builder (button context will be included automatically)
-        messages = self._build_validation_messages(block_index, user_input, target_variable, context=None)
-
-        if mode == ProcessMode.COMPLETE:
-            if not self._llm_provider:
-                # Fallback processing, return variables directly
-                return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
-
-            llm_response = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
-
-            # Parse validation response and convert to LLMResult
-            # Use joined target values for fallback; avoids JSON string injection
-            orig_input_str = ", ".join(user_input.get(target_variable, []))
-            parsed_result = parse_validation_response(llm_response, orig_input_str, target_variable)
-            return LLMResult(content=parsed_result["content"], variables=parsed_result["variables"])
-
-        if mode == ProcessMode.STREAM:
-            if not self._llm_provider:
-                return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
-
-            def stream_generator():
-                full_response = ""
-                for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
-                    full_response += chunk
-                    # For validation scenario, don't output chunks in real-time, only final result
-
-                # Process final response
-                # Use joined target values for fallback; avoids JSON string injection
-                orig_input_str = ", ".join(user_input.get(target_variable, []))
-                parsed_result = parse_validation_response(full_response, orig_input_str, target_variable)
-
-                # Return only final parsing result
-                yield LLMResult(
-                    content=parsed_result["content"],
-                    variables=parsed_result["variables"],
-                )
-
-            return stream_generator()
-
     def _render_error(
         self,
         error_message: str,

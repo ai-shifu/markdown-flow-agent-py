@@ -5,10 +5,9 @@ Provides robust JSON parsing with support for code blocks and mixed text formats
 """
 
 import json
-import re
 from typing import Any
 
-from ..constants import JSON_PARSE_ERROR
+from ..constants import COMPILED_JSON_OBJECT_REGEX, JSON_PARSE_ERROR
 
 
 def parse_json_response(response_text: str) -> dict[str, Any]:
@@ -42,9 +41,14 @@ def parse_json_response(response_text: str) -> dict[str, Any]:
 
     try:
         return json.loads(text)
-    except json.JSONDecodeError:
-        # Try to extract first JSON object
-        json_match = re.search(r"\{[^}]+\}", text)
+    except json.JSONDecodeError as e:
+        # Try to extract first JSON object (supports nested structures)
+        json_match = COMPILED_JSON_OBJECT_REGEX.search(text)
         if json_match:
-            return json.loads(json_match.group())
-        raise ValueError(JSON_PARSE_ERROR)
+            try:
+                return json.loads(json_match.group())
+            except json.JSONDecodeError:
+                # If extracted JSON is still invalid, chain original exception
+                raise ValueError(JSON_PARSE_ERROR) from e
+        # Chain original exception for proper error context
+        raise ValueError(JSON_PARSE_ERROR) from e
