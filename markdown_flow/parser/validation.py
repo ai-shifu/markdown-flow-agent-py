@@ -4,7 +4,6 @@ Validation Parser Module
 Provides validation template generation and response parsing for user input validation.
 """
 
-import json
 from typing import Any
 
 from ..constants import (
@@ -82,7 +81,7 @@ def parse_validation_response(llm_response: str, original_input: str, target_var
                 reason = parsed_response.get("reason", VALIDATION_ILLEGAL_DEFAULT_REASON)
                 return {"content": reason, "variables": None}
 
-    except (json.JSONDecodeError, ValueError, KeyError):
+    except (ValueError, KeyError):
         # JSON parsing failed, fallback to text mode
         pass
 
