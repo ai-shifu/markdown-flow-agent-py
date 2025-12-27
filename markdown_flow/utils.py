@@ -26,10 +26,10 @@ from .constants import (
     JSON_PARSE_ERROR,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
-    SMART_VALIDATION_TEMPLATE,
     VALIDATION_ILLEGAL_DEFAULT_REASON,
     VALIDATION_RESPONSE_ILLEGAL,
     VALIDATION_RESPONSE_OK,
+    VALIDATION_TASK_TEMPLATE,
     VARIABLE_DEFAULT_VALUE,
 )
 
@@ -99,28 +99,25 @@ def is_preserved_content_block(content: str) -> bool:
                 # Exit preserve block
                 state = "OUTSIDE"
             # Fence markers themselves are valid preserved content
-            continue
-
         # Non-fence lines
-        if stripped_line:  # Non-empty line
-            if state == "INSIDE":
-                # Inside fence block, this is valid preserved content
-                has_preserve_content = True
-            else:
-                # Outside fence block, check if it's inline format
-                match = COMPILED_INLINE_PRESERVE_REGEX.match(stripped_line)
-                if match:
-                    # Ensure inner content exists and contains no ===
-                    inner_content = match.group(1).strip()
-                    if inner_content and "===" not in inner_content:
-                        # Valid inline format
-                        has_preserve_content = True
-                    else:
-                        # Invalid inline format
-                        return False
+        elif state == "INSIDE" and stripped_line:  # type: ignore[unreachable]
+            # Inside fence block, this is valid preserved content
+            has_preserve_content = True
+        elif stripped_line:  # Non-empty line outside fence
+            # Outside fence block, check if it's inline format
+            match = COMPILED_INLINE_PRESERVE_REGEX.match(stripped_line)
+            if match:
+                # Ensure inner content exists and contains no ===
+                inner_content = match.group(1).strip()
+                if inner_content and "===" not in inner_content:
+                    # Valid inline format
+                    has_preserve_content = True
                 else:
-                    # Not fence, not inline format -> external content
+                    # Invalid inline format
                     return False
+            else:
+                # Not fence, not inline format -> external content
+                return False
 
     # Judgment conditions:
     # 1. Must have preserved content
@@ -223,7 +220,7 @@ class InteractionParser:
         # Ensure matched content is complete (no other text)
         matched_text = match.group(0)
         if matched_text.strip() != content:
-            return None
+            return None  # type: ignore[unreachable]
 
         return match.group(1)
 
@@ -296,7 +293,7 @@ class InteractionParser:
                 "buttons": buttons,
                 "is_multi_select": is_multi_select,
             }
-        if content:  # type: ignore[unreachable]
+        if content:
             # Single button
             button = self._parse_single_button(content)
             return {
@@ -462,7 +459,7 @@ class InteractionParser:
         Returns:
             Error result dictionary
         """
-        return {"type": None, "error": error_message}  # type: ignore[unreachable]
+        return {"type": None, "error": error_message}
 
 
 def generate_smart_validation_template(
@@ -512,7 +509,7 @@ def generate_smart_validation_template(
 
     # Use template from constants
     # Note: {sys_user_input} will be replaced later in _build_validation_messages
-    return SMART_VALIDATION_TEMPLATE.format(
+    return VALIDATION_TASK_TEMPLATE.format(
         target_variable=target_variable,
         context_info=context_info,
         sys_user_input="{sys_user_input}",  # Keep placeholder for later replacement
@@ -608,6 +605,7 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
             output_content_lines: list[str] = []
 
             # Collect multiline content
+            fence_closed = False
             while i < len(lines):
                 current_line = lines[i]
                 if COMPILED_PRESERVE_FENCE_REGEX.match(current_line.strip()):
@@ -635,11 +633,12 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
 
                     has_output_instruction = True
                     i += 1
+                    fence_closed = True
                     break
                 # Continue collecting content
                 output_content_lines.append(current_line)  # type: ignore[unreachable]
                 i += 1
-            else:
+            if not fence_closed:
                 # No end marker found, rollback processing
                 result_lines.append(lines[i - len(output_content_lines) - 1])
                 result_lines.extend(output_content_lines)
@@ -686,7 +685,7 @@ def extract_preserved_content(content: str) -> str:
                 result_lines.append(inner_content)
         elif COMPILED_PRESERVE_FENCE_REGEX.match(stripped_line):  # type: ignore[unreachable]
             # Multiline format delimiter, skip
-            continue
+            pass
         else:
             # Normal content line, keep
             result_lines.append(line)

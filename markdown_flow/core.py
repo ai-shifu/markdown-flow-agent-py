@@ -672,7 +672,8 @@ class MarkdownFlow:
                 if mode == ProcessMode.COMPLETE:
                     # Check if validation passed
                     if isinstance(validation_result, LLMResult) and validation_result.variables:
-                        validated_values = validation_result.variables.get(target_variable, [])
+                        validated_raw = validation_result.variables.get(target_variable, [])
+                        validated_values = validated_raw if isinstance(validated_raw, list) else [validated_raw]
                         # Merge matched button values + validated custom text
                         all_values = matched_values + validated_values
                         return LLMResult(
@@ -691,9 +692,10 @@ class MarkdownFlow:
                     # For stream mode, collect validation result
                     def stream_merge_generator():
                         # Consume the validation stream
-                        for result in validation_result:  # type: ignore[attr-defined]
+                        for result in validation_result:  # type: ignore[union-attr]
                             if isinstance(result, LLMResult) and result.variables:
-                                validated_values = result.variables.get(target_variable, [])
+                                validated_raw = result.variables.get(target_variable, [])
+                                validated_values = validated_raw if isinstance(validated_raw, list) else [validated_raw]
                                 all_values = matched_values + validated_values
                                 yield LLMResult(
                                     content="",
@@ -1331,12 +1333,10 @@ class MarkdownFlow:
         system_content = "\n".join(system_parts)
 
         # Build message list
-        messages = [
+        return [
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_input_str},  # Only user input
         ]
-
-        return messages
 
     def _build_error_render_messages(
         self,
