@@ -4,11 +4,10 @@ Output Parser Module
 Handles output instructions and preserved content processing for MarkdownFlow documents.
 """
 
-import re
-
 from ..constants import (
     COMPILED_INLINE_EXCLAMATION_PRESERVE_REGEX,
     COMPILED_INLINE_PRESERVE_REGEX,
+    COMPILED_INLINE_PRESERVE_SEARCH_REGEX,
     COMPILED_PRESERVE_FENCE_REGEX,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
@@ -180,7 +179,7 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
         # ===== Priority 3: Single-line ===...=== format (historical compatibility) =====
         # Only process when not handled by previous two rules and doesn't contain !===, to avoid mismatch
         if not processed and "!===" not in line and line.count("===") == 2:
-            inline_match = re.search(r"===\s*(.+?)\s*===", line)
+            inline_match = COMPILED_INLINE_PRESERVE_SEARCH_REGEX.search(line)
             if inline_match:
                 inner_content = inline_match.group(1).strip()
                 # Validate that inner content doesn't contain === and is not empty

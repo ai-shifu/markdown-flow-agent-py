@@ -40,7 +40,7 @@ def generate_smart_validation_template(
     # For backward compatibility, return a simple template
     # This function is no longer used in the core validation flow
     template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
-    template += "\n\n# 用户回答\n{sys_user_input}"
+    template += "\n\n# User Answer\n{sys_user_input}"
     return template.strip()
 
 
