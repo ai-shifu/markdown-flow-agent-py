@@ -5,6 +5,7 @@ Handles output instructions and preserved content processing for MarkdownFlow do
 """
 
 from ..constants import (
+    COMPILED_HTML_KEYWORD_REGEX,
     COMPILED_INLINE_EXCLAMATION_PRESERVE_REGEX,
     COMPILED_INLINE_PRESERVE_REGEX,
     COMPILED_INLINE_PRESERVE_SEARCH_REGEX,
@@ -12,6 +13,19 @@ from ..constants import (
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
 )
+
+
+def is_html_block(content: str) -> bool:
+    """
+    Check if content contains the @html keyword to trigger HTML generation mode.
+
+    Args:
+        content: Content to check
+
+    Returns:
+        True if content contains @html keyword
+    """
+    return COMPILED_HTML_KEYWORD_REGEX.search(content) is not None
 
 
 def is_preserved_content_block(content: str) -> bool:

@@ -11,6 +11,7 @@ from typing import Any
 
 from .constants import (
     COMPILED_BRACE_VARIABLE_REGEX,
+    COMPILED_HTML_KEYWORD_REGEX,
     COMPILED_INLINE_PRESERVE_REGEX,
     COMPILED_INTERACTION_REGEX,
     COMPILED_LAYER1_INTERACTION_REGEX,
@@ -61,6 +62,19 @@ def extract_variables_from_text(text: str) -> list[str]:
         variables.add(match.strip())
 
     return sorted(list(variables))
+
+
+def is_html_block(content: str) -> bool:
+    """
+    Check if content contains the @html keyword to trigger HTML generation mode.
+
+    Args:
+        content: Content to check
+
+    Returns:
+        True if content contains @html keyword
+    """
+    return COMPILED_HTML_KEYWORD_REGEX.search(content) is not None
 
 
 def is_preserved_content_block(content: str) -> bool:

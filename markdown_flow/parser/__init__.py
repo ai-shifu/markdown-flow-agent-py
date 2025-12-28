@@ -8,6 +8,7 @@ from .interaction import InteractionParser, InteractionType, extract_interaction
 from .json_parser import parse_json_response
 from .output import (
     extract_preserved_content,
+    is_html_block,
     is_preserved_content_block,
     process_output_instructions,
 )
@@ -25,6 +26,7 @@ __all__ = [
     "InteractionType",
     "extract_interaction_question",
     # Output and preserved content
+    "is_html_block",
     "is_preserved_content_block",
     "extract_preserved_content",
     "process_output_instructions",

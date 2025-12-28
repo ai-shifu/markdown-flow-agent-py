@@ -28,3 +28,8 @@ class BlockType(Enum):
     CONTENT = "content"  # Regular document content blocks
     INTERACTION = "interaction"  # Interactive blocks requiring user input
     PRESERVED_CONTENT = "preserved_content"  # Special blocks: inline !===content!=== or multiline !===...!===
+    CONTENT_HTML = "content_html"  # HTML generation blocks triggered by @html keyword
+
+    def is_content_html(self) -> bool:
+        """Check if this block type is CONTENT_HTML."""
+        return self == BlockType.CONTENT_HTML

@@ -27,6 +27,7 @@ class LLMResult:
     prompt: str | None = None  # Used prompt
     variables: dict[str, str | list[str]] | None = None  # Extracted variables
     metadata: dict[str, Any] | None = None  # Metadata
+    transformed_to_interaction: bool = False  # Whether transformed to interaction (for Function Calling)
 
     def __bool__(self):
         """Support boolean evaluation."""
@@ -37,7 +38,7 @@ class LLMProvider(ABC):
     """Abstract LLM provider interface."""
 
     @abstractmethod
-    def complete(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None) -> str:
+    def complete(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None) -> LLMResult:
         """
         Non-streaming LLM call.
 
@@ -48,7 +49,7 @@ class LLMProvider(ABC):
             temperature: Optional temperature override
 
         Returns:
-            str: LLM response content
+            LLMResult: Complete result with content, metadata, and optional fields like transformed_to_interaction
 
         Raises:
             ValueError: When LLM call fails
@@ -76,8 +77,8 @@ class LLMProvider(ABC):
 class NoLLMProvider(LLMProvider):
     """Empty LLM provider for prompt-only scenarios."""
 
-    def complete(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None) -> str:
+    def complete(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None, max_tokens: int | None = None) -> LLMResult:
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)
 
-    def stream(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None):
+    def stream(self, messages: list[dict[str, str]], model: str | None = None, temperature: float | None = None, max_tokens: int | None = None):
         raise NotImplementedError(NO_LLM_PROVIDER_ERROR)

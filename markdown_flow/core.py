@@ -45,6 +45,7 @@ from .parser import (
     InteractionType,
     extract_preserved_content,
     extract_variables_from_text,
+    is_html_block,
     is_preserved_content_block,
     parse_validation_response,
     process_output_instructions,
@@ -353,7 +354,10 @@ class MarkdownFlow:
                         )
                         final_blocks.append(block)
                     else:
-                        if is_preserved_content_block(part):  # type: ignore[unreachable]
+                        # Priority: HTML block > Preserved content block > Content block
+                        if is_html_block(part):
+                            block_type = BlockType.CONTENT_HTML
+                        elif is_preserved_content_block(part):  # type: ignore[unreachable]
                             block_type = BlockType.PRESERVED_CONTENT
                         else:
                             block_type = BlockType.CONTENT
@@ -430,6 +434,10 @@ class MarkdownFlow:
             # Preserved content output as-is, no LLM call
             return self._process_preserved_content(block_index, variables)
 
+        if block.block_type == BlockType.CONTENT_HTML:
+            # HTML generation block: concurrent metadata and HTML content generation
+            return self._process_content_html(block_index, mode, context, variables)
+
         # Handle other types as content
         return self._process_content(block_index, mode, context, variables)
 
@@ -453,8 +461,11 @@ class MarkdownFlow:
             if not self._llm_provider:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
-            content = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
-            return LLMResult(content=content, prompt=messages[-1]["content"])
+            result = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
+            # Ensure prompt is set
+            if result.prompt is None:
+                result.prompt = messages[-1]["content"]
+            return result
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
@@ -534,10 +545,10 @@ class MarkdownFlow:
                 )
 
             # Call LLM for translation
-            translated_json = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
+            result = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
 
             # Reconstruct interaction content with translation
-            translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, translated_json, interaction_info)
+            translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, result.content, interaction_info)
 
             return LLMResult(
                 content=translated_content,
@@ -947,12 +958,12 @@ class MarkdownFlow:
                 # Fallback processing, return variables directly
                 return LLMResult(content="", variables=user_input)  # type: ignore[arg-type]
 
-            llm_response = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
+            result = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
 
             # Parse validation response and convert to LLMResult
             # Use joined target values for fallback; avoids JSON string injection
             orig_input_str = ", ".join(user_input.get(target_variable, []))
-            parsed_result = parse_validation_response(llm_response, orig_input_str, target_variable)
+            parsed_result = parse_validation_response(result.content, orig_input_str, target_variable)
             return LLMResult(content=parsed_result["content"], variables=parsed_result["variables"])
 
         if mode == ProcessMode.STREAM:
@@ -992,8 +1003,11 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(content=error_message)  # Fallback processing
 
-            friendly_error = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
-            return LLMResult(content=friendly_error, prompt=messages[-1]["content"])
+            result = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
+            # Ensure prompt is set
+            if result.prompt is None:
+                result.prompt = messages[-1]["content"]
+            return result
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
@@ -1364,5 +1378,404 @@ Original Error: {error_message}
         messages.append({"role": "user", "content": error_message})
 
         return messages
+
+    # HTML Generation Methods
+
+    def _process_content_html(
+        self,
+        block_index: int,
+        mode: ProcessMode,
+        context: list[dict[str, str]] | None,
+        variables: dict[str, str | list[str]] | None,
+    ):
+        """
+        Process content_html type blocks.
+
+        HTML generation blocks trigger concurrent dual LLM requests:
+        1. Metadata generation (title + description, JSON format)
+        2. Full HTML page generation
+
+        Args:
+            block_index: Block index
+            mode: Processing mode (COMPLETE or STREAM)
+            context: Context message list
+            variables: Variable mappings
+
+        Returns:
+            Complete mode: Single LLMResult with merged results
+            Stream mode: Generator yielding 2 independent LLMResults
+        """
+        block = self.get_block(block_index)
+        clean_content = self._remove_html_keyword(block.content)
+
+        if mode == ProcessMode.COMPLETE:
+            return self._process_content_html_complete(block, clean_content, variables, context)
+        else:  # ProcessMode.STREAM
+            return self._process_content_html_stream(block, clean_content, variables, context)
+
+    def _remove_html_keyword(self, content: str) -> str:
+        """
+        Remove @html keyword from content.
+
+        Args:
+            content: Original content
+
+        Returns:
+            Content with @html keyword removed
+        """
+        from .constants import COMPILED_HTML_KEYWORD_REGEX
+
+        return COMPILED_HTML_KEYWORD_REGEX.sub("", content).strip()
+
+    def _build_html_metadata_messages(
+        self,
+        content: str,
+        variables: dict[str, str | list[str]] | None,
+        context: list[dict[str, str]] | None,
+    ) -> list[dict[str, str]]:
+        """
+        Build message list for HTML metadata generation.
+
+        Workflow:
+        1. Build system message (HTML metadata prompt + base_system + document_prompt + output_language)
+        2. Replace variables in user content
+        3. Restore code block placeholders
+        4. Build messages list
+
+        Args:
+            content: User content (with @html removed)
+            variables: Variable replacement mappings
+            context: Context messages
+
+        Returns:
+            Message list with XML-tagged structure
+        """
+        from .constants import DEFAULT_HTML_METADATA_PROMPT
+
+        # Variable replacement
+        user_content = replace_variables_in_text(content, variables or {})
+
+        # Restore code blocks
+        user_content = self._preprocessor.restore_code_blocks_only(user_content)
+
+        # Build messages list
+        messages = []
+
+        # Build system message (using XML tag structure)
+        system_parts = []
+
+        # 1. Output language anchoring (top - highest priority)
+        if self._output_language:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
+
+        # 2. HTML metadata generation specific prompt
+        system_parts.append(f"<html_metadata_task>\n{DEFAULT_HTML_METADATA_PROMPT}\n</html_metadata_task>")
+
+        # 3. Base system prompt (if exists and non-empty)
+        if self._base_system_prompt:
+            system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
+
+        # 4. Document prompt (if exists and non-empty)
+        if self._document_prompt:
+            system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
+
+        # 5. Output language anchoring (bottom - final reminder)
+        if self._output_language:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
+
+        # Combine all parts
+        if system_parts:
+            system_msg = "\n\n".join(system_parts)
+            messages.append({"role": "system", "content": system_msg})
+
+        # Add context messages (if any)
+        truncated_context = self._truncate_context(context)
+        if truncated_context:
+            messages.extend(truncated_context)
+
+        # Add user message (with language wrapping if output_language is set)
+        if self._output_language:
+            user_content = f"""<output_language_instruction>
+🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨
+</output_language_instruction>
+
+{user_content}"""
+
+        messages.append({"role": "user", "content": user_content})
+
+        return messages
+
+    def _build_html_content_messages(
+        self,
+        content: str,
+        variables: dict[str, str | list[str]] | None,
+        context: list[dict[str, str]] | None,
+    ) -> list[dict[str, str]]:
+        """
+        Build message list for HTML content generation.
+
+        Workflow:
+        1. Build system message (HTML content prompt + base_system + document_prompt + output_language)
+        2. Replace variables in user content
+        3. Restore code block placeholders
+        4. Build messages list
+
+        Args:
+            content: User content (with @html removed)
+            variables: Variable replacement mappings
+            context: Context messages
+
+        Returns:
+            Message list with XML-tagged structure
+        """
+        from .constants import DEFAULT_HTML_CONTENT_PROMPT
+
+        # Variable replacement
+        user_content = replace_variables_in_text(content, variables or {})
+
+        # Restore code blocks
+        user_content = self._preprocessor.restore_code_blocks_only(user_content)
+
+        # Build messages list
+        messages = []
+
+        # Build system message (using XML tag structure)
+        system_parts = []
+
+        # 1. Output language anchoring (top - highest priority)
+        if self._output_language:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
+
+        # 2. HTML content generation specific prompt
+        system_parts.append(f"<html_content_task>\n{DEFAULT_HTML_CONTENT_PROMPT}\n</html_content_task>")
+
+        # 3. Base system prompt (if exists and non-empty)
+        if self._base_system_prompt:
+            system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
+
+        # 4. Document prompt (if exists and non-empty)
+        if self._document_prompt:
+            system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
+
+        # 5. Output language anchoring (bottom - final reminder)
+        if self._output_language:
+            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
+
+        # Combine all parts
+        if system_parts:
+            system_msg = "\n\n".join(system_parts)
+            messages.append({"role": "system", "content": system_msg})
+
+        # Add context messages (if any)
+        truncated_context = self._truncate_context(context)
+        if truncated_context:
+            messages.extend(truncated_context)
+
+        # Add user message (with language wrapping if output_language is set)
+        if self._output_language:
+            user_content = f"""<output_language_instruction>
+🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨
+</output_language_instruction>
+
+{user_content}"""
+
+        messages.append({"role": "user", "content": user_content})
+
+        return messages
+
+    def _process_content_html_complete(
+        self,
+        block: Block,
+        clean_content: str,
+        variables: dict[str, str | list[str]] | None,
+        context: list[dict[str, str]] | None,
+    ) -> LLMResult:
+        """
+        Process HTML generation using concurrent requests (Complete mode).
+
+        Workflow:
+        1. Build two message lists (metadata + HTML content)
+        2. Concurrently execute two Complete requests using ThreadPoolExecutor
+        3. Parse metadata JSON
+        4. Merge results: HTML in Content, metadata in Metadata
+        5. Accumulate token statistics from both requests
+
+        Args:
+            block: Block object
+            clean_content: Content with @html removed
+            variables: Variable mappings
+            context: Context messages
+
+        Returns:
+            LLMResult with merged results
+        """
+        import concurrent.futures
+
+        if self._llm_provider is None:
+            raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
+
+        # Build two message lists
+        metadata_messages = self._build_html_metadata_messages(clean_content, variables, context)
+        html_messages = self._build_html_content_messages(clean_content, variables, context)
+
+        # Use ThreadPoolExecutor for true concurrent execution
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            # Submit both tasks concurrently
+            metadata_future = executor.submit(
+                self._llm_provider.complete,
+                metadata_messages,
+                self._model,
+                self._temperature
+            )
+            html_future = executor.submit(
+                self._llm_provider.complete,
+                html_messages,
+                self._model,
+                self._temperature
+            )
+
+            # Wait for both to complete (concurrent execution, gather results)
+            metadata_result = metadata_future.result()
+            html_result = html_future.result()
+
+        # Parse metadata JSON
+        try:
+            metadata = json.loads(metadata_result.content)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse metadata JSON: {e}") from e
+
+        # Merge results
+        result = LLMResult(
+            content=html_result.content,
+            prompt=html_result.prompt,
+            variables={},
+            metadata={
+                "block_type": "content_html",
+                "block_index": block.index,
+            },
+        )
+
+        # Add HTML metadata
+        if "title" in metadata:
+            result.metadata["html_title"] = metadata["title"]
+        if "description" in metadata:
+            result.metadata["html_description"] = metadata["description"]
+
+        # Accumulate token statistics (sum from both requests)
+        if metadata_result.metadata and html_result.metadata:
+            prompt_tokens = 0
+            output_tokens = 0
+            total_tokens = 0
+
+            # Accumulate tokens
+            if "prompt_tokens" in metadata_result.metadata:
+                prompt_tokens += metadata_result.metadata["prompt_tokens"]
+            if "prompt_tokens" in html_result.metadata:
+                prompt_tokens += html_result.metadata["prompt_tokens"]
+
+            if "output_tokens" in metadata_result.metadata:
+                output_tokens += metadata_result.metadata["output_tokens"]
+            if "output_tokens" in html_result.metadata:
+                output_tokens += html_result.metadata["output_tokens"]
+
+            if "total_tokens" in metadata_result.metadata:
+                total_tokens += metadata_result.metadata["total_tokens"]
+            if "total_tokens" in html_result.metadata:
+                total_tokens += html_result.metadata["total_tokens"]
+
+            result.metadata["prompt_tokens"] = prompt_tokens
+            result.metadata["output_tokens"] = output_tokens
+            result.metadata["total_tokens"] = total_tokens
+
+            # Copy other metadata (use HTML request metadata)
+            if "model" in html_result.metadata:
+                result.metadata["model"] = html_result.metadata["model"]
+            if "temperature" in html_result.metadata:
+                result.metadata["temperature"] = html_result.metadata["temperature"]
+            if "provider" in html_result.metadata:
+                result.metadata["provider"] = html_result.metadata["provider"]
+            if "timestamp" in html_result.metadata:
+                result.metadata["timestamp"] = html_result.metadata["timestamp"]
+
+        return result
+
+    def _process_content_html_stream(
+        self,
+        block: Block,
+        clean_content: str,
+        variables: dict[str, str | list[str]] | None,
+        context: list[dict[str, str]] | None,
+    ) -> Generator[LLMResult, None, None]:
+        """
+        Process HTML generation with concurrent requests, sequential output (Stream mode).
+
+        Workflow:
+        1. Concurrently start two Complete requests using threads
+        2. Wait for metadata completion, yield immediately
+        3. Wait for HTML completion, yield
+        4. Output 2 independent LLMResults, distinguished by metadata["type"]
+
+        Args:
+            block: Block object
+            clean_content: Content with @html removed
+            variables: Variable mappings
+            context: Context messages
+
+        Yields:
+            First: metadata LLMResult (type="metadata")
+            Second: HTML LLMResult (type="html")
+        """
+        import concurrent.futures
+        import threading
+
+        if self._llm_provider is None:
+            raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
+
+        # Build two message lists
+        metadata_messages = self._build_html_metadata_messages(clean_content, variables, context)
+        html_messages = self._build_html_content_messages(clean_content, variables, context)
+
+        # Use ThreadPoolExecutor for true concurrent execution
+        # Don't use 'with' to avoid blocking on context manager exit
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        try:
+            # Submit both tasks concurrently (both start immediately)
+            metadata_future = executor.submit(
+                self._llm_provider.complete,
+                metadata_messages,
+                self._model,
+                self._temperature
+            )
+            html_future = executor.submit(
+                self._llm_provider.complete,
+                html_messages,
+                self._model,
+                self._temperature
+            )
+
+            # Wait for metadata completion, yield immediately (don't wait for HTML!)
+            metadata_result = metadata_future.result()
+
+            # Set metadata type and yield
+            if metadata_result.metadata is None:
+                metadata_result.metadata = {}
+            metadata_result.metadata["type"] = "metadata"
+            metadata_result.metadata["block_type"] = "content_html"
+            metadata_result.metadata["block_index"] = block.index
+            yield metadata_result  # ✅ Yield metadata as soon as it's ready (HTML still running in background)
+
+            # Now wait for HTML completion
+            html_result = html_future.result()
+
+            # Set metadata type and yield
+            if html_result.metadata is None:
+                html_result.metadata = {}
+            html_result.metadata["type"] = "html"
+            html_result.metadata["block_type"] = "content_html"
+            html_result.metadata["block_index"] = block.index
+            yield html_result  # ✅ Yield HTML after it's ready
+        finally:
+            # Clean up executor
+            executor.shutdown(wait=False)
 
     # Helper methods

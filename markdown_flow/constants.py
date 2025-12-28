@@ -267,3 +267,58 @@ CONTEXT_CONVERSATION_TEMPLATE = f"{CONTEXT_CONVERSATION_MARKER}\n{{content}}"
 CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
     f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n可选的预定义选项包括：{{button_options}}\n注意：用户如果选择了这些选项，都应该接受；如果输入了自定义内容，只要是对问题的合理回答即可接受。"
 )
+
+# ========== HTML Generation Constants ==========
+
+# HTML keyword pattern for triggering HTML generation mode
+HTML_KEYWORD_PATTERN = r"@html"
+COMPILED_HTML_KEYWORD_REGEX = re.compile(HTML_KEYWORD_PATTERN)
+
+# HTML Metadata Generation Prompt
+DEFAULT_HTML_METADATA_PROMPT = """<task>生成 HTML 展示的元数据</task>
+
+<requirements>
+- 分析用户需求，提取核心主题作为标题
+- 生成简洁的描述（1-2 句话）
+- 返回严格的 JSON 格式
+- 不要添加任何解释或 markdown 代码块
+</requirements>
+
+<output_format>
+{"title": "标题文本", "description": "描述文本"}
+</output_format>
+
+<example>
+用户输入：请为我生成一个漂亮的个人简历页面
+输出：{"title": "个人简历", "description": "专业个人简历展示页面"}
+</example>"""
+
+# HTML Content Generation Prompt
+DEFAULT_HTML_CONTENT_PROMPT = """<task>生成完整的 HTML 页面</task>
+
+<requirements>
+- 生成包含 <!DOCTYPE html>, <html>, <head>, <body> 标签的完整 HTML 文档
+- 使用内联样式（style 属性）进行样式设置
+- 允许使用 <script> 标签和 JavaScript 实现交互功能
+- 确保 HTML 结构规范、语义化
+- 添加必要的 meta 标签（viewport、charset 等）
+- 代码简洁、可读性好
+</requirements>
+
+<output_format>
+完整的 HTML 文档，从 <!DOCTYPE html> 开始，不要使用 markdown 代码块包裹
+</output_format>
+
+<example>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>示例页面</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px;">
+    <!-- 页面内容 -->
+</body>
+</html>
+</example>"""

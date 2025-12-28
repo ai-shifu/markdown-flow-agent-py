@@ -52,6 +52,7 @@ class Block:
                 "content": BlockType.CONTENT,
                 "interaction": BlockType.INTERACTION,
                 "preserved_content": BlockType.PRESERVED_CONTENT,
+                "content_html": BlockType.CONTENT_HTML,
             }
 
             self.block_type = type_mapping.get(self.block_type, self._parse_block_type_fallback(self.block_type))
@@ -75,4 +76,4 @@ class Block:
     @property
     def is_content(self) -> bool:
         """Check if this is a content block."""
-        return self.block_type in [BlockType.CONTENT, BlockType.PRESERVED_CONTENT]
+        return self.block_type in [BlockType.CONTENT, BlockType.PRESERVED_CONTENT, BlockType.CONTENT_HTML]

@@ -58,7 +58,7 @@ class OpenAIProvider(LLMProvider):
         messages: list[dict[str, str]],
         model: str | None = None,
         temperature: float | None = None,
-    ) -> str:
+    ) -> "LLMResult":
         """
         Non-streaming LLM call.
 
@@ -68,12 +68,14 @@ class OpenAIProvider(LLMProvider):
             temperature: Optional temperature override
 
         Returns:
-            LLM response content
+            LLMResult: Complete result with content and metadata
 
         Raises:
             Exception: If API call fails
         """
-        # Determine actual model and temperature (instance override > provider default)
+        from ..llm import LLMResult
+
+        # Determine actual model and temperature (parameter override > provider default)
         actual_model = model if model is not None else self.config.model
         actual_temperature = temperature if temperature is not None else self.config.temperature
 
@@ -89,11 +91,15 @@ class OpenAIProvider(LLMProvider):
 
         try:
             # Make API call
-            response = self.client.chat.completions.create(
-                model=actual_model,
-                messages=formatted_messages,
-                temperature=actual_temperature,
-            )
+            completion_args = {
+                "model": actual_model,
+                "messages": formatted_messages,
+                "temperature": actual_temperature,
+            }
+            if self.config.max_tokens is not None:
+                completion_args["max_tokens"] = self.config.max_tokens
+
+            response = self.client.chat.completions.create(**completion_args)
 
             # Calculate processing time
             processing_time_ms = int((time.time() - start_time) * 1000)
@@ -134,7 +140,12 @@ class OpenAIProvider(LLMProvider):
             if self.config.debug:
                 self._print_response_metadata(metadata)
 
-            return content
+            # Return LLMResult with content and metadata
+            return LLMResult(
+                content=content,
+                prompt=formatted_messages[-1]["content"] if formatted_messages else None,
+                metadata=metadata,
+            )
 
         except Exception as e:
             raise Exception(f"API request failed: {str(e)}") from e
@@ -175,12 +186,16 @@ class OpenAIProvider(LLMProvider):
 
         try:
             # Create streaming response
-            stream = self.client.chat.completions.create(
-                model=actual_model,
-                messages=formatted_messages,
-                temperature=actual_temperature,
-                stream=True,
-            )
+            stream_args = {
+                "model": actual_model,
+                "messages": formatted_messages,
+                "temperature": actual_temperature,
+                "stream": True,
+            }
+            if self.config.max_tokens is not None:
+                stream_args["max_tokens"] = self.config.max_tokens
+
+            stream = self.client.chat.completions.create(**stream_args)
 
             for chunk in stream:
                 if chunk.choices and chunk.choices[0].delta.content:

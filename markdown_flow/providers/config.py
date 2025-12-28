@@ -52,6 +52,28 @@ def _parse_optional_float_env(env_var: str) -> float | None:
         raise ValueError(f"Invalid timeout value in {env_var} environment variable: '{value_str}'. Expected a numeric value (e.g., '300.0').") from e
 
 
+def _parse_optional_int_env(env_var: str) -> int | None:
+    """
+    Safely parse optional int from environment variable.
+
+    Args:
+        env_var: Environment variable name
+
+    Returns:
+        Parsed int value or None if not set
+
+    Raises:
+        ValueError: If environment variable contains invalid int value
+    """
+    value_str = os.getenv(env_var)
+    if not value_str:
+        return None
+    try:
+        return int(value_str)
+    except ValueError as e:
+        raise ValueError(f"Invalid max_tokens value in {env_var} environment variable: '{value_str}'. Expected an integer value (e.g., '4096').") from e
+
+
 @dataclass
 class ProviderConfig:
     """
@@ -78,6 +100,9 @@ class ProviderConfig:
     timeout: float | None = field(default_factory=lambda: _parse_optional_float_env("LLM_TIMEOUT"))
     """Request timeout in seconds. None means no timeout. Default: LLM_TIMEOUT environment variable or None."""
 
+    max_tokens: int | None = field(default_factory=lambda: _parse_optional_int_env("LLM_MAX_TOKENS"))
+    """Maximum tokens for completion. None means no limit. Default: LLM_MAX_TOKENS environment variable or None."""
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         if not self.api_key:
@@ -88,3 +113,6 @@ class ProviderConfig:
 
         if self.timeout is not None and self.timeout <= 0:
             raise ValueError(f"Timeout must be positive or None, got {self.timeout}")
+
+        if self.max_tokens is not None and self.max_tokens <= 0:
+            raise ValueError(f"max_tokens must be positive or None, got {self.max_tokens}")
