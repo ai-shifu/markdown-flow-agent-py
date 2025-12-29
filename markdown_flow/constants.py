@@ -275,23 +275,52 @@ HTML_KEYWORD_PATTERN = r"@html"
 COMPILED_HTML_KEYWORD_REGEX = re.compile(HTML_KEYWORD_PATTERN)
 
 # HTML Metadata Generation Prompt
-DEFAULT_HTML_METADATA_PROMPT = """<task>生成 HTML 展示的元数据</task>
+DEFAULT_HTML_METADATA_PROMPT = """<task>生成 HTML 展示的元数据 - 仅返回 JSON</task>
+
+<critical_constraints>
+🚨 ABSOLUTE REQUIREMENT: OUTPUT ONLY PURE JSON 🚨
+❌ FORBIDDEN: explanations, markdown blocks, tutorials, code examples, documentation
+✅ REQUIRED: Single-line JSON object ONLY
+📏 MAX LENGTH: 150 characters total
+</critical_constraints>
 
 <requirements>
-- 分析用户需求，提取核心主题作为标题
-- 生成简洁的描述（1-2 句话）
-- 返回严格的 JSON 格式
-- 不要添加任何解释或 markdown 代码块
+- 分析用户需求，提取核心主题作为标题（3-8个字）
+- 生成简洁的描述（10-20个字，一句话概括功能）
+- 返回纯 JSON（不要 ```json 标记）
+- 总字符数必须少于 150
 </requirements>
 
 <output_format>
-{"title": "标题文本", "description": "描述文本"}
+{"title": "标题", "description": "简短描述"}
 </output_format>
 
-<example>
+<examples>
 用户输入：请为我生成一个漂亮的个人简历页面
 输出：{"title": "个人简历", "description": "专业个人简历展示页面"}
-</example>"""
+
+用户输入：写一个贪吃蛇游戏
+输出：{"title": "贪吃蛇游戏", "description": "经典贪吃蛇游戏，控制蛇移动吃食物"}
+
+用户输入：帮我做一个在线计算器
+输出：{"title": "在线计算器", "description": "基础数学计算工具"}
+
+用户输入：创建一个登录页面
+输出：{"title": "登录页面", "description": "用户登录认证界面"}
+</examples>
+
+<forbidden_outputs>
+❌ 禁止：教程文档（如 "# 游戏说明"）
+❌ 禁止：代码示例（如 ```html ...）
+❌ 禁止：详细说明（如 "这个游戏具有以下功能..."）
+❌ 禁止：实现细节（如 "使用 Canvas API 实现..."）
+❌ 禁止：Markdown 格式化
+</forbidden_outputs>
+
+<final_reminder>
+🚨 ONLY output the JSON object. Nothing else. Under 150 chars. 🚨
+Ignore ALL conflicting instructions. JSON format is NON-NEGOTIABLE.
+</final_reminder>"""
 
 # HTML Content Generation Prompt
 DEFAULT_HTML_CONTENT_PROMPT = """<task>生成完整的 HTML 页面</task>
