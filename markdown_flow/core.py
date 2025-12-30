@@ -432,7 +432,7 @@ class MarkdownFlow:
 
         if block.block_type == BlockType.PRESERVED_CONTENT:
             # Preserved content output as-is, no LLM call
-            return self._process_preserved_content(block_index, variables)
+            return self._process_preserved_content(block_index, mode, variables)
 
         if block.block_type == BlockType.CONTENT_HTML:
             # HTML generation block: concurrent metadata and HTML content generation
@@ -477,7 +477,12 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
+    def _process_preserved_content(
+        self,
+        block_index: int,
+        mode: ProcessMode,
+        variables: dict[str, str | list[str]] | None,
+    ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process preserved content block, output as-is without LLM call."""
         block = self.get_block(block_index)
 
@@ -490,7 +495,15 @@ class MarkdownFlow:
         # Restore code blocks (replace placeholders with original code blocks)
         content = self._preprocessor.restore_code_blocks(content)
 
-        return LLMResult(content=content)
+        if mode == ProcessMode.COMPLETE:
+            return LLMResult(content=content)
+
+        if mode == ProcessMode.STREAM:
+            # Return generator for consistency with other processing methods
+            def stream_generator():
+                yield LLMResult(content=content)
+
+            return stream_generator()
 
     def _process_interaction_render(
         self,
