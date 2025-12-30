@@ -9,6 +9,8 @@ import re
 from ..constants import (
     COMPILED_BRACE_VARIABLE_REGEX,
     COMPILED_PERCENT_VARIABLE_REGEX,
+    OUTPUT_INSTRUCTION_PREFIX,
+    OUTPUT_INSTRUCTION_SUFFIX,
     VARIABLE_DEFAULT_VALUE,
 )
 
@@ -40,6 +42,47 @@ def extract_variables_from_text(text: str) -> list[str]:
         variables.add(match.strip())
 
     return sorted(list(variables))
+
+
+def is_inside_preserve_tag(text: str, pos: int) -> bool:
+    """
+    Check if the given position is inside a <preserve_or_translate> tag.
+
+    Detection logic:
+    1. Search forward for the most recent opening tag
+    2. Search backward for the nearest closing tag
+    3. If open_tag < pos < close_tag, then inside the tag
+
+    Args:
+        text: Full text content
+        pos: Position to check (variable start position)
+
+    Returns:
+        True if position is inside preserve tag, False otherwise
+    """
+    # Find the most recent opening tag before pos
+    last_open_index = text.rfind(OUTPUT_INSTRUCTION_PREFIX, 0, pos)
+
+    # If no opening tag found, definitely not inside
+    if last_open_index == -1:
+        return False
+
+    # Find the nearest closing tag after pos
+    first_close_index = text.find(OUTPUT_INSTRUCTION_SUFFIX, pos)
+
+    # If no closing tag found after pos, check if there's one anywhere after open tag
+    if first_close_index == -1:
+        # Search for closing tag in the entire text after the opening tag
+        absolute_close_index = text.find(OUTPUT_INSTRUCTION_SUFFIX, last_open_index)
+        if absolute_close_index == -1:
+            # Has opening tag but no closing tag, consider inside
+            return True
+        # Closing tag exists, check if it's after pos
+        return pos < absolute_close_index
+
+    # Found closing tag, already has absolute position
+    # Inside tag condition: open_tag < pos < close_tag
+    return last_open_index < pos < first_close_index
 
 
 def replace_variables_in_text(text: str, variables: dict[str, str | list[str]]) -> str:
@@ -88,9 +131,21 @@ def replace_variables_in_text(text: str, variables: dict[str, str | list[str]]) 
         else:
             value_str = str(var_value) if var_value is not None else VARIABLE_DEFAULT_VALUE
 
+        # Find all matches of {{var_name}} (not %{{var_name}})
         # Use negative lookbehind assertion to exclude %{{var_name}} format
-        # Add triple quotes around the value
         pattern = f"(?<!%){{{{{re.escape(var_name)}}}}}"
-        result = re.sub(pattern, f'"""{value_str}"""', result)
+
+        # Replace each match individually, checking if it's inside a preserve tag
+        def replace_match(match):
+            start = match.start()
+            # Check if this match is inside a preserve tag
+            if is_inside_preserve_tag(result, start):
+                # Inside preserve tag - no triple quotes
+                return value_str
+            else:
+                # Normal variable - add triple quotes
+                return f'"""{value_str}"""'
+
+        result = re.sub(pattern, replace_match, result)
 
     return result
