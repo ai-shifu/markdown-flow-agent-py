@@ -49,9 +49,10 @@ def is_inside_preserve_tag(text: str, pos: int) -> bool:
     Check if the given position is inside a <preserve_or_translate> tag.
 
     Detection logic:
-    1. Search forward for the most recent opening tag
-    2. Search backward for the nearest closing tag
-    3. If open_tag < pos < close_tag, then inside the tag
+    1. Find the most recent opening tag before pos
+    2. Check if there's a closing tag between the opening tag and pos
+    3. If closing tag exists between them, pos is NOT inside
+    4. If no closing tag between them, pos IS inside
 
     Args:
         text: Full text content
@@ -67,31 +68,33 @@ def is_inside_preserve_tag(text: str, pos: int) -> bool:
     if last_open_index == -1:
         return False
 
-    # Find the nearest closing tag after pos
-    first_close_index = text.find(OUTPUT_INSTRUCTION_SUFFIX, pos)
+    # Find closing tag between the opening tag and pos
+    # Search from position after the opening tag to pos
+    close_between = text.find(OUTPUT_INSTRUCTION_SUFFIX, last_open_index, pos)
 
-    # If no closing tag found after pos, check if there's one anywhere after open tag
-    if first_close_index == -1:
-        # Search for closing tag in the entire text after the opening tag
-        absolute_close_index = text.find(OUTPUT_INSTRUCTION_SUFFIX, last_open_index)
-        if absolute_close_index == -1:
-            # Has opening tag but no closing tag, consider inside
-            return True
-        # Closing tag exists, check if it's after pos
-        return pos < absolute_close_index
+    # If there's a closing tag between opening tag and pos,
+    # it means the opening tag is already closed, so pos is NOT inside
+    if close_between != -1:
+        return False
 
-    # Found closing tag, already has absolute position
-    # Inside tag condition: open_tag < pos < close_tag
-    return last_open_index < pos < first_close_index
+    # No closing tag between opening and pos, so pos IS inside
+    # (whether or not there's a closing tag after pos doesn't matter)
+    return True
 
 
-def replace_variables_in_text(text: str, variables: dict[str, str | list[str]]) -> str:
+def replace_variables_in_text(
+    text: str,
+    variables: dict[str, str | list[str]],
+    add_quotes: bool = True,
+) -> str:
     """
     Replace variables in text, undefined or empty variables are auto-assigned "UNKNOWN".
 
     Args:
         text: Text containing variables
         variables: Variable name to value mapping
+        add_quotes: Whether to add triple quotes around replaced values (default: True).
+                   Set to False for preserved content blocks where quotes should not be added.
 
     Returns:
         Text with variables replaced
@@ -138,6 +141,11 @@ def replace_variables_in_text(text: str, variables: dict[str, str | list[str]]) 
         # Replace each match individually, checking if it's inside a preserve tag
         def replace_match(match):
             start = match.start()
+
+            # If add_quotes is False, never add quotes (for preserved content blocks)
+            if not add_quotes:
+                return value_str
+
             # Check if this match is inside a preserve tag
             if is_inside_preserve_tag(result, start):
                 # Inside preserve tag - no triple quotes
