@@ -46,6 +46,7 @@ from .parser import (
     extract_preserved_content,
     extract_variables_from_text,
     is_preserved_content_block,
+    parse_json_response,
     parse_validation_response,
     process_output_instructions,
     replace_variables_in_text,
@@ -1193,8 +1194,8 @@ class MarkdownFlow:
 
         # Parse translated JSON
         try:
-            translated = json.loads(translated_json)
-        except json.JSONDecodeError:
+            translated = parse_json_response(translated_json)
+        except (json.JSONDecodeError, ValueError):
             return original_content
 
         reconstructed = original_content
