@@ -70,16 +70,12 @@ def is_inside_preserve_tag(text: str, pos: int) -> bool:
 
     # Find closing tag between the opening tag and pos
     # Search from position after the opening tag to pos
-    close_between = text.find(OUTPUT_INSTRUCTION_SUFFIX, last_open_index, pos)
+    close_between = text.find(OUTPUT_INSTRUCTION_SUFFIX, last_open_index + len(OUTPUT_INSTRUCTION_PREFIX), pos)
 
     # If there's a closing tag between opening tag and pos,
     # it means the opening tag is already closed, so pos is NOT inside
-    if close_between != -1:
-        return False
-
-    # No closing tag between opening and pos, so pos IS inside
-    # (whether or not there's a closing tag after pos doesn't matter)
-    return True
+    # Otherwise, pos IS inside (whether or not there's a closing tag after pos doesn't matter)
+    return close_between == -1
 
 
 def replace_variables_in_text(
@@ -139,19 +135,20 @@ def replace_variables_in_text(
         pattern = f"(?<!%){{{{{re.escape(var_name)}}}}}"
 
         # Replace each match individually, checking if it's inside a preserve tag
-        def replace_match(match):
+        # Use default parameters to capture loop variables (fixes B023)
+        def replace_match(match, _value_str=value_str, _result=result, _add_quotes=add_quotes):
             start = match.start()
 
             # If add_quotes is False, never add quotes (for preserved content blocks)
-            if not add_quotes:
-                return value_str
+            if not _add_quotes:
+                return _value_str
 
             # Check if this match is inside a preserve tag
-            if is_inside_preserve_tag(result, start):
+            if is_inside_preserve_tag(_result, start):
                 # Inside preserve tag - no triple quotes
-                return value_str
+                return _value_str
             # Normal variable - add triple quotes
-            return f'"""{value_str}"""'
+            return f'"""{_value_str}"""'
 
         result = re.sub(pattern, replace_match, result)
 
