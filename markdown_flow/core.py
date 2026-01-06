@@ -474,8 +474,8 @@ class MarkdownFlow:
         # Extract preserved content (remove !=== markers)
         content = extract_preserved_content(block.content)
 
-        # Replace variables
-        content = replace_variables_in_text(content, variables or {})
+        # Replace variables without adding quotes (preserved content should remain as-is)
+        content = replace_variables_in_text(content, variables or {}, add_quotes=False)
 
         # Restore code blocks (replace placeholders with original code blocks)
         content = self._preprocessor.restore_code_blocks(content)

@@ -137,6 +137,8 @@ exclude = [
 # Allow more flexibility in test files and examples
 module = ["tests.*", "examples.*"]
 disallow_untyped_defs = false
+check_untyped_defs = false
+disable_error_code = ["arg-type", "var-annotated"]
 disallow_incomplete_defs = false
 
 # =============================================================================
