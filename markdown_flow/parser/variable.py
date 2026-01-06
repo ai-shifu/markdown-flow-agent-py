@@ -5,6 +5,7 @@ Provides variable extraction and replacement functionality for MarkdownFlow docu
 """
 
 import re
+from collections.abc import Mapping
 
 from ..constants import (
     COMPILED_BRACE_VARIABLE_REGEX,
@@ -80,7 +81,7 @@ def is_inside_preserve_tag(text: str, pos: int) -> bool:
 
 def replace_variables_in_text(
     text: str,
-    variables: dict[str, str | list[str]],
+    variables: Mapping[str, str | list[str]] | None = None,
     add_quotes: bool = True,
 ) -> str:
     """
@@ -88,7 +89,7 @@ def replace_variables_in_text(
 
     Args:
         text: Text containing variables
-        variables: Variable name to value mapping
+        variables: Variable name to value mapping (accepts dict or any Mapping type)
         add_quotes: Whether to add triple quotes around replaced values (default: True).
                    Set to False for preserved content blocks where quotes should not be added.
 
@@ -98,15 +99,16 @@ def replace_variables_in_text(
     if not text or not isinstance(text, str):
         return text or ""
 
-    # Check each variable for null or empty values, assign "UNKNOWN" if so
+    # Convert Mapping to dict for modification, or initialize as empty dict
     if variables:
-        for key, value in variables.items():
+        # Create a mutable copy
+        variables_dict = dict(variables)
+        # Check each variable for null or empty values, assign "UNKNOWN" if so
+        for key, value in variables_dict.items():
             if value is None or value == "" or (isinstance(value, list) and not value):
-                variables[key] = VARIABLE_DEFAULT_VALUE
-
-    # Initialize variables as empty dict (if None)
-    if not variables:
-        variables = {}
+                variables_dict[key] = VARIABLE_DEFAULT_VALUE
+    else:
+        variables_dict = {}
 
     # Find all {{variable}} format variable references
     variable_pattern = r"\{\{([^{}]+)\}\}"
@@ -115,12 +117,12 @@ def replace_variables_in_text(
     # Assign "UNKNOWN" to undefined variables
     for var_name in matches:
         var_name = var_name.strip()
-        if var_name not in variables:
-            variables[var_name] = "UNKNOWN"
+        if var_name not in variables_dict:
+            variables_dict[var_name] = "UNKNOWN"
 
     # Use updated replacement logic, preserve %{{var_name}} format variables
     result = text
-    for var_name, var_value in variables.items():
+    for var_name, var_value in variables_dict.items():
         # Convert value to string based on type
         if isinstance(var_value, list):
             # Multiple values - join with comma
