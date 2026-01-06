@@ -150,9 +150,8 @@ def replace_variables_in_text(
             if is_inside_preserve_tag(result, start):
                 # Inside preserve tag - no triple quotes
                 return value_str
-            else:
-                # Normal variable - add triple quotes
-                return f'"""{value_str}"""'
+            # Normal variable - add triple quotes
+            return f'"""{value_str}"""'
 
         result = re.sub(pattern, replace_match, result)
 
