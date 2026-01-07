@@ -5,6 +5,7 @@ Simplified and refactored data models focused on core functionality.
 """
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from .enums import BlockType, InputType
 from .parser import extract_variables_from_text
@@ -76,3 +77,26 @@ class Block:
     def is_content(self) -> bool:
         """Check if this is a content block."""
         return self.block_type in [BlockType.CONTENT, BlockType.PRESERVED_CONTENT]
+
+
+@dataclass
+class BlackboardStep:
+    """
+    Blackboard mode step data class.
+
+    Represents a single step in blackboard mode processing, containing
+    incremental HTML content and synchronized narration text.
+
+    Attributes:
+        html (str): Incremental HTML content for this step
+        narration (str): Narration text for TTS (text-to-speech)
+        step_number (int): Step sequence number (starting from 1)
+        is_complete (bool): Whether this is the final step
+        metadata (dict[str, Any]): Additional metadata for this step
+    """
+
+    html: str
+    narration: str
+    step_number: int
+    is_complete: bool
+    metadata: dict[str, Any] = field(default_factory=dict)

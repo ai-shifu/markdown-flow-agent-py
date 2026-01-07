@@ -16,6 +16,7 @@ from .constants import (
     CONTEXT_BUTTON_OPTIONS_TEMPLATE,
     CONTEXT_QUESTION_TEMPLATE,
     DEFAULT_BASE_SYSTEM_PROMPT,
+    DEFAULT_BLACKBOARD_PROMPT,
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
     INPUT_EMPTY_ERROR,
@@ -35,7 +36,8 @@ from .constants import (
     VALIDATION_TASK_TEMPLATE,
     VALIDATION_TASK_WITH_LANGUAGE,
 )
-from .enums import BlockType
+from .blackboard import process_blackboard_stream
+from .enums import BlockType, ProcessingMode
 from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
 from .models import Block
@@ -71,6 +73,8 @@ class MarkdownFlow:
     _model: str | None
     _temperature: float | None
     _preprocessor: CodeBlockPreprocessor
+    _processing_mode: ProcessingMode
+    _blackboard_prompt: str | None
 
     def __init__(
         self,
@@ -106,6 +110,8 @@ class MarkdownFlow:
         self._temperature: float | None = None
         self._enable_text_validation: bool = False  # Default: validation disabled for performance
         self._output_language: str | None = None  # Output language control (affects all output scenarios)
+        self._processing_mode: ProcessingMode = ProcessingMode.STANDARD  # Default: standard mode
+        self._blackboard_prompt: str | None = None  # Custom blackboard prompt (uses default if None)
 
         # Preprocess document: extract code blocks and replace with placeholders
         # This is done once during initialization, similar to Go implementation
@@ -202,6 +208,50 @@ class MarkdownFlow:
             Temperature value if set, None otherwise
         """
         return self._temperature
+
+    def set_processing_mode(self, mode: ProcessingMode) -> "MarkdownFlow":
+        """
+        Set processing mode (standard or blackboard).
+
+        Args:
+            mode: Processing mode (ProcessingMode.STANDARD or ProcessingMode.BLACKBOARD)
+
+        Returns:
+            Self for method chaining
+        """
+        self._processing_mode = mode
+        return self
+
+    def get_processing_mode(self) -> ProcessingMode:
+        """
+        Get current processing mode.
+
+        Returns:
+            Current processing mode
+        """
+        return self._processing_mode
+
+    def set_blackboard_prompt(self, prompt: str | None) -> "MarkdownFlow":
+        """
+        Set custom blackboard prompt.
+
+        Args:
+            prompt: Custom blackboard prompt (None to use default)
+
+        Returns:
+            Self for method chaining
+        """
+        self._blackboard_prompt = prompt
+        return self
+
+    def get_blackboard_prompt(self) -> str | None:
+        """
+        Get custom blackboard prompt.
+
+        Returns:
+            Custom blackboard prompt if set, None otherwise (will use default)
+        """
+        return self._blackboard_prompt
 
     def set_text_validation_enabled(self, enabled: bool) -> "MarkdownFlow":
         """
@@ -407,6 +457,15 @@ class MarkdownFlow:
         Returns:
             LLMResult or Generator[LLMResult, None, None]
         """
+        # Priority check for processing mode (blackboard mode)
+        if self._processing_mode == ProcessingMode.BLACKBOARD:
+            block = self.get_block(block_index)
+            if block.block_type != BlockType.CONTENT:
+                raise ValueError("Blackboard mode only supports content blocks")
+            if mode != ProcessMode.STREAM:
+                raise ValueError("Blackboard mode only supports stream mode")
+            return self._process_blackboard_stream(block_index, context, variables)
+
         # Process base_system_prompt variable replacement
         if self._base_system_prompt:
             self._base_system_prompt = replace_variables_in_text(self._base_system_prompt, variables or {})
@@ -481,6 +540,53 @@ class MarkdownFlow:
         content = self._preprocessor.restore_code_blocks(content)
 
         return LLMResult(content=content)
+
+    def _process_blackboard_stream(
+        self,
+        block_index: int,
+        context: list[dict[str, str]] | None,
+        variables: dict[str, str | list[str]] | None,
+    ) -> Generator[LLMResult, None, None]:
+        """
+        Process blackboard mode as a streaming generator.
+
+        Args:
+            block_index: Block index
+            context: Context message list
+            variables: Variable mappings
+
+        Yields:
+            LLMResult with blackboard step metadata
+
+        Raises:
+            ValueError: If LLM provider is not set or processing fails
+        """
+        if not self._llm_provider:
+            raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
+
+        # Truncate context to configured maximum length
+        truncated_context = self._truncate_context(context)
+
+        # Build base messages with context
+        base_messages = self._build_content_messages(block_index, variables, truncated_context)
+
+        # Get blackboard prompt (custom or default)
+        blackboard_prompt = self._blackboard_prompt or DEFAULT_BLACKBOARD_PROMPT
+
+        # Process blackboard stream (base_messages is already in dict format)
+        for result_dict in process_blackboard_stream(
+            llm_provider=self._llm_provider,
+            base_messages=base_messages,
+            blackboard_prompt=blackboard_prompt,
+            model=self._model,
+            temperature=self._temperature,
+        ):
+            # Convert to LLMResult with metadata
+            yield LLMResult(
+                content=result_dict["content"],
+                metadata=result_dict["metadata"],
+                prompt=base_messages[-1]["content"],
+            )
 
     def _process_interaction_render(
         self,

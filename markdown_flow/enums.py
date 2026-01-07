@@ -28,3 +28,14 @@ class BlockType(Enum):
     CONTENT = "content"  # Regular document content blocks
     INTERACTION = "interaction"  # Interactive blocks requiring user input
     PRESERVED_CONTENT = "preserved_content"  # Special blocks: inline !===content!=== or multiline !===...!===
+
+
+class ProcessingMode(Enum):
+    """
+    Processing mode enumeration.
+
+    Defines the processing paradigm for MarkdownFlow document processing.
+    """
+
+    STANDARD = "standard"  # Standard mode: normal content processing
+    BLACKBOARD = "blackboard"  # Blackboard mode: incremental HTML + narration output

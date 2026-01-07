@@ -50,8 +50,9 @@ Import Guide:
 
 # Import core classes and enums
 from .core import MarkdownFlow
-from .enums import BlockType, InputType
+from .enums import BlockType, InputType, ProcessingMode
 from .llm import LLMProvider, LLMResult, ProcessMode
+from .models import BlackboardStep
 from .parser import (
     InteractionParser,
     InteractionType,
@@ -75,6 +76,9 @@ __all__ = [
     "BlockType",
     "InputType",
     "InteractionType",
+    "ProcessingMode",
+    # Data models
+    "BlackboardStep",
     # Main utility functions
     "generate_smart_validation_template",
     "extract_interaction_question",
@@ -82,5 +86,5 @@ __all__ = [
     "replace_variables_in_text",
 ]
 
-__version__ = "0.2.43"
-# __version__ = "0.2.39-alpha-5"
+# __version__ = "0.2.43"
+__version__ = "0.2.43-alpha-10"
