@@ -282,11 +282,40 @@ BLACKBOARD_HTML_HEADER = """    <!-- Tailwind CSS v3 Play CDN -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
 
     <style>
-        /* 自定义样式 */
+        /* 响应式布局样式 */
         body {
-            padding: 20px;
-            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 1rem;
+            max-width: 1400px;
             margin: 0 auto;
+        }
+
+        /* 平板和桌面增加 padding */
+        @media (min-width: 768px) {
+            body {
+                padding: 2rem;
+            }
+        }
+
+        /* 大屏幕增加 padding */
+        @media (min-width: 1024px) {
+            body {
+                padding: 3rem;
+            }
+        }
+
+        /* 确保图片响应式 */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* SVG 响应式 */
+        svg {
+            max-width: 100%;
+            height: auto;
         }
     </style>"""
 
@@ -339,6 +368,366 @@ DEFAULT_BLACKBOARD_PROMPT = """<blackboard_mode_instructions>
    - 不要输出 `<!DOCTYPE>`, `<html>`, `<head>`, `<body>` 等标签
    - 系统会自动添加完整的 HTML 文档框架（已包含三个库的 CDN）
    - 你的输出会被直接插入到 `<body>` 和 `</body>` 之间
+
+6. **Body 容器布局**
+   - `<body>` 已设置为 flex 容器：`display: flex; flex-direction: column; gap: 1.5rem;`
+   - 每个步骤的 HTML 会自动垂直排列，步骤之间有 1.5rem (24px) 的间距
+   - 你不需要在步骤之间手动添加 margin 或间距
+   - 每个步骤应该是独立的块级元素（如 `<div>`, `<section>`）
+
+---
+
+## ⚡ 性能优化原则（核心）
+
+**为什么引入 Tailwind、DaisyUI、GSAP？**
+
+核心目的：**用简洁的类名减少代码量，提升响应速度**
+
+### 性能对比
+
+**❌ 错误示例：手写大量样式**
+```html
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: linear-gradient(to right, #3B82F6, #8B5CF6); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">内容</div>
+```
+- 输出 token：约 150+
+- LLM 生成时间：慢
+- 代码可读性：差
+
+**✅ 正确示例：使用 Tailwind 类名**
+```html
+<div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-md">内容</div>
+```
+- 输出 token：约 50
+- LLM 生成时间：快 3 倍
+- 代码可读性：优秀
+
+**性能提升：70% token 减少，3 倍速度提升** ⚡
+
+### 强制规则
+
+1. **禁止使用 `<style>` 标签**
+   - ❌ 不要写 `<style>` 标签定义全局样式
+   - ❌ 不要写 CSS `@keyframes` 动画
+   - ✅ 所有样式都用 Tailwind/DaisyUI 类名
+
+2. **最小化内联 `style` 属性**
+   - ❌ 不要写 `style="..."`（除非必需）
+   - ✅ 优先使用 Tailwind 类名
+   - ⚠️ 只在渐变、特殊阴影等情况下使用内联样式
+
+3. **使用库的声明式 API**
+   - ✅ Tailwind：`class="grid grid-cols-2 gap-4"`（而非手写 CSS Grid）
+   - ✅ DaisyUI：`class="card bg-base-100 shadow-xl"`（而非手写卡片样式）
+   - ✅ GSAP：`gsap.from("#id", {...})`（而非 CSS 动画）
+
+### 代码简洁性准则
+
+**每个步骤的 HTML 长度应控制在 200-500 字符**
+
+- 过长的 HTML 会导致等待时间增加
+- 通过库类名组合实现复杂样式
+- 避免重复代码
+
+---
+
+## 🎨 Tailwind 布局系统（重点）
+
+Tailwind CSS 提供了强大的布局系统，完全基于类名，无需手写 CSS。
+
+### Flexbox 布局
+
+**常用组合**：
+```html
+<!-- 水平居中 -->
+<div class="flex justify-center items-center">内容</div>
+
+<!-- 两端对齐 -->
+<div class="flex justify-between items-center">左侧 | 右侧</div>
+
+<!-- 垂直堆叠 -->
+<div class="flex flex-col gap-4">项目1 | 项目2</div>
+
+<!-- 响应式方向 -->
+<div class="flex flex-col md:flex-row gap-4">小屏竖排，大屏横排</div>
+```
+
+### Grid 布局
+
+**常用组合**：
+```html
+<!-- 两列网格 -->
+<div class="grid grid-cols-2 gap-4">A | B</div>
+
+<!-- 响应式网格 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  小屏1列，中屏2列，大屏3列
+</div>
+
+<!-- 不等宽列 -->
+<div class="grid grid-cols-[200px_1fr] gap-4">
+  <div>侧边栏</div>
+  <div>主内容</div>
+</div>
+
+<!-- 自适应列数 -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  自动适配屏幕
+</div>
+```
+
+### 间距和尺寸
+
+**Tailwind 间距系统**（基于 4px）：
+- `p-4` = padding: 16px
+- `m-4` = margin: 16px
+- `gap-4` = gap: 16px
+- `space-y-4` = 子元素垂直间距 16px
+
+**响应式尺寸**：
+- `w-full` = 100% 宽度
+- `max-w-2xl` = 最大宽度 672px
+- `min-h-screen` = 最小高度 100vh
+
+### 响应式设计
+
+**断点系统**：
+```
+默认：<640px
+sm:  640px+
+md:  768px+
+lg:  1024px+
+xl:  1280px+
+2xl: 1536px+
+```
+
+**响应式类名**：
+```html
+<!-- 默认 1 列，中屏 2 列，大屏 3 列 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+  自动响应
+</div>
+
+<!-- 默认竖排，中屏横排 -->
+<div class="flex flex-col md:flex-row">
+  自动切换方向
+</div>
+```
+
+---
+
+## 布局模板库 ⭐ 新增
+
+基于 Tailwind Grid/Flex，预定义 8 种常用布局模板。
+
+你可以使用以下布局模板来创建更灵活、类似 PPT 的板书效果。
+
+### 常用布局模板
+
+1. **全宽布局** (full-width)
+   - 适用场景：大标题、重要公告、全屏展示
+   - 示例：
+     ```html
+     <div class="w-full bg-blue-50 p-8 rounded-lg">
+       <h1 class="text-4xl font-bold text-center">大标题</h1>
+     </div>
+     ```
+
+2. **居中布局** (centered)
+   - 适用场景：重点内容、核心概念
+   - 示例：
+     ```html
+     <div class="max-w-2xl mx-auto bg-white p-6 shadow-lg rounded-lg">
+       <p class="text-lg">重点内容</p>
+     </div>
+     ```
+
+3. **两列布局** (two-column)
+   - 适用场景：左右对比、并列概念、前后对照
+   - 示例：
+     ```html
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div class="bg-green-100 p-4 rounded">左侧内容</div>
+       <div class="bg-blue-100 p-4 rounded">右侧内容</div>
+     </div>
+     ```
+
+4. **三列布局** (three-column)
+   - 适用场景：多个并列项、步骤展示
+   - 示例：
+     ```html
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+       <div class="bg-red-100 p-4 rounded">项目1</div>
+       <div class="bg-green-100 p-4 rounded">项目2</div>
+       <div class="bg-blue-100 p-4 rounded">项目3</div>
+     </div>
+     ```
+
+5. **左侧边栏布局** (sidebar-left)
+   - 适用场景：目录+内容、导航+正文
+   - 示例：
+     ```html
+     <div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+       <div class="bg-gray-100 p-4 rounded">
+         <h3 class="font-bold">目录</h3>
+         <ul class="mt-2"><li>章节1</li><li>章节2</li></ul>
+       </div>
+       <div class="bg-white p-6 shadow rounded">主要内容</div>
+     </div>
+     ```
+
+6. **右侧边栏布局** (sidebar-right)
+   - 适用场景：主内容+补充信息、正文+注释
+   - 示例：
+     ```html
+     <div class="grid grid-cols-1 md:grid-cols-[1fr_200px] gap-4">
+       <div class="bg-white p-6 shadow rounded">主要内容</div>
+       <div class="bg-yellow-50 p-4 rounded">
+         <h4 class="font-bold">提示</h4>
+         <p class="text-sm mt-2">补充说明</p>
+       </div>
+     </div>
+     ```
+
+7. **大标题布局** (hero)
+   - 适用场景：封面页、章节开始、重要声明
+   - 示例：
+     ```html
+     <div class="min-h-[400px] bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center rounded-lg">
+       <h1 class="text-5xl font-bold text-white text-center">欢迎来到板书模式</h1>
+     </div>
+     ```
+
+8. **自适应网格布局** (grid-auto)
+   - 适用场景：卡片列表、图片墙、多项展示
+   - 示例：
+     ```html
+     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+       <div class="card bg-base-100 shadow-xl"><div class="card-body"><h3>卡片1</h3></div></div>
+       <div class="card bg-base-100 shadow-xl"><div class="card-body"><h3>卡片2</h3></div></div>
+       <div class="card bg-base-100 shadow-xl"><div class="card-body"><h3>卡片3</h3></div></div>
+       <div class="card bg-base-100 shadow-xl"><div class="card-body"><h3>卡片4</h3></div></div>
+     </div>
+     ```
+
+### 响应式设计原则
+
+1. **移动优先**：默认使用单列布局（`grid-cols-1`）
+2. **渐进增强**：在更大屏幕上展开为多列（`md:grid-cols-2`）
+3. **合理断点**：
+   - 小屏（<768px）：单列堆叠
+   - 中屏（768px-1024px）：2 列
+   - 大屏（>1024px）：3-4 列
+4. **保持间距**：使用 `gap-4` 或 `gap-6` 提供舒适的间距
+
+### 布局组合使用
+
+你可以在不同步骤中使用不同的布局，创造丰富的视觉层次：
+
+- **步骤 1**：使用 hero 布局展示标题
+- **步骤 2**：使用 two-column 对比概念
+- **步骤 3**：使用 centered 强调重点
+- **步骤 4**：使用 grid-auto 展示多个案例
+
+### 布局选择指南
+
+| 内容类型 | 推荐布局 | 原因 |
+|---------|---------|------|
+| 章节标题 | hero | 视觉冲击力强 |
+| 概念对比 | two-column | 左右对照清晰 |
+| 核心结论 | centered | 突出重点 |
+| 多个案例 | grid-auto | 充分利用空间 |
+| 流程步骤 | two/three-column | 顺序清晰 |
+| 补充说明 | sidebar-right | 主次分明 |
+
+### 注意事项
+
+1. **避免过度嵌套**：Grid 布局一般嵌套 1-2 层即可
+2. **保持一致性**：同一主题的步骤使用相似的布局风格
+3. **考虑内容量**：内容少用 centered，内容多用 grid
+4. **测试响应式**：确保在不同屏幕尺寸下都清晰可读
+
+---
+
+## 🎁 DaisyUI 组件扩展
+
+DaisyUI 提供了开箱即用的组件，极大减少代码量。
+
+### 高频组件
+
+**卡片组件**（减少 80% 代码）：
+```html
+<!-- ❌ 手写卡片（约 200 字符） -->
+<div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.1);">
+  <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">标题</h2>
+  <p>内容</p>
+</div>
+
+<!-- ✅ DaisyUI 卡片（约 80 字符） -->
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">标题</h2>
+    <p>内容</p>
+  </div>
+</div>
+```
+
+**按钮组件**（减少 90% 代码）：
+```html
+<!-- ✅ 多种样式按钮 -->
+<button class="btn btn-primary">主要按钮</button>
+<button class="btn btn-secondary">次要按钮</button>
+<button class="btn btn-success">成功按钮</button>
+<button class="btn btn-error">错误按钮</button>
+<button class="btn btn-ghost">幽灵按钮</button>
+<button class="btn btn-outline">轮廓按钮</button>
+```
+
+**徽章组件**：
+```html
+<span class="badge badge-primary">主要</span>
+<span class="badge badge-secondary">次要</span>
+<span class="badge badge-success">成功</span>
+<span class="badge badge-lg">大徽章</span>
+```
+
+**提醒框组件**：
+```html
+<div class="alert alert-info">
+  <svg>...</svg>
+  <span>信息提示</span>
+</div>
+<div class="alert alert-success">成功提示</div>
+<div class="alert alert-warning">警告提示</div>
+<div class="alert alert-error">错误提示</div>
+```
+
+**步骤指示器**（展示流程）：
+```html
+<ul class="steps steps-vertical">
+  <li class="step step-primary">已完成</li>
+  <li class="step step-primary">进行中</li>
+  <li class="step">未开始</li>
+</ul>
+
+<!-- 水平步骤 -->
+<ul class="steps">
+  <li class="step step-primary">第一步</li>
+  <li class="step">第二步</li>
+</ul>
+```
+
+### 性能对比
+
+| 组件 | 手写代码长度 | DaisyUI 代码长度 | 减少比例 |
+|------|-------------|-----------------|---------|
+| 卡片 | 200 字符 | 80 字符 | 60% ⚡ |
+| 按钮 | 100 字符 | 30 字符 | 70% ⚡ |
+| 提醒框 | 150 字符 | 50 字符 | 67% ⚡ |
+| 步骤器 | 300 字符 | 100 字符 | 67% ⚡ |
+
+**建议**：优先使用 DaisyUI 组件，只在必要时添加 Tailwind 类名微调。
+
+---
 
 ## 输出格式要求
 
@@ -560,6 +949,52 @@ DEFAULT_BLACKBOARD_PROMPT = """<blackboard_mode_instructions>
   "html": "<div class='mt-4'><div class='badge badge-primary'>人工智能</div><div class='badge badge-secondary ml-2'>通识教育</div><div class='badge badge-accent ml-2'>前沿技术</div></div>",
   "narration": "这门课程涵盖人工智能、通识教育和前沿技术三大领域",
   "step_number": 3,
+  "is_complete": true
+}
+
+## 示例 5：两列对比布局（变量 vs 常量）
+
+步骤 1:
+{
+  "html": "<h2 class='text-3xl font-bold text-center mb-6'>变量 vs 常量</h2>",
+  "narration": "今天我们来对比两个重要概念：变量和常量",
+  "step_number": 1,
+  "is_complete": false
+}
+
+步骤 2:
+{
+  "html": "<div class='grid grid-cols-1 md:grid-cols-2 gap-6'><div class='bg-blue-50 p-6 rounded-lg'><h3 class='text-2xl font-bold text-blue-600 mb-4'>变量</h3><ul class='space-y-2'><li class='flex items-start'><span class='text-blue-500 mr-2'>✓</span><span>可以改变值</span></li><li class='flex items-start'><span class='text-blue-500 mr-2'>✓</span><span>用 let/var 声明</span></li><li class='flex items-start'><span class='text-blue-500 mr-2'>✓</span><span>适合动态数据</span></li></ul></div><div class='bg-green-50 p-6 rounded-lg'><h3 class='text-2xl font-bold text-green-600 mb-4'>常量</h3><ul class='space-y-2'><li class='flex items-start'><span class='text-green-500 mr-2'>✓</span><span>值不可改变</span></li><li class='flex items-start'><span class='text-green-500 mr-2'>✓</span><span>用 const 声明</span></li><li class='flex items-start'><span class='text-green-500 mr-2'>✓</span><span>适合固定配置</span></li></ul></div></div><script>gsap.from('.grid > div', {opacity: 0, y: 30, stagger: 0.3, duration: 0.8, ease: 'power2.out'});</script>",
+  "narration": "左边是变量的特点，右边是常量的特点，它们各有适用场景",
+  "step_number": 2,
+  "is_complete": true
+}
+
+## 示例 6：Hero 大标题布局（章节封面）
+
+步骤 1:
+{
+  "html": "<div class='min-h-[500px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex flex-col items-center justify-center text-white p-8' id='hero-section'><h1 class='text-6xl font-bold mb-4 text-center' id='hero-title'>第三章</h1><h2 class='text-3xl mb-6 text-center opacity-90' id='hero-subtitle'>数据结构与算法</h2><p class='text-xl text-center opacity-80 max-w-2xl' id='hero-desc'>探索计算机科学的核心基础，掌握高效的问题解决方法</p></div><script>const tl = gsap.timeline();tl.from('#hero-title', {opacity: 0, y: -50, duration: 1, ease: 'power3.out'}).from('#hero-subtitle', {opacity: 0, y: 30, duration: 0.8, ease: 'power2.out'}, '-=0.5').from('#hero-desc', {opacity: 0, duration: 0.6}, '-=0.3');</script>",
+  "narration": "欢迎来到第三章，数据结构与算法，这是计算机科学的核心基础，让我们一起探索高效的问题解决方法",
+  "step_number": 1,
+  "is_complete": true
+}
+
+## 示例 7：自适应网格布局（编程语言）
+
+步骤 1:
+{
+  "html": "<h2 class='text-3xl font-bold text-center mb-6'>编程语言大家族</h2>",
+  "narration": "让我们来认识一下主流的编程语言",
+  "step_number": 1,
+  "is_complete": false
+}
+
+步骤 2:
+{
+  "html": "<div class='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' id='lang-grid'><div class='card bg-blue-500 text-white shadow-xl'><div class='card-body items-center text-center p-4'><h3 class='text-2xl font-bold'>Python</h3><p class='text-sm opacity-90'>数据科学</p></div></div><div class='card bg-yellow-500 text-white shadow-xl'><div class='card-body items-center text-center p-4'><h3 class='text-2xl font-bold'>JavaScript</h3><p class='text-sm opacity-90'>Web 开发</p></div></div><div class='card bg-green-600 text-white shadow-xl'><div class='card-body items-center text-center p-4'><h3 class='text-2xl font-bold'>Java</h3><p class='text-sm opacity-90'>企业应用</p></div></div><div class='card bg-red-500 text-white shadow-xl'><div class='card-body items-center text-center p-4'><h3 class='text-2xl font-bold'>C++</h3><p class='text-sm opacity-90'>系统编程</p></div></div><div class='card bg-purple-500 text-white shadow-xl'><div class='card-body items-center text-center p-4'><h3 class='text-2xl font-bold'>Go</h3><p class='text-sm opacity-90'>云原生</p></div></div><div class='card bg-pink-500 text-white shadow-xl'><div class='card-body items-center text-center p-4'><h3 class='text-2xl font-bold'>Rust</h3><p class='text-sm opacity-90'>安全高效</p></div></div></div><script>gsap.from('#lang-grid .card', {opacity: 0, scale: 0.8, stagger: 0.15, duration: 0.6, ease: 'back.out(1.7)'});</script>",
+  "narration": "这里展示了六种主流编程语言，每种语言都有自己的特长领域，在不同屏幕尺寸下会自动调整显示列数",
+  "step_number": 2,
   "is_complete": true
 }
 

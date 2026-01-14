@@ -20,7 +20,6 @@ from .parser.json_stream import JSONStreamParser, validate_and_parse_json
 def process_blackboard_stream(
     llm_provider: LLMProvider,
     base_messages: list[dict[str, str]],
-    blackboard_prompt: Optional[str] = None,
     model: Optional[str] = None,
     temperature: Optional[float] = None,
 ) -> Generator[dict[str, Any], None, None]:
@@ -31,8 +30,7 @@ def process_blackboard_stream(
 
     Args:
         llm_provider: LLM provider instance
-        base_messages: Base messages to send to LLM (list of dicts with 'role' and 'content')
-        blackboard_prompt: Custom blackboard prompt (uses default if None)
+        base_messages: Base messages to send to LLM (already includes blackboard prompt in system message)
         model: Optional model override
         temperature: Optional temperature override
 
@@ -76,19 +74,13 @@ def process_blackboard_stream(
         },
     }
 
-    # Use default prompt if not provided
-    prompt = blackboard_prompt or DEFAULT_BLACKBOARD_PROMPT
-
-    # Append blackboard prompt as system message
-    messages = base_messages + [{"role": "system", "content": prompt}]
-
     # Initialize JSON stream parser
     json_parser = JSONStreamParser()
 
     try:
-        # Start LLM stream
+        # Start LLM stream (base_messages already includes blackboard prompt)
         for chunk in llm_provider.stream(
-            messages=messages,
+            messages=base_messages,
             model=model,
             temperature=temperature,
         ):
@@ -157,9 +149,13 @@ class BlackboardProcessor:
     Provides a cleaner interface for blackboard mode processing with
     configurable settings.
 
+    Note:
+        The blackboard_prompt parameter is deprecated. Blackboard prompt should now
+        be included in the base_messages system message with <blackboard_mode> tags.
+        Use MarkdownFlow.process_blackboard() for automatic prompt management.
+
     Example:
         >>> processor = BlackboardProcessor(llm_provider)
-        >>> processor.set_prompt("Custom blackboard instructions...")
         >>> for result in processor.process(messages):
         ...     print(result["metadata"]["html"])
         ...     print(result["metadata"]["narration"])
@@ -250,7 +246,6 @@ class BlackboardProcessor:
         return process_blackboard_stream(
             llm_provider=self.llm_provider,
             base_messages=messages,
-            blackboard_prompt=self.blackboard_prompt,
             model=model or self.model,
             temperature=temperature or self.temperature,
         )

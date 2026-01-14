@@ -567,17 +567,19 @@ class MarkdownFlow:
         # Truncate context to configured maximum length
         truncated_context = self._truncate_context(context)
 
-        # Build base messages with context
-        base_messages = self._build_content_messages(block_index, variables, truncated_context)
+        # Build base messages with context and blackboard mode
+        # Note: Blackboard prompt is now included in system message via processing_mode parameter
+        base_messages = self._build_content_messages(
+            block_index,
+            variables,
+            truncated_context,
+            processing_mode=ProcessingMode.BLACKBOARD
+        )
 
-        # Get blackboard prompt (custom or default)
-        blackboard_prompt = self._blackboard_prompt or DEFAULT_BLACKBOARD_PROMPT
-
-        # Process blackboard stream (base_messages is already in dict format)
+        # Process blackboard stream (blackboard prompt is already in system message)
         for result_dict in process_blackboard_stream(
             llm_provider=self._llm_provider,
             base_messages=base_messages,
-            blackboard_prompt=blackboard_prompt,
             model=self._model,
             temperature=self._temperature,
         ):
@@ -1119,8 +1121,19 @@ class MarkdownFlow:
         block_index: int,
         variables: dict[str, str | list[str]] | None,
         context: list[dict[str, str]] | None = None,
+        processing_mode: ProcessingMode = ProcessingMode.STANDARD,
     ) -> list[dict[str, str]]:
-        """Build content block messages."""
+        """Build content block messages.
+
+        Args:
+            block_index: Block index
+            variables: Variable mappings
+            context: Context message list
+            processing_mode: Processing mode (STANDARD or BLACKBOARD)
+
+        Returns:
+            List of messages with system and user messages
+        """
         block = self.get_block(block_index)
         block_content = block.content
 
@@ -1144,7 +1157,7 @@ class MarkdownFlow:
         messages = []
 
         # Build system message with XML tags
-        # Priority order: output_language_top > preserve_or_translate > base_system > document_prompt > output_language_bottom
+        # Priority order: output_language_top > preserve_or_translate > base_system > blackboard_mode > document_prompt > output_language_bottom
         system_parts = []
 
         # 1. Output language anchoring (top - highest priority)
@@ -1160,11 +1173,16 @@ class MarkdownFlow:
         if self._base_system_prompt:
             system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
 
-        # 4. Document prompt (if exists and non-empty)
+        # 4. Blackboard mode prompt (if in blackboard mode)
+        if processing_mode == ProcessingMode.BLACKBOARD:
+            blackboard_prompt = self._blackboard_prompt or DEFAULT_BLACKBOARD_PROMPT
+            system_parts.append(f"<blackboard_mode>\n{blackboard_prompt}\n</blackboard_mode>")
+
+        # 5. Document prompt (if exists and non-empty)
         if self._document_prompt:
             system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
 
-        # 5. Output language anchoring (bottom - final reminder)
+        # 6. Output language anchoring (bottom - final reminder)
         if self._output_language:
             system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
 
