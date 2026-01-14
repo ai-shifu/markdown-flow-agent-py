@@ -6,6 +6,7 @@ handling incomplete chunks and nested structures.
 """
 
 import json
+import re
 from typing import Optional
 
 
@@ -165,6 +166,73 @@ class JSONStreamParser:
         self._buffer = ""
 
 
+def sanitize_json_string(json_str: str) -> str:
+    """
+    Sanitize a JSON string by removing or escaping invalid control characters.
+
+    Python's json.loads() does not allow unescaped control characters (ASCII 0-31)
+    in string values. This function:
+    1. Removes invalid control characters (0x00-0x08, 0x0B, 0x0C, 0x0E-0x1F)
+    2. Escapes valid but unescaped control characters (\t, \n, \r) in string values
+
+    Args:
+        json_str: Raw JSON string that may contain invalid control characters
+
+    Returns:
+        Sanitized JSON string with control characters properly handled
+
+    Examples:
+        >>> sanitize_json_string('{"text":"Hello\\x00World"}')
+        '{"text":"HelloWorld"}'
+        >>> sanitize_json_string('{"text":"Line1\\nLine2"}')  # Already escaped
+        '{"text":"Line1\\nLine2"}'
+        >>> sanitize_json_string('{"text":"Line1\nLine2"}')  # Literal newline
+        '{"text":"Line1\\nLine2"}'
+    """
+    # Step 1: Remove invalid control characters (except \t, \n, \r)
+    # Pattern: matches control characters except tab (0x09), newline (0x0A), carriage return (0x0D)
+    json_str = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F]', '', json_str)
+
+    # Step 2: Escape valid but unescaped control characters in string values
+    # We need to escape literal \t, \n, \r that are not already escaped
+    result = []
+    in_string = False
+    escape_next = False
+
+    for i, ch in enumerate(json_str):
+        # Handle escape sequences
+        if escape_next:
+            result.append(ch)
+            escape_next = False
+            continue
+
+        if ch == '\\':
+            result.append(ch)
+            escape_next = True
+            continue
+
+        # Track string boundaries
+        if ch == '"':
+            result.append(ch)
+            in_string = not in_string
+            continue
+
+        # Escape literal control characters inside strings
+        if in_string:
+            if ch == '\n':
+                result.append('\\n')
+            elif ch == '\r':
+                result.append('\\r')
+            elif ch == '\t':
+                result.append('\\t')
+            else:
+                result.append(ch)
+        else:
+            result.append(ch)
+
+    return ''.join(result)
+
+
 def validate_and_parse_json(json_str: str, target_class: Optional[type] = None) -> dict | object:
     """
     Validate and parse a JSON string, optionally converting to a target class.
@@ -192,8 +260,11 @@ def validate_and_parse_json(json_str: str, target_class: Optional[type] = None) 
         >>> validate_and_parse_json('{"a":1,"b":2}', Example)
         Example(a=1, b=2)
     """
+    # Sanitize JSON string to remove invalid control characters
+    sanitized_json_str = sanitize_json_string(json_str)
+
     # Parse JSON
-    data = json.loads(json_str)
+    data = json.loads(sanitized_json_str)
 
     # Convert to target class if specified
     if target_class is not None:

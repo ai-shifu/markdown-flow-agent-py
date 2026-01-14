@@ -92,6 +92,7 @@ class BlackboardStep:
         narration (str): Narration text for TTS (text-to-speech)
         step_number (int): Step sequence number (starting from 1)
         is_complete (bool): Whether this is the final step
+        type (str): Step type - "head" for header content, "body" for body content (default: "body")
         metadata (dict[str, Any]): Additional metadata for this step
     """
 
@@ -99,4 +100,5 @@ class BlackboardStep:
     narration: str
     step_number: int
     is_complete: bool
+    type: str = "body"
     metadata: dict[str, Any] = field(default_factory=dict)

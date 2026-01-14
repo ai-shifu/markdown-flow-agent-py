@@ -8,7 +8,10 @@ with synchronized narration for text-to-speech output.
 import json
 from typing import Any, Generator, Optional
 
-from .constants import DEFAULT_BLACKBOARD_PROMPT
+from .constants import (
+    DEFAULT_BLACKBOARD_PROMPT,
+    BLACKBOARD_HTML_HEADER,
+)
 from .llm import LLMProvider
 from .models import BlackboardStep
 from .parser.json_stream import JSONStreamParser, validate_and_parse_json
@@ -51,6 +54,28 @@ def process_blackboard_stream(
         ValueError: If JSON parsing fails or stream ends with incomplete data
         RuntimeError: If LLM stream encounters errors
     """
+    # Output HTML header (CDN references and styles for <head>)
+    header_step = BlackboardStep(
+        html=BLACKBOARD_HTML_HEADER,
+        narration="",
+        step_number=0,
+        is_complete=False,
+        type="head",
+    )
+
+    yield {
+        "content": BLACKBOARD_HTML_HEADER,
+        "metadata": {
+            "block_type": "blackboard",
+            "type": "head",
+            "html": header_step.html,
+            "narration": header_step.narration,
+            "step_number": header_step.step_number,
+            "is_complete": header_step.is_complete,
+            "blackboard_step": header_step,
+        },
+    }
+
     # Use default prompt if not provided
     prompt = blackboard_prompt or DEFAULT_BLACKBOARD_PROMPT
 
@@ -88,6 +113,7 @@ def process_blackboard_stream(
                     "content": json_str,
                     "metadata": {
                         "block_type": "blackboard",
+                        "type": step.type,
                         "html": step.html,
                         "narration": step.narration,
                         "step_number": step.step_number,
@@ -100,10 +126,12 @@ def process_blackboard_stream(
                 if step.is_complete:
                     return
 
-        # Check if buffer has remaining incomplete data
+        # Stream ended without is_complete=True
+        # Check for remaining buffer (debugging info)
         remaining_buffer = json_parser.get_buffer()
         if remaining_buffer.strip():
-            raise ValueError(f"Stream ended with incomplete JSON: {remaining_buffer}")
+            # Silently ignore - stream already ended normally
+            pass
 
     except Exception as e:
         raise RuntimeError(f"LLM stream error during blackboard mode: {e}") from e

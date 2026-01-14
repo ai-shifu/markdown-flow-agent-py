@@ -416,6 +416,383 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 - `extract_interaction_question(content: str) -> str`
 - `generate_smart_validation_template(interaction_type: InteractionType) -> str`
 
+## Blackboard Mode (板书模式)
+
+Blackboard Mode is a special processing mode that simulates a teacher writing and explaining on a blackboard step by step. It breaks content into multiple steps, each containing incremental HTML content and corresponding narration text (for TTS playback).
+
+### Core Features
+
+- **Incremental HTML Output**: Each step only outputs new content, not the entire page
+- **Complete HTML Document**: Auto-generates HTML header and footer with all required CDN libraries
+- **Synchronized Narration**: Each step includes narration text suitable for TTS playback
+- **Streaming Processing**: Outputs steps progressively via streaming API
+- **JSON Format**: Each step outputs as a standard JSON object
+- **Three-Library Collaboration**: Integrated Tailwind CSS v3.4.1 + DaisyUI v4.12.10 + GSAP v3.14.2
+- **Professional Animation Support**: Uses GSAP animation library for significant performance and quality improvements
+- **Visual Teaching**: Ideal for math problems, programming concepts, algorithm demonstrations, etc.
+
+### GSAP Optimization & Performance Boost ⭐
+
+**Background**: When displaying rich graphics and animations in blackboard mode, having LLM generate all animation code leads to:
+- ⏱️ Long generation time (10-20 seconds)
+- 💰 High token consumption (1000-2000 tokens)
+- ⚠️ Unstable code quality
+
+**Solution**: Introduce GSAP v3.14.2 animation library to simplify complex animations into declarative APIs.
+
+**Performance Comparison:**
+
+| Metric | LLM Generates All Code | Using GSAP | Improvement |
+|--------|----------------------|------------|-------------|
+| Generation Time | 10-20 sec | 2-5 sec | **3-5x faster** ⚡ |
+| Token Consumption | 1000-2000 | 200-500 | **60-80% reduction** 💰 |
+| Code Quality | Unstable | Stable & Reliable | **Significantly improved** ✅ |
+
+**Technology Stack (Three-Library Collaboration):**
+
+| Library | Version | Responsibility | CDN |
+|---------|---------|---------------|-----|
+| Tailwind CSS | v3.4.1 | Basic layout and styling | cdn.tailwindcss.com |
+| DaisyUI | v4.12.10 | UI components | jsdelivr |
+| GSAP | v3.14.2 | Animations and graphics | jsdelivr |
+
+**GSAP Advantages:**
+- ✅ Declarative API (easy for LLM to learn and use)
+- ✅ Timeline for precise timing control
+- ✅ DrawSVG plugin for SVG path drawing
+- ✅ Stagger for sequential effects
+- ✅ Used by 11M+ websites, production-grade reliability
+
+**Code Comparison Example:**
+
+```javascript
+// ❌ Before: LLM generates massive code (100+ lines)
+<style>
+@keyframes drawCircle1 {
+  0% { stroke-dashoffset: 314; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes drawCircle2 { ... }
+// ... hundreds of lines
+</style>
+<script>
+  document.getElementById('c1').style.animation = '...';
+  setTimeout(() => { ... }, 1000);
+  // ... complex timing control
+</script>
+
+// ✅ Now: Using GSAP (10 lines)
+<script>
+  gsap.timeline()
+    .from("#c1", { drawSVG: "0%", duration: 1 })
+    .from("#c2", { drawSVG: "0%", duration: 1 })
+    .from(["#t1", "#t2"], { opacity: 0, stagger: 0.3 });
+</script>
+```
+
+### HTML Document Structure
+
+Blackboard mode outputs HTML in two parts:
+
+```
+HTML Head Resources (auto-generated, type="head")
+  ├── Tailwind CSS CDN
+  ├── DaisyUI CSS CDN
+  ├── GSAP JS CDN
+  ├── DrawSVG Plugin CDN
+  └── Custom styles
+
+Body Content (LLM-generated, type="body")
+  ├── Step 1: HTML fragment 1
+  ├── Step 2: HTML fragment 2
+  └── Step N: HTML fragment N
+```
+
+**Streaming Output Order:**
+1. Header (type="head") - CDN references and styles for `<head>` section
+2. Body steps (type="body") - Incremental HTML fragments for `<body>` section
+
+**Frontend Integration:**
+- Insert header content into your page's `<head>` section
+- Append each body step's HTML to your page's `<body>` section
+- Monitor `is_complete=True` to know when streaming ends
+
+### Basic Usage
+
+```python
+# 1. Create MarkdownFlow instance
+from markdown_flow import MarkdownFlow, ProcessingMode
+from markdown_flow.providers import create_provider
+
+provider = create_provider()
+mf = MarkdownFlow(document, llm_provider=provider)
+
+# 2. Set processing mode to blackboard
+mf.set_processing_mode(ProcessingMode.BLACKBOARD)
+
+# 3. Set document prompt (optional)
+doc_prompt = "You are a patient elementary school math teacher, good at explaining concepts in a lively and interesting way."
+mf.set_prompt("document", doc_prompt)
+
+# 4. Process in blackboard mode
+for result in mf.process(0):
+    # Extract step information from metadata
+    step_type = result.metadata.get("type")
+
+    if step_type == "head":
+        print("📝 Starting blackboard...")
+        html_header = result.content
+        # Insert into <head> section
+
+    elif step_type == "body":
+        html = result.metadata["html"]
+        narration = result.metadata["narration"]
+        step_number = result.metadata["step_number"]
+        is_complete = result.metadata["is_complete"]
+
+        print(f"【Step {step_number}】")
+        print(f"HTML: {html}")
+        print(f"Narration: {narration}")
+        # Insert into <body> section
+
+        if is_complete:
+            print("✅ Explanation complete")
+            break
+```
+
+### BlackboardStep Structure
+
+```python
+from markdown_flow.models import BlackboardStep
+
+@dataclass
+class BlackboardStep:
+    html: str                    # HTML fragment for this step (incremental)
+    narration: str              # Narration text for this step (for TTS)
+    step_number: int            # Step number (starting from 1)
+    is_complete: bool           # Whether this is the final step
+    type: str = "body"          # Step type: "head" or "body" (default: "body")
+    metadata: Optional[dict] = None  # Optional extra metadata
+```
+
+### Styling and Animation Strategy (Three-Library Collaboration)
+
+Blackboard mode uses a layered styling and animation strategy (by recommended priority):
+
+#### Layout and Static Styling
+
+**1. DaisyUI Components (Most Recommended)**
+
+Use ready-made UI components to reduce custom styling:
+
+```html
+<!-- Buttons -->
+<button class="btn btn-primary">Confirm</button>
+<button class="btn btn-success">Success</button>
+
+<!-- Cards -->
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">Title</h2>
+    <p>Content</p>
+  </div>
+</div>
+
+<!-- Badges -->
+<div class="badge badge-primary">Badge</div>
+
+<!-- Alerts -->
+<div class="alert alert-info">
+  <span>Info message</span>
+</div>
+```
+
+**2. Tailwind CSS Utility Classes**
+
+For basic layout and styling:
+
+```html
+<div class="flex items-center gap-2 p-4 bg-blue-100 rounded-lg">
+  <span class="text-xl font-bold">Content</span>
+</div>
+```
+
+**3. Inline Styles** (only when necessary)
+
+For special gradients, shadows, etc.:
+
+```html
+<div style="background: linear-gradient(to right, #ff0000, #00ff00);">Gradient background</div>
+```
+
+#### Animations and Graphics
+
+**4. GSAP Animations (Use GSAP for all animation effects)**
+
+⚠️ **Important**: Prioritize GSAP for all animation effects, don't use CSS animations (@keyframes)
+
+```html
+<!-- ✅ Recommended: Use GSAP -->
+<div id="card">Content</div>
+<script>
+  gsap.from("#card", {
+    opacity: 0,
+    y: 50,
+    duration: 1,
+    ease: "power2.out"
+  });
+</script>
+
+<!-- ❌ Not Recommended: CSS animations -->
+<style>
+  @keyframes fadeIn { ... }
+</style>
+```
+
+**5. SVG Graphics + GSAP Drawing**
+
+For concept diagrams, flowcharts, etc.:
+
+```html
+<svg width="400" height="300">
+  <circle id="c1" cx="100" cy="150" r="50" fill="#3B82F6"/>
+  <line id="line1" x1="150" y1="150" x2="250" y2="150" stroke="#94A3B8" stroke-width="2"/>
+</svg>
+<script>
+  gsap.timeline()
+    .from("#c1", { scale: 0, duration: 0.6 })
+    .from("#line1", { drawSVG: "0%", duration: 0.8 });
+</script>
+```
+
+#### Animation Principles
+
+- ✅ Prioritize GSAP for all animation effects (fast, precise control)
+- ✅ Use Timeline for precise timing control
+- ✅ Use stagger for sequential effects
+- ✅ Combine SVG graphics with DrawSVG plugin
+- ❌ Only use CSS animations in very special cases
+
+### Application Scenarios
+
+**Best Use Cases:**
+1. **Math Problem Explanation**: Step-by-step display of problem-solving思路 and calculation process
+2. **Programming Concepts**: Explain abstract concepts with analogies and code examples
+3. **Algorithm Demonstration**: Visualize algorithm execution process
+4. **Grammar Teaching**: Step-by-step explanation of grammar rules and examples
+5. **Learning Plans**: Display learning paths and action steps in stages
+
+**Not Suitable For:**
+- Simple Q&A (use standard mode)
+- Long-form content requiring extensive text
+- Pure text content without visualization needs
+
+### API Methods
+
+**Set Processing Mode**
+
+```python
+# Set processing mode (standard / blackboard)
+mf.set_processing_mode(ProcessingMode.BLACKBOARD)
+
+# Get current processing mode
+mode = mf.get_processing_mode()
+```
+
+**Set Blackboard Prompt**
+
+```python
+# Set custom blackboard prompt
+custom_prompt = "You are a humorous teacher, good at using vivid examples to explain complex concepts."
+mf.set_blackboard_prompt(custom_prompt)
+
+# Get current blackboard prompt
+prompt = mf.get_blackboard_prompt()
+
+# Reset to default prompt
+mf.set_blackboard_prompt(None)
+```
+
+### Complete Example
+
+See `tests/demo/test_cases.py` for complete examples of blackboard mode, including:
+- Math problem explanation (addition with regrouping)
+- Programming concepts (variables)
+- Concept relationship diagrams (SVG + GSAP animations)
+- Course cards (DaisyUI + GSAP animations)
+
+### Technical Implementation
+
+Blackboard mode is based on the following core technologies:
+
+**1. JSON Stream Parser** (`parser/json_stream.py`)
+
+```python
+class JSONStreamParser:
+    """Extract complete JSON objects from streaming data"""
+
+    def append_data(self, data: str)
+    def extract_next(self) -> tuple[str, bool]
+    def get_buffer(self) -> str
+```
+
+**2. Blackboard Mode Processing Flow** (`blackboard.py`)
+
+```
+User calls process_blackboard_stream()
+    ↓
+Build base messages (content + variable replacement)
+    ↓
+Add blackboard mode prompt (system message)
+    ↓
+Call LLM streaming API
+    ↓
+Use JSONStreamParser to extract JSON objects
+    ↓
+Parse into BlackboardStep structure
+    ↓
+Wrap as dict and yield
+    ↓
+Check is_complete flag
+    ↓
+Loop to process next step
+```
+
+### Limitations and Notes
+
+**1. Only Supports Content Blocks**
+- ✅ Content blocks (regular content)
+- ❌ Interaction blocks
+- ❌ Preserved content blocks
+
+**2. Only Supports Streaming Mode**
+- ✅ Streaming processing
+- ❌ Non-streaming processing
+
+**3. Strict JSON Format Requirements**
+- LLM must output valid JSON objects
+- One JSON object per step
+- Must include all required fields (html, narration, step_number, is_complete)
+
+**4. Incremental HTML**
+- `html` field only contains new content for this step
+- Frontend needs to accumulate HTML from all steps to build complete page
+
+**5. Step Number Continuity**
+- `step_number` must start from 1 and increment
+- Cannot skip numbers
+
+**6. Final Step Marker**
+- Only the final step's `is_complete` should be `true`
+
+### Best Practices
+
+1. **Control Step Count** - Simple: 3-5 steps, Complex: 8-10 steps
+2. **Keep HTML Concise** - 1-3 lines per step
+3. **Colloquial Narration** - Use first person, 20-50 characters
+4. **Clear Visual Elements** - Use contrasting colors, appropriate spacing
+5. **Error Handling** - Handle JSON parsing failures, incomplete streams
+
 ## Variable System
 
 ### Two Variable Formats

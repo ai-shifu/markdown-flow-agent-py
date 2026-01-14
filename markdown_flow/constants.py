@@ -268,11 +268,77 @@ CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
     f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n可选的预定义选项包括：{{button_options}}\n注意：用户如果选择了这些选项，都应该接受；如果输入了自定义内容，只要是对问题的合理回答即可接受。"
 )
 
+# ========== Blackboard HTML Templates ==========
+
+# Blackboard mode HTML header template
+BLACKBOARD_HTML_HEADER = """    <!-- Tailwind CSS v3 Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- DaisyUI v4.12.10 UI 组件库 -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- GSAP v3.14.2 动画库 -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>
+
+    <style>
+        /* 自定义样式 */
+        body {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+    </style>"""
+
 # ========== Blackboard Mode Constants ==========
 
 # Default blackboard prompt template for incremental HTML + narration output
 DEFAULT_BLACKBOARD_PROMPT = """<blackboard_mode_instructions>
 你现在处于"板书模式"，模拟老师在黑板上逐步书写并讲解的场景。
+
+## 技术栈说明
+
+你可以使用以下前端技术栈（三库协作）：
+
+1. **Tailwind CSS v3（Play CDN）**
+   - 版本：v3.4.1（最新稳定版）
+   - 通过 CDN 已加载：`<script src="https://cdn.tailwindcss.com"></script>`
+   - 支持所有 Tailwind v3 的工具类（spacing, colors, typography, flexbox, grid 等）
+   - 示例：`class="text-2xl font-bold text-blue-600 p-4 rounded-lg"`
+
+2. **DaisyUI v4.12.10（UI 组件库）**
+   - 通过 CDN 已加载：`<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet">`
+   - 基于 Tailwind 的纯 CSS 组件库，无 JS 依赖
+   - 常用组件：
+     - 按钮：`<button class="btn btn-primary">文字</button>`
+     - 卡片：`<div class="card bg-base-100 shadow-xl"><div class="card-body">内容</div></div>`
+     - 徽章：`<span class="badge badge-primary">标签</span>`
+     - 提醒框：`<div class="alert alert-info"><span>提示信息</span></div>`
+   - 完整文档：https://daisyui.com/components/
+
+3. **GSAP v3.14.2（动画库）**
+   - 通过 CDN 已加载：
+     - 核心库：`<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>`
+     - DrawSVG 插件：`<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>`
+   - 功能：动画控制、SVG 绘制、时序管理
+   - 常用 API：
+     - 基础动画：`gsap.from("#id", { opacity: 0, duration: 1 })`
+     - 时间轴：`const tl = gsap.timeline(); tl.from(...).from(...)`
+     - SVG 绘制：`gsap.from("#path", { drawSVG: "0%", duration: 2 })`
+     - 错时效果：`stagger: 0.3` （依次延迟）
+   - 完整文档：https://gsap.com/docs/
+
+4. **三库协作原则**
+   - **Tailwind**：基础布局和样式（flex, grid, spacing, colors）
+   - **DaisyUI**：UI 组件（card, button, alert, badge）
+   - **GSAP**：动画效果（淡入、移动、绘制、时序）
+   - 示例：DaisyUI 卡片 + GSAP 淡入动画
+
+5. **HTML 输出要求**
+   - ⚠️ 重要：你只需要输出 `<body>` 标签内的 HTML 内容
+   - 不要输出 `<!DOCTYPE>`, `<html>`, `<head>`, `<body>` 等标签
+   - 系统会自动添加完整的 HTML 文档框架（已包含三个库的 CDN）
+   - 你的输出会被直接插入到 `<body>` 和 `</body>` 之间
 
 ## 输出格式要求
 
@@ -290,17 +356,79 @@ DEFAULT_BLACKBOARD_PROMPT = """<blackboard_mode_instructions>
 ## HTML 内容规范
 
 1. **增量式输出**：每个步骤的 html 字段只包含本步骤新增的内容，前端会累积显示
-2. **CSS 样式**：
-   - 优先使用 Tailwind CSS CDN 类名（如 text-blue-500, font-bold, p-4）
-   - 也可以使用内联样式（style="color: red;"）
-   - 可以在第一步输出 <style> 标签定义自定义样式
-3. **JavaScript 支持**：
-   - 可以输出 <script> 标签实现动画效果
-   - 仅使用安全的 DOM 操作（querySelector, classList, style 等）
-   - 禁止使用：eval(), Function(), document.write(), fetch(), XMLHttpRequest
-4. **视觉效果**：
+2. **视觉效果**：
    - 使用颜色、大小、动画突出关键信息
    - 适当使用 emoji 增强表现力（如 ✅ ❌ 💡 📝）
+
+### 样式和动画策略（优先级从高到低）
+
+**布局和静态样式：**
+
+1. **最优先：DaisyUI 组件**（推荐，减少自定义样式）
+   ```html
+   <button class="btn btn-primary">确定</button>
+   <div class="card bg-base-100 shadow-xl">
+     <div class="card-body">
+       <h2 class="card-title">标题</h2>
+       <p>内容</p>
+     </div>
+   </div>
+   ```
+
+2. **其次：Tailwind CSS 工具类**
+   ```html
+   <div class="flex items-center gap-2 p-4 bg-blue-100 rounded-lg">
+     <span class="text-xl font-bold">内容</span>
+   </div>
+   ```
+
+3. **再次：内联样式**（仅在必要时使用）
+   ```html
+   <div style="background: linear-gradient(to right, #ff0000, #00ff00);">渐变背景</div>
+   ```
+
+**动画和图形：**
+
+4. **GSAP 动画**（所有动画效果使用 GSAP，不要用 CSS 动画）
+   ```html
+   <!-- ✅ 推荐：使用 GSAP -->
+   <div id="card">内容</div>
+   <script>
+     gsap.from("#card", {
+       opacity: 0,
+       y: 50,
+       duration: 1,
+       ease: "power2.out"
+     });
+   </script>
+
+   <!-- ❌ 不推荐：CSS 动画 -->
+   <style>
+     @keyframes fadeIn { ... }
+   </style>
+   ```
+
+5. **SVG 图形 + GSAP 绘制**（概念图、流程图等）
+   ```html
+   <svg width="400" height="300">
+     <circle id="c1" cx="100" cy="150" r="50" fill="#3B82F6"/>
+     <line id="line1" x1="150" y1="150" x2="250" y2="150" stroke="#94A3B8" stroke-width="2"/>
+   </svg>
+   <script>
+     gsap.timeline()
+       .from("#c1", { scale: 0, duration: 0.6 })
+       .from("#line1", { drawSVG: "0%", duration: 0.8 });
+   </script>
+   ```
+
+⚠️ **动画原则**：
+- 所有动画效果优先使用 GSAP（速度快、控制精确）
+- 只在极特殊情况下使用 CSS 动画
+- SVG 图形必须配合 GSAP 的 DrawSVG 插件
+
+⚠️ **JavaScript 安全规则**：
+- 仅使用安全的 DOM 操作（querySelector, classList, style 等）
+- 禁止使用：eval(), Function(), document.write(), fetch(), XMLHttpRequest
 
 ## narration 文字规范
 
@@ -380,6 +508,58 @@ DEFAULT_BLACKBOARD_PROMPT = """<blackboard_mode_instructions>
   "html": "<div class='text-lg'>变量的作用：<ul class='list-disc ml-6'><li>存储数据</li><li>重复使用</li><li>方便修改</li></ul></div>",
   "narration": "变量的主要作用是存储数据、重复使用，以及方便修改",
   "step_number": 4,
+  "is_complete": true
+}
+
+## 示例 3：概念关系图（SVG + GSAP 动画）
+
+步骤 1:
+{
+  "html": "<svg width='600' height='400' class='mx-auto'><circle id='c1' cx='150' cy='200' r='60' fill='#3B82F6' opacity='0.2'/><circle id='c1-inner' cx='150' cy='200' r='50' fill='#3B82F6'/><text id='t1' x='150' y='210' text-anchor='middle' fill='white' font-size='16' font-weight='bold'>简洁</text></svg><script>gsap.from(['#c1', '#c1-inner', '#t1'], { scale: 0, duration: 0.6, ease: 'back.out(1.7)' });</script>",
+  "narration": "首先我们看第一个核心概念：简洁",
+  "step_number": 1,
+  "is_complete": false
+}
+
+步骤 2:
+{
+  "html": "<svg width='600' height='400' class='mx-auto'><circle id='c2' cx='300' cy='100' r='60' fill='#3B82F6' opacity='0.2'/><circle id='c2-inner' cx='300' cy='100' r='50' fill='#3B82F6'/><text id='t2' x='300' y='110' text-anchor='middle' fill='white' font-size='16' font-weight='bold'>高效</text><line id='line1' x1='210' y1='150' x2='240' y2='150' stroke='#94A3B8' stroke-width='2' stroke-dasharray='8,4'/></svg><script>gsap.timeline().from(['#c2', '#c2-inner'], { scale: 0, duration: 0.6, ease: 'back.out(1.7)' }).from('#line1', { drawSVG: '0%', duration: 0.8 }).from('#t2', { opacity: 0, duration: 0.5 });</script>",
+  "narration": "第二个概念是高效，两者通过虚线连接表示关联",
+  "step_number": 2,
+  "is_complete": false
+}
+
+步骤 3:
+{
+  "html": "<svg width='600' height='400' class='mx-auto'><circle id='c3' cx='450' cy='200' r='60' fill='#3B82F6' opacity='0.2'/><circle id='c3-inner' cx='450' cy='200' r='50' fill='#3B82F6'/><text id='t3' x='450' y='210' text-anchor='middle' fill='white' font-size='16' font-weight='bold'>创新</text><line id='line2' x1='360' y1='150' x2='390' y2='180' stroke='#94A3B8' stroke-width='2' stroke-dasharray='8,4'/></svg><script>gsap.timeline().from(['#c3', '#c3-inner'], { scale: 0, duration: 0.6, ease: 'back.out(1.7)' }).from('#line2', { drawSVG: '0%', duration: 0.8 }).from('#t3', { opacity: 0, duration: 0.5 });</script>",
+  "narration": "第三个概念是创新，三个概念共同构成核心理念",
+  "step_number": 3,
+  "is_complete": true
+}
+
+## 示例 4：课程卡片（DaisyUI + GSAP 动画）
+
+步骤 1:
+{
+  "html": "<div class='card bg-gradient-to-br from-blue-100 to-purple-100 shadow-2xl max-w-2xl mx-auto' id='course-card'><div class='card-body'><h2 class='card-title text-3xl font-bold text-blue-600'>跟 AI 学 AI 通识</h2></div></div><script>gsap.from('#course-card', { opacity: 0, y: 50, scale: 0.95, duration: 1, ease: 'power3.out' });</script>",
+  "narration": "今天我们要学习的课程是：跟 AI 学 AI 通识",
+  "step_number": 1,
+  "is_complete": false
+}
+
+步骤 2:
+{
+  "html": "<div class='mt-4'><p class='text-lg'>主讲：孙志岗</p><p class='text-gray-600 mt-2'>探索大语言模型的无限可能</p></div>",
+  "narration": "课程由孙志岗老师主讲，将带我们探索大语言模型的无限可能",
+  "step_number": 2,
+  "is_complete": false
+}
+
+步骤 3:
+{
+  "html": "<div class='mt-4'><div class='badge badge-primary'>人工智能</div><div class='badge badge-secondary ml-2'>通识教育</div><div class='badge badge-accent ml-2'>前沿技术</div></div>",
+  "narration": "这门课程涵盖人工智能、通识教育和前沿技术三大领域",
+  "step_number": 3,
   "is_complete": true
 }
 
