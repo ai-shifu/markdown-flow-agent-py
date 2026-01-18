@@ -4,6 +4,7 @@ Markdown-Flow Parser Module
 Provides specialized parsers for different aspects of MarkdownFlow document processing.
 """
 
+from .action_validator import validate_action, ALL_ACTIONS
 from .interaction import InteractionParser, InteractionType, extract_interaction_question
 from .json_parser import parse_json_response
 from .output import (
@@ -35,4 +36,7 @@ __all__ = [
     "parse_validation_response",
     # JSON parsing
     "parse_json_response",
+    # Action validation (blackboard mode)
+    "validate_action",
+    "ALL_ACTIONS",
 ]

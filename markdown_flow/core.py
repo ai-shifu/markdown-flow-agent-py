@@ -75,6 +75,7 @@ class MarkdownFlow:
     _preprocessor: CodeBlockPreprocessor
     _processing_mode: ProcessingMode
     _blackboard_prompt: str | None
+    _blackboard_optimization_strategy: str | None
 
     def __init__(
         self,
@@ -112,6 +113,7 @@ class MarkdownFlow:
         self._output_language: str | None = None  # Output language control (affects all output scenarios)
         self._processing_mode: ProcessingMode = ProcessingMode.STANDARD  # Default: standard mode
         self._blackboard_prompt: str | None = None  # Custom blackboard prompt (uses default if None)
+        self._blackboard_optimization_strategy: str | None = None  # Custom optimization strategy (partial customization)
 
         # Preprocess document: extract code blocks and replace with placeholders
         # This is done once during initialization, similar to Go implementation
@@ -252,6 +254,59 @@ class MarkdownFlow:
             Custom blackboard prompt if set, None otherwise (will use default)
         """
         return self._blackboard_prompt
+
+    def set_blackboard_optimization_strategy(self, strategy: str | None) -> "MarkdownFlow":
+        """
+        Set blackboard mode optimization strategy (partial customization).
+
+        Args:
+            strategy: Custom optimization strategy, or None to use default
+
+        Returns:
+            Self for method chaining
+
+        Note:
+            - Only takes effect when blackboard_prompt is None
+            - Only overrides the optimization strategy section (Action combinations, layouts, styles)
+            - Core rules, library capabilities, and Action definitions remain unchanged
+        """
+        self._blackboard_optimization_strategy = strategy
+        return self
+
+    def get_blackboard_optimization_strategy(self) -> str | None:
+        """
+        Get blackboard mode optimization strategy.
+
+        Returns:
+            Custom optimization strategy if set, None otherwise (will use default)
+        """
+        return self._blackboard_optimization_strategy
+
+    def _get_effective_blackboard_prompt(self) -> str:
+        """
+        Get the effective blackboard prompt to use.
+
+        Priority: custom prompt > custom optimization strategy > default prompt
+
+        Returns:
+            The final blackboard prompt string
+        """
+        # Priority 1: If user set a complete custom prompt, use it directly
+        if self._blackboard_prompt is not None:
+            return self._blackboard_prompt
+
+        # Priority 2: If user set custom optimization strategy, build custom prompt
+        if self._blackboard_optimization_strategy is not None:
+            try:
+                from .constants_blackboard import build_blackboard_prompt
+
+                return build_blackboard_prompt(self._blackboard_optimization_strategy)
+            except ImportError:
+                # Fallback to default if constants_blackboard is not available
+                pass
+
+        # Priority 3: Use default prompt
+        return DEFAULT_BLACKBOARD_PROMPT
 
     def set_text_validation_enabled(self, enabled: bool) -> "MarkdownFlow":
         """
@@ -1175,7 +1230,7 @@ class MarkdownFlow:
 
         # 4. Blackboard mode prompt (if in blackboard mode)
         if processing_mode == ProcessingMode.BLACKBOARD:
-            blackboard_prompt = self._blackboard_prompt or DEFAULT_BLACKBOARD_PROMPT
+            blackboard_prompt = self._get_effective_blackboard_prompt()
             system_parts.append(f"<blackboard_mode>\n{blackboard_prompt}\n</blackboard_mode>")
 
         # 5. Document prompt (if exists and non-empty)

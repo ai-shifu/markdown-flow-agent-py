@@ -82,23 +82,74 @@ class Block:
 @dataclass
 class BlackboardStep:
     """
-    Blackboard mode step data class.
+    Blackboard mode step with action-based container management.
 
-    Represents a single step in blackboard mode processing, containing
-    incremental HTML content and synchronized narration text.
+    Each step represents a single action on the blackboard (create container,
+    append content, highlight element, etc.) rather than direct HTML output.
+
+    Narration Strategy (两层策略):
+    - Container-level actions (create_container, set_canvas_layout, activate_zone):
+      Provide COMPLETE narration for entire section (50-200 chars)
+    - Element-level actions (append_to_container, update_element):
+      Optional narration (usually empty, 不需要narration)
+    - This allows TTS to play full sentences while HTML renders incrementally
 
     Attributes:
-        html (str): Incremental HTML content for this step
-        narration (str): Narration text for TTS (text-to-speech)
-        step_number (int): Step sequence number (starting from 1)
-        is_complete (bool): Whether this is the final step
-        type (str): Step type - "head" for header content, "body" for body content (default: "body")
-        metadata (dict[str, Any]): Additional metadata for this step
+        action (str): Action type - "append_to_container", "annotate", etc. (required)
+        narration (str): Narration for TTS (empty for element-level actions, default: "")
+        container_id (str | None): Container unique identifier (optional)
+        zone_id (str | None): Zone identifier where container resides (optional)
+        html (str | None): HTML content to append/replace (optional)
+        animation (str | None): Animation effect - "slide_in", "fade_in", "write", etc. (optional)
+        element_id (str | None): Element identifier for updates/annotations (optional)
+        params (dict[str, Any]): Flexible parameter storage for action-specific data (default: {})
+        type (str): Step type - "head" or "body" (default: "body", legacy field)
+        metadata (dict[str, Any]): Additional metadata (default: {}, legacy field)
     """
 
-    html: str
-    narration: str
-    step_number: int
-    is_complete: bool
-    type: str = "body"
+    # Required field
+    action: str
+
+    # Optional fields (action-specific)
+    narration: str = ""
+    container_id: str | None = None
+    zone_id: str | None = None
+    html: str | None = None
+    animation: str | None = None
+    element_id: str | None = None
+
+    # Flexible parameter storage
+    params: dict[str, Any] = field(default_factory=dict)
+
+    # Legacy fields (for compatibility)
+    type: str = "body"  # "head" or "body"
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        """Validate action fields."""
+        if not self.action:
+            raise ValueError("action field is required")
+
+        # Narration required only for container-level actions
+        CONTAINER_LEVEL_ACTIONS = [
+            "create_container",
+            "set_canvas_layout",
+            "activate_zone",
+        ]
+
+        if self.action in CONTAINER_LEVEL_ACTIONS and not self.narration and self.type != "head":
+            raise ValueError(
+                f"{self.action} requires narration (provide complete narration for entire section)"
+            )
+
+        # Import validator to avoid circular dependency
+        # Will validate after action_validator module is created
+        try:
+            from .parser.action_validator import validate_action
+
+            is_valid, error = validate_action(self)
+            if not is_valid:
+                raise ValueError(f"Invalid action: {error}")
+        except ImportError:
+            # action_validator module not yet created, skip validation
+            pass

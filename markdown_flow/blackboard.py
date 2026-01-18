@@ -40,10 +40,15 @@ def process_blackboard_stream(
             "content": str,  # Raw JSON string
             "metadata": {
                 "block_type": "blackboard",
-                "html": str,
+                "type": str,  # "head" or "body"
+                "action": str,  # Action type (create_container, append_to_container, etc.)
+                "container_id": str | None,
+                "zone_id": str | None,
+                "html": str | None,
+                "animation": str | None,
+                "element_id": str | None,
+                "params": dict,
                 "narration": str,
-                "step_number": int,
-                "is_complete": bool,
                 "blackboard_step": BlackboardStep
             }
         }
@@ -53,11 +58,11 @@ def process_blackboard_stream(
         RuntimeError: If LLM stream encounters errors
     """
     # Output HTML header (CDN references and styles for <head>)
+    # Note: header uses a special "head" action that skips validation
     header_step = BlackboardStep(
-        html=BLACKBOARD_HTML_HEADER,
+        action="head",  # Special action for header output
         narration="",
-        step_number=0,
-        is_complete=False,
+        html=BLACKBOARD_HTML_HEADER,
         type="head",
     )
 
@@ -66,10 +71,9 @@ def process_blackboard_stream(
         "metadata": {
             "block_type": "blackboard",
             "type": "head",
+            "action": header_step.action,
             "html": header_step.html,
             "narration": header_step.narration,
-            "step_number": header_step.step_number,
-            "is_complete": header_step.is_complete,
             "blackboard_step": header_step,
         },
     }
@@ -106,17 +110,22 @@ def process_blackboard_stream(
                     "metadata": {
                         "block_type": "blackboard",
                         "type": step.type,
+                        # Action-based fields
+                        "action": step.action,
+                        "container_id": step.container_id,
+                        "zone_id": step.zone_id,
                         "html": step.html,
+                        "animation": step.animation,
+                        "element_id": step.element_id,
+                        "params": step.params,
                         "narration": step.narration,
-                        "step_number": step.step_number,
-                        "is_complete": step.is_complete,
+                        # Include the full step object
                         "blackboard_step": step,
                     },
                 }
 
-                # If this is the final step, stop processing
-                if step.is_complete:
-                    return
+                # Note: No longer checking is_complete flag
+                # Stream will end naturally when LLM stops generating
 
         # Stream ended without is_complete=True
         # Check for remaining buffer (debugging info)

@@ -62,6 +62,20 @@ from .parser import (
     replace_variables_in_text,
 )
 
+# Import modular blackboard constants (if available)
+try:
+    from .constants_blackboard import (
+        BLACKBOARD_ACTIONS,
+        BLACKBOARD_CORE_RULES,
+        BLACKBOARD_LIBRARIES,
+        BLACKBOARD_OPTIMIZATION_STRATEGY,
+        build_blackboard_prompt,
+    )
+
+    _BLACKBOARD_CONSTANTS_AVAILABLE = True
+except ImportError:
+    _BLACKBOARD_CONSTANTS_AVAILABLE = False
+
 
 # Public API
 __all__ = [
@@ -85,6 +99,18 @@ __all__ = [
     "extract_variables_from_text",
     "replace_variables_in_text",
 ]
+
+# Add blackboard constants to __all__ if available
+if _BLACKBOARD_CONSTANTS_AVAILABLE:
+    __all__.extend(
+        [
+            "BLACKBOARD_CORE_RULES",
+            "BLACKBOARD_LIBRARIES",
+            "BLACKBOARD_ACTIONS",
+            "BLACKBOARD_OPTIMIZATION_STRATEGY",
+            "build_blackboard_prompt",
+        ]
+    )
 
 # __version__ = "0.2.43"
 __version__ = "0.2.43-alpha-21"
