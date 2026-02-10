@@ -45,6 +45,7 @@ from .parser import (
     InteractionType,
     extract_preserved_content,
     extract_variables_from_text,
+    has_interaction,
     is_preserved_content_block,
     parse_json_response,
     parse_validation_response,
@@ -317,6 +318,76 @@ class MarkdownFlow:
             return filtered_context[-self._max_context_length :]
 
         return filtered_context
+
+    def _transform_context_messages(
+        self,
+        context: list[dict[str, str]] | None,
+        variables: dict[str, str | list[str]] | None,
+    ) -> list[dict[str, str]] | None:
+        """
+        Transform context messages containing interaction syntax into LLM-friendly format.
+
+        For assistant messages containing ?[...] syntax:
+        - No variable (e.g. ?[Continue]): replace with {user: "ok"} + {assistant: "ok"}
+        - Has variable + value found: replace with {user: value} + {assistant: "ok"}
+        - Has variable + value not found: skip the message
+
+        Args:
+            context: Context message list
+            variables: Variable mappings
+
+        Returns:
+            Transformed context list, or None if input is None/empty
+        """
+        if not context:
+            return context
+
+        result: list[dict[str, str]] = []
+        parser = InteractionParser()
+
+        for msg in context:
+            if msg.get("role") != "assistant" or not has_interaction(msg.get("content", "")):
+                result.append(msg)
+                continue
+
+            # Parse interaction syntax
+            content = msg.get("content", "").strip()
+            parse_result = parser.parse(content)
+
+            if parse_result.get("error"):
+                # Parse failed, skip this message
+                continue
+
+            variable_name = parse_result.get("variable")
+
+            # No variable interaction (e.g. ?[Continue])
+            if not variable_name:
+                result.append({"role": "user", "content": "ok"})
+                result.append({"role": "assistant", "content": "ok"})
+                continue
+
+            # Look up variable value
+            if not variables or variable_name not in variables:
+                # Variable not found, skip
+                continue
+
+            val = variables[variable_name]
+            if val is None:
+                continue
+
+            # Convert value to string
+            if isinstance(val, list):
+                value_str = ", ".join(str(v) for v in val)
+            else:
+                value_str = str(val)
+
+            if not value_str:
+                continue
+
+            result.append({"role": "user", "content": value_str})
+            result.append({"role": "assistant", "content": "ok"})
+
+        return result
 
     @property
     def document(self) -> str:
@@ -1071,7 +1142,9 @@ class MarkdownFlow:
         # Context is inserted after system message and before current user message
         truncated_context = self._truncate_context(context)
         if truncated_context:
-            messages.extend(truncated_context)
+            transformed_context = self._transform_context_messages(truncated_context, variables)
+            if transformed_context:
+                messages.extend(transformed_context)
 
         # Build user message
         # Step 1: If has preserved content, add inline processing instruction (Solution A: minimal inline instruction)

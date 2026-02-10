@@ -4,7 +4,7 @@ Markdown-Flow Parser Module
 Provides specialized parsers for different aspects of MarkdownFlow document processing.
 """
 
-from .interaction import InteractionParser, InteractionType, extract_interaction_question
+from .interaction import InteractionParser, InteractionType, extract_interaction_question, has_interaction
 from .json_parser import parse_json_response
 from .output import (
     extract_preserved_content,
@@ -24,6 +24,7 @@ __all__ = [
     "InteractionParser",
     "InteractionType",
     "extract_interaction_question",
+    "has_interaction",
     # Output and preserved content
     "is_preserved_content_block",
     "extract_preserved_content",
