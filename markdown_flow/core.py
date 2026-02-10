@@ -52,6 +52,7 @@ from .parser import (
     process_output_instructions,
     replace_variables_in_text,
 )
+from .tag_filter import StreamTagFilter, strip_preserve_tags
 
 
 class MarkdownFlow:
@@ -526,6 +527,8 @@ class MarkdownFlow:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
             content = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
+            # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
+            content = strip_preserve_tags(content)
             return LLMResult(content=content, prompt=messages[-1]["content"])
 
         if mode == ProcessMode.STREAM:
@@ -533,8 +536,16 @@ class MarkdownFlow:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
             def stream_generator():
+                tag_filter = StreamTagFilter()
                 for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
-                    yield LLMResult(content=chunk, prompt=messages[-1]["content"])
+                    # 过滤 preserve_or_translate 标签（处理跨 chunk 分割）
+                    filtered = tag_filter.process(chunk)
+                    if filtered:
+                        yield LLMResult(content=filtered, prompt=messages[-1]["content"])
+                # 流结束，释放缓冲区中未匹配的内容
+                flushed = tag_filter.flush()
+                if flushed:
+                    yield LLMResult(content=flushed, prompt=messages[-1]["content"])
 
             return stream_generator()
 
@@ -611,6 +622,9 @@ class MarkdownFlow:
             # Reconstruct interaction content with translation
             translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, translated_json, interaction_info)
 
+            # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
+            translated_content = strip_preserve_tags(translated_content)
+
             return LLMResult(
                 content=translated_content,
                 prompt=messages[-1]["content"],
@@ -645,6 +659,9 @@ class MarkdownFlow:
 
                 # Reconstruct interaction content with translation
                 translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, full_response, interaction_info)
+
+                # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
+                translated_content = strip_preserve_tags(translated_content)
 
                 # Return complete content once (not incremental)
                 yield LLMResult(
