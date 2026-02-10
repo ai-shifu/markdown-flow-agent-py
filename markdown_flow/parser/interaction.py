@@ -56,6 +56,11 @@ def extract_interaction_question(content: str) -> str | None:
     return None  # type: ignore[unreachable]
 
 
+def has_interaction(content: str) -> bool:
+    """Check if content contains interaction syntax ?[...]."""
+    return bool(COMPILED_INTERACTION_REGEX.search(content))
+
+
 class InteractionParser:
     """
     Three-layer interaction parser for ?[] format validation,
