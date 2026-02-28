@@ -10,7 +10,6 @@ from collections.abc import Generator
 from copy import copy
 from typing import Any
 
-from .constants_visual_mode import DEFAULT_VISUAL_MODE_PROMPT
 from .constants import (
     BLOCK_INDEX_OUT_OF_RANGE_ERROR,
     BLOCK_SEPARATOR,
@@ -36,6 +35,7 @@ from .constants import (
     VALIDATION_TASK_TEMPLATE,
     VALIDATION_TASK_WITH_LANGUAGE,
 )
+from .constants_visual_mode import DEFAULT_VISUAL_MODE_PROMPT
 from .enums import BlockType
 from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
