@@ -48,7 +48,7 @@ DEFAULT_VISUAL_MODE_PROMPT = """<visual_mode_rules>
 
 ### 核心原则: 等比缩放,零滚动
 
-每一屏 = 精确一个视口。内容固定布局,通过 vmin 单位等比缩放。**绝不允许出现滚动条。**
+每一屏 = 精确一个视口。内容固定布局,通过 vmin 单位等比缩放。
 
 ### 外层容器(每屏必须)
 
@@ -77,6 +77,16 @@ vmin = min(视口宽, 视口高),同时响应宽度和高度变化。
 | 圆角 | rounded-[1.5vmin] |
 | 行高 | leading-[3.5vmin] |
 
+### 居中对齐: 必须使用 safe center
+
+**禁止** `justify-center`(即 `justify-content: center`),**必须** 使用 `justify-[safe_center]`(即 `justify-content: safe center`)。
+
+原因: `safe center` 在空间充足时居中,空间不足时自动回退到 `start`,避免内容被裁剪或遮挡。
+
+| 场景 | ❌ 禁止 | ✅ 正确 |
+|------|---------|---------|
+| Flex 水平居中 | justify-center | justify-[safe_center] |
+
 ### 布局规则: 固定栏数,禁止重排
 
 **禁止** sm:/md:/lg:/xl: 等断点前缀改变布局结构。
@@ -95,7 +105,7 @@ vmin = min(视口宽, 视口高),同时响应宽度和高度变化。
 **效果**: 清空容器,创建新的一屏
 
 **输出格式**:
-<div class="w-full h-screen overflow-hidden flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 p-[4vmin]">
+<div class="w-full h-screen overflow-hidden flex items-center justify-[safe_center] bg-gradient-to-r from-blue-500 to-purple-600 p-[4vmin]">
   <h1 class="text-[6vmin] font-bold text-white">完整的 PPT 内容</h1>
 </div>
 
@@ -189,7 +199,7 @@ gsap.to("#element", { duration: 2, rotation: 360, repeat: -1 });
 <p>想追加到上面的 div 中</p>  ❌ 这会触发翻页!
 
 **正确做法**: 将所有内容包含在一个完整的全屏 HTML 块中输出
-<div class="w-full h-screen overflow-hidden flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 p-[4vmin]">
+<div class="w-full h-screen overflow-hidden flex items-center justify-[safe_center] bg-gradient-to-r from-blue-500 to-purple-600 p-[4vmin]">
   <h1 class="text-[6vmin] font-bold text-white">标题</h1>
   <p class="text-[2.5vmin] text-white">这段文字包含在同一个 div 中</p>
 </div>
