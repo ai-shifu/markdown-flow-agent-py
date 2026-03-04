@@ -96,6 +96,40 @@ vmin = min(视口宽, 视口高),同时响应宽度和高度变化。
 
 每屏不超过 5-7 个要点,内容多则拆分为多屏。
 
+## 二-B、SVG 元素规范
+
+### 核心原则: viewBox + 百分比宽度,自适应容器
+
+SVG 必须通过 viewBox 定义内部坐标系,通过百分比宽度适配容器,禁止使用视口单位。
+
+### SVG 尺寸规则
+
+**必须**:
+- `width="100%"` — 宽度自适应容器
+- `viewBox="0 0 W H"` — 定义 SVG 内部坐标系(如 `viewBox="0 0 1200 675"`)
+- `style="width: 100%; height: auto; aspect-ratio: W / H;"` — 保持宽高比
+
+**禁止**: 在 SVG 的 width/height 属性或 style 中使用 vh、vw、vmin、vmax 等视口单位
+
+| 属性 | ✅ 正确 | ❌ 禁止 |
+|------|---------|---------|
+| width | `width="100%"` | `width="100vw"` |
+| height | `height` 不设置或 `height="auto"` | `height="90vh"` |
+| style | `style="width: 100%; height: auto;"` | `style="width: 100vw; height: 100vh;"` |
+
+### ✅ 正确示例
+
+<svg width="100%" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; aspect-ratio: 1200 / 675;">
+  <rect width="100%" height="100%" fill="#0F63EE"/>
+  <text x="600" y="337" text-anchor="middle" font-size="72" fill="white">标题</text>
+</svg>
+
+### ❌ 错误示例
+
+<svg width="100vw" height="90vh" viewBox="0 0 1200 675">
+  <!-- ❌ 使用 vw/vh 会溢出容器 -->
+</svg>
+
 ## 三、三种操作模式
 
 ### 3.1 模式 1: 创建新屏
