@@ -109,7 +109,6 @@ class MarkdownFlow:
         self._temperature: float | None = None
         self._enable_text_validation: bool = False  # Default: validation disabled for performance
         self._output_language: str | None = None  # Output language control (affects all output scenarios)
-        self._visual_mode: bool = False  # Visual mode switch, default off
         self._visual_mode_prompt: str | None = None  # Custom visual mode prompt (optional)
 
         # Preprocess document: extract code blocks and replace with placeholders
@@ -238,31 +237,6 @@ class MarkdownFlow:
             True if validation is enabled, False otherwise
         """
         return self._enable_text_validation
-
-    def set_visual_mode(self, enabled: bool) -> "MarkdownFlow":
-        """
-        Enable/disable visual mode.
-
-        When enabled, adds visual mode rules to system message for content blocks,
-        instructing LLM to generate HTML/SVG visual content (slides, presentations, etc.).
-
-        Args:
-            enabled: True to enable visual mode, False to disable
-
-        Returns:
-            Self for method chaining
-        """
-        self._visual_mode = enabled
-        return self
-
-    def is_visual_mode_enabled(self) -> bool:
-        """
-        Check if visual mode is enabled.
-
-        Returns:
-            True if visual mode is enabled, False otherwise
-        """
-        return self._visual_mode
 
     def set_visual_mode_prompt(self, prompt: str | None) -> "MarkdownFlow":
         """
@@ -1193,10 +1167,9 @@ class MarkdownFlow:
             system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
 
         # 3.5 Visual mode prompt (content blocks only, not for interaction/validation)
-        if self._visual_mode:
-            visual_prompt = self._visual_mode_prompt or DEFAULT_VISUAL_MODE_PROMPT
-            if visual_prompt:
-                system_parts.append(visual_prompt)
+        visual_prompt = self._visual_mode_prompt or DEFAULT_VISUAL_MODE_PROMPT
+        if visual_prompt:
+            system_parts.append(visual_prompt)
 
         # 4. Document prompt (if exists and non-empty)
         if self._document_prompt:
