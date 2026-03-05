@@ -50,7 +50,7 @@ DEFAULT_VISUAL_MODE_PROMPT = """<visual_mode_rules>
 ### 3.2 幻灯片缩放规范
 每一屏 = 一个视口。固定布局,vmin 单位等比缩放。
 
-**外层容器必须**: `h-screen`（非 min-h-screen）+ `overflow-hidden` + `p-[4vmin]`
+**外层容器必须**: `h-screen`（非 min-h-screen）+ `p-[4vmin]`
 
 **尺寸单位: 统一 vmin**（禁止 px/vw/rem/em/Tailwind 预设如 text-6xl）
 
@@ -91,7 +91,7 @@ SVG 必须通过 viewBox 定义坐标系,百分比宽度适配容器。
 ### 4.1 创建新屏
 **触发**: 输出 HTML 块级元素（div/section/h1/svg 等） → 清空容器,创建新一屏
 
-<div class="w-full h-screen overflow-hidden flex items-center justify-[safe_center] bg-gradient-to-r from-blue-500 to-purple-600 p-[4vmin]">
+<div class="w-full h-screen flex items-center justify-[safe_center] bg-gradient-to-r from-blue-500 to-purple-600 p-[4vmin]">
   <h1 class="text-[6vmin] font-bold text-white">完整的 PPT 内容</h1>
 </div>
 
@@ -158,7 +158,7 @@ gsap.to("#element", { duration: 2, rotation: 360, repeat: -1 });
 
 | 场景 | 模式 | 格式 |
 |-----|------|------|
-| 新屏 | 1 | `<div class="h-screen overflow-hidden">...</div>` |
+| 新屏 | 1 | `<div class="h-screen">...</div>` |
 | 动画/样式 | 2 | `<script>...</script>` / `<style>...</style>` |
 | 用户要求修改 | 3 | `!+++\\n--- a/0\\n...\\n!+++` |
 | 视图+文字 | 双输出 | HTML/SVG + 空行 + 纯 Markdown |
