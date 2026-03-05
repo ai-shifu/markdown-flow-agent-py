@@ -15,7 +15,6 @@ from .constants import (
     BLOCK_SEPARATOR,
     CONTEXT_BUTTON_OPTIONS_TEMPLATE,
     CONTEXT_QUESTION_TEMPLATE,
-    DEFAULT_BASE_SYSTEM_PROMPT,
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
     INPUT_EMPTY_ERROR,
@@ -26,7 +25,6 @@ from .constants import (
     INTERACTION_PROMPT_BASE,
     INTERACTION_PROMPT_WITH_TRANSLATION,
     LLM_PROVIDER_REQUIRED_ERROR,
-    OUTPUT_INSTRUCTION_EXPLANATION,
     OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM,
     OUTPUT_LANGUAGE_INSTRUCTION_TOP,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
@@ -35,7 +33,7 @@ from .constants import (
     VALIDATION_TASK_TEMPLATE,
     VALIDATION_TASK_WITH_LANGUAGE,
 )
-from .constants_visual_mode import DEFAULT_VISUAL_MODE_PROMPT
+from .constants_system_prompt import DEFAULT_MDF_SYSTEM_PROMPT
 from .enums import BlockType
 from .exceptions import BlockIndexError
 from .llm import LLMProvider, LLMResult, ProcessMode
@@ -99,7 +97,7 @@ class MarkdownFlow:
         """
         self._document = document
         self._llm_provider = llm_provider
-        self._base_system_prompt = base_system_prompt or DEFAULT_BASE_SYSTEM_PROMPT
+        self._base_system_prompt = base_system_prompt or DEFAULT_MDF_SYSTEM_PROMPT
         self._document_prompt = document_prompt
         self._interaction_prompt = interaction_prompt or DEFAULT_INTERACTION_PROMPT
         self._interaction_error_prompt = interaction_error_prompt or DEFAULT_INTERACTION_ERROR_PROMPT
@@ -109,7 +107,6 @@ class MarkdownFlow:
         self._temperature: float | None = None
         self._enable_text_validation: bool = False  # Default: validation disabled for performance
         self._output_language: str | None = None  # Output language control (affects all output scenarios)
-        self._visual_mode_prompt: str | None = None  # Custom visual mode prompt (optional)
 
         # Preprocess document: extract code blocks and replace with placeholders
         # This is done once during initialization, similar to Go implementation
@@ -238,28 +235,6 @@ class MarkdownFlow:
         """
         return self._enable_text_validation
 
-    def set_visual_mode_prompt(self, prompt: str | None) -> "MarkdownFlow":
-        """
-        Set custom visual mode prompt. None means use default.
-
-        Args:
-            prompt: Custom visual mode prompt, or None to use default
-
-        Returns:
-            Self for method chaining
-        """
-        self._visual_mode_prompt = prompt
-        return self
-
-    def get_visual_mode_prompt(self) -> str | None:
-        """
-        Get current visual mode prompt.
-
-        Returns:
-            Custom visual mode prompt if set, None otherwise (uses default)
-        """
-        return self._visual_mode_prompt
-
     def set_prompt(self, prompt_type: str, value: str | None) -> None:
         """
         Set prompt template.
@@ -269,7 +244,7 @@ class MarkdownFlow:
             value: Prompt content
         """
         if prompt_type == "base_system":
-            self._base_system_prompt = value or DEFAULT_BASE_SYSTEM_PROMPT
+            self._base_system_prompt = value or DEFAULT_MDF_SYSTEM_PROMPT
         elif prompt_type == "document":
             self._document_prompt = value
         elif prompt_type == "interaction":
@@ -1132,7 +1107,7 @@ class MarkdownFlow:
 
         # Process output instructions and detect if preserved content exists
         # Returns: (processed_content, has_preserved_content)
-        block_content, has_preserved_content = process_output_instructions(block_content)
+        block_content, _ = process_output_instructions(block_content)
 
         # Replace variables
         block_content = replace_variables_in_text(block_content, variables or {})
@@ -1149,35 +1124,17 @@ class MarkdownFlow:
         # Build message array
         messages = []
 
-        # Build system message with XML tags
-        # Priority order: output_language_top > preserve_or_translate > base_system > document_prompt > output_language_bottom
+        # Build system message with Markdown headings (no XML tags)
+        # Two parts: MDF internal prompt + Document prompt
         system_parts = []
 
-        # 1. Output language anchoring (top - highest priority)
-        if self._output_language:
-            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
-
-        # 2. Output instruction (preserved content processing rules - if preserved content exists)
-        # Note: OUTPUT_INSTRUCTION_EXPLANATION already contains <preserve_tag_rule> tags
-        if has_preserved_content:
-            system_parts.append(OUTPUT_INSTRUCTION_EXPLANATION.strip())
-
-        # 3. Base system prompt (if exists and non-empty)
+        # Part 1: MDF internal prompt (content rules + visual rules)
         if self._base_system_prompt:
-            system_parts.append(f"<base_system>\n{self._base_system_prompt}\n</base_system>")
+            system_parts.append(self._base_system_prompt)
 
-        # 3.5 Visual mode prompt (content blocks only, not for interaction/validation)
-        visual_prompt = self._visual_mode_prompt or DEFAULT_VISUAL_MODE_PROMPT
-        if visual_prompt:
-            system_parts.append(visual_prompt)
-
-        # 4. Document prompt (if exists and non-empty)
+        # Part 2: Document prompt
         if self._document_prompt:
-            system_parts.append(f"<document_prompt>\n{self._document_prompt}\n</document_prompt>")
-
-        # 5. Output language anchoring (bottom - final reminder)
-        if self._output_language:
-            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
+            system_parts.append(f"# Document Prompt\n\n{self._document_prompt}")
 
         # Combine all parts and add as system message
         if system_parts:
