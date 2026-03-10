@@ -51,6 +51,7 @@ Import Guide:
 # Import core classes and enums
 from .core import MarkdownFlow
 from .enums import BlockType, InputType
+from .formatter import ElementType, FormattedElement, StreamFormatter, format_content
 from .llm import LLMProvider, LLMResult, ProcessMode
 from .parser import (
     InteractionParser,
@@ -75,6 +76,11 @@ __all__ = [
     "BlockType",
     "InputType",
     "InteractionType",
+    # Formatter
+    "ElementType",
+    "FormattedElement",
+    "StreamFormatter",
+    "format_content",
     # Main utility functions
     "generate_smart_validation_template",
     "extract_interaction_question",

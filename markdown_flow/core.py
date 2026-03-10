@@ -53,6 +53,7 @@ from .parser import (
     process_output_instructions,
     replace_variables_in_text,
 )
+from .formatter import ElementType, FormattedElement, StreamFormatter, format_content
 from .tag_filter import StreamTagFilter, strip_preserve_tags
 
 
@@ -553,7 +554,11 @@ class MarkdownFlow:
             content = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
             # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
             content = strip_preserve_tags(content)
-            return LLMResult(content=content, prompt=messages[-1]["content"])
+            result = LLMResult(content=content, prompt=messages[-1]["content"])
+            if content:
+                result.metadata = result.metadata or {}
+                result.metadata["formatted_elements"] = format_content(content)
+            return result
 
         if mode == ProcessMode.STREAM:
             if not self._llm_provider:
@@ -561,15 +566,45 @@ class MarkdownFlow:
 
             def stream_generator():
                 tag_filter = StreamTagFilter()
+                stream_fmt = StreamFormatter()
+                prompt_text = messages[-1]["content"]
                 for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
                     # 过滤 preserve_or_translate 标签（处理跨 chunk 分割）
                     filtered = tag_filter.process(chunk)
                     if filtered:
-                        yield LLMResult(content=filtered, prompt=messages[-1]["content"])
+                        for elem in stream_fmt.process(filtered):
+                            yield LLMResult(
+                                content=elem.content,
+                                prompt=prompt_text,
+                                metadata={
+                                    "block_type": "content",
+                                    "block_index": block_index,
+                                    "formatted_element": elem,
+                                },
+                            )
                 # 流结束，释放缓冲区中未匹配的内容
                 flushed = tag_filter.flush()
                 if flushed:
-                    yield LLMResult(content=flushed, prompt=messages[-1]["content"])
+                    for elem in stream_fmt.process(flushed):
+                        yield LLMResult(
+                            content=elem.content,
+                            prompt=prompt_text,
+                            metadata={
+                                "block_type": "content",
+                                "block_index": block_index,
+                                "formatted_element": elem,
+                            },
+                        )
+                for elem in stream_fmt.flush():
+                    yield LLMResult(
+                        content=elem.content,
+                        prompt=prompt_text,
+                        metadata={
+                            "block_type": "content",
+                            "block_index": block_index,
+                            "formatted_element": elem,
+                        },
+                    )
 
             return stream_generator()
 
@@ -586,7 +621,11 @@ class MarkdownFlow:
         # Restore code blocks (replace placeholders with original code blocks)
         content = self._preprocessor.restore_code_blocks(content)
 
-        return LLMResult(content=content)
+        result = LLMResult(content=content)
+        if content:
+            result.metadata = result.metadata or {}
+            result.metadata["formatted_elements"] = format_content(content)
+        return result
 
     def _process_interaction_render(
         self,
@@ -614,6 +653,11 @@ class MarkdownFlow:
                 metadata={
                     "block_type": "interaction",
                     "block_index": block_index,
+                    "formatted_element": FormattedElement(
+                        content=processed_block.content,
+                        type=ElementType.INTERACTION,
+                        number=block_index,
+                    ),
                 },
             )
 
@@ -624,6 +668,11 @@ class MarkdownFlow:
                 metadata={
                     "block_type": "interaction",
                     "block_index": block_index,
+                    "formatted_element": FormattedElement(
+                        content=processed_block.content,
+                        type=ElementType.INTERACTION,
+                        number=block_index,
+                    ),
                 },
             )
 
@@ -637,6 +686,11 @@ class MarkdownFlow:
                     metadata={
                         "block_type": "interaction",
                         "block_index": block_index,
+                        "formatted_element": FormattedElement(
+                            content=processed_block.content,
+                            type=ElementType.INTERACTION,
+                            number=block_index,
+                        ),
                     },
                 )
 
@@ -657,6 +711,11 @@ class MarkdownFlow:
                     "block_index": block_index,
                     "original_content": translatable_json,
                     "translated_content": translated_json,
+                    "formatted_element": FormattedElement(
+                        content=translated_content,
+                        type=ElementType.INTERACTION,
+                        number=block_index,
+                    ),
                 },
             )
 
@@ -670,6 +729,11 @@ class MarkdownFlow:
                         metadata={
                             "block_type": "interaction",
                             "block_index": block_index,
+                            "formatted_element": FormattedElement(
+                                content=processed_block.content,
+                                type=ElementType.INTERACTION,
+                                number=block_index,
+                            ),
                         },
                     )
 
@@ -696,6 +760,11 @@ class MarkdownFlow:
                         "block_index": block_index,
                         "original_content": translatable_json,
                         "translated_content": full_response,
+                        "formatted_element": FormattedElement(
+                            content=translated_content,
+                            type=ElementType.INTERACTION,
+                            number=block_index,
+                        ),
                     },
                 )
 
