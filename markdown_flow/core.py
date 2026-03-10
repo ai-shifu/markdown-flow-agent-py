@@ -36,6 +36,7 @@ from .constants import (
 from .constants_system_prompt import DEFAULT_MDF_SYSTEM_PROMPT
 from .enums import BlockType
 from .exceptions import BlockIndexError
+from .formatter import ElementType, StreamFormatter, format_content
 from .llm import LLMProvider, LLMResult, ProcessMode
 from .models import Block
 from .parser import (
@@ -51,7 +52,6 @@ from .parser import (
     process_output_instructions,
     replace_variables_in_text,
 )
-from .formatter import ElementType, FormattedElement, StreamFormatter, format_content
 from .tag_filter import StreamTagFilter, strip_preserve_tags
 
 
@@ -531,8 +531,7 @@ class MarkdownFlow:
             content = strip_preserve_tags(content)
             result = LLMResult(content=content, prompt=messages[-1]["content"])
             if content:
-                result.metadata = result.metadata or {}
-                result.metadata["formatted_elements"] = format_content(content)
+                result.formatted_elements = format_content(content)
             return result
 
         if mode == ProcessMode.STREAM:
@@ -550,11 +549,12 @@ class MarkdownFlow:
                         for elem in stream_fmt.process(filtered):
                             yield LLMResult(
                                 content=elem.content,
+                                type=elem.type,
+                                number=elem.number,
                                 prompt=prompt_text,
                                 metadata={
                                     "block_type": "content",
                                     "block_index": block_index,
-                                    "formatted_element": elem,
                                 },
                             )
                 # 流结束，释放缓冲区中未匹配的内容
@@ -563,21 +563,23 @@ class MarkdownFlow:
                     for elem in stream_fmt.process(flushed):
                         yield LLMResult(
                             content=elem.content,
+                            type=elem.type,
+                            number=elem.number,
                             prompt=prompt_text,
                             metadata={
                                 "block_type": "content",
                                 "block_index": block_index,
-                                "formatted_element": elem,
                             },
                         )
                 for elem in stream_fmt.flush():
                     yield LLMResult(
                         content=elem.content,
+                        type=elem.type,
+                        number=elem.number,
                         prompt=prompt_text,
                         metadata={
                             "block_type": "content",
                             "block_index": block_index,
-                            "formatted_element": elem,
                         },
                     )
 
@@ -598,8 +600,7 @@ class MarkdownFlow:
 
         result = LLMResult(content=content)
         if content:
-            result.metadata = result.metadata or {}
-            result.metadata["formatted_elements"] = format_content(content)
+            result.formatted_elements = format_content(content)
         return result
 
     def _process_interaction_render(
@@ -625,14 +626,11 @@ class MarkdownFlow:
             # Parse failed, return original content
             return LLMResult(
                 content=processed_block.content,
+                type=ElementType.INTERACTION,
+                number=block_index,
                 metadata={
                     "block_type": "interaction",
                     "block_index": block_index,
-                    "formatted_element": FormattedElement(
-                        content=processed_block.content,
-                        type=ElementType.INTERACTION,
-                        number=block_index,
-                    ),
                 },
             )
 
@@ -640,14 +638,11 @@ class MarkdownFlow:
         if not translatable_json or translatable_json == "{}":
             return LLMResult(
                 content=processed_block.content,
+                type=ElementType.INTERACTION,
+                number=block_index,
                 metadata={
                     "block_type": "interaction",
                     "block_index": block_index,
-                    "formatted_element": FormattedElement(
-                        content=processed_block.content,
-                        type=ElementType.INTERACTION,
-                        number=block_index,
-                    ),
                 },
             )
 
@@ -658,14 +653,11 @@ class MarkdownFlow:
             if not self._llm_provider:
                 return LLMResult(
                     content=processed_block.content,
+                    type=ElementType.INTERACTION,
+                    number=block_index,
                     metadata={
                         "block_type": "interaction",
                         "block_index": block_index,
-                        "formatted_element": FormattedElement(
-                            content=processed_block.content,
-                            type=ElementType.INTERACTION,
-                            number=block_index,
-                        ),
                     },
                 )
 
@@ -680,17 +672,14 @@ class MarkdownFlow:
 
             return LLMResult(
                 content=translated_content,
+                type=ElementType.INTERACTION,
+                number=block_index,
                 prompt=messages[-1]["content"],
                 metadata={
                     "block_type": "interaction",
                     "block_index": block_index,
                     "original_content": translatable_json,
                     "translated_content": translated_json,
-                    "formatted_element": FormattedElement(
-                        content=translated_content,
-                        type=ElementType.INTERACTION,
-                        number=block_index,
-                    ),
                 },
             )
 
@@ -700,15 +689,12 @@ class MarkdownFlow:
                 def stream_generator():
                     yield LLMResult(
                         content=processed_block.content,
+                        type=ElementType.INTERACTION,
+                        number=block_index,
                         prompt=messages[-1]["content"],
                         metadata={
                             "block_type": "interaction",
                             "block_index": block_index,
-                            "formatted_element": FormattedElement(
-                                content=processed_block.content,
-                                type=ElementType.INTERACTION,
-                                number=block_index,
-                            ),
                         },
                     )
 
@@ -729,17 +715,14 @@ class MarkdownFlow:
                 # Return complete content once (not incremental)
                 yield LLMResult(
                     content=translated_content,
+                    type=ElementType.INTERACTION,
+                    number=block_index,
                     prompt=messages[-1]["content"],
                     metadata={
                         "block_type": "interaction",
                         "block_index": block_index,
                         "original_content": translatable_json,
                         "translated_content": full_response,
-                        "formatted_element": FormattedElement(
-                            content=translated_content,
-                            type=ElementType.INTERACTION,
-                            number=block_index,
-                        ),
                     },
                 )
 
