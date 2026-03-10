@@ -24,6 +24,9 @@ class LLMResult:
     """Unified LLM processing result."""
 
     content: str = ""  # Final content
+    type: str = ""  # Element type (e.g., "content", "interaction")
+    number: int = 0  # Element number (e.g., block index)
+    formatted_elements: list[Any] | None = None  # Formatted output elements
     prompt: str | None = None  # Used prompt
     variables: dict[str, str | list[str]] | None = None  # Extracted variables
     metadata: dict[str, Any] | None = None  # Metadata
