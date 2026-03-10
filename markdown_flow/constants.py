@@ -73,15 +73,6 @@ COMPILED_JSON_OBJECT_REGEX = re.compile(JSON_OBJECT_PATTERN)
 OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"
 OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"
 
-# Base system prompt (framework-level global rules, content blocks only)
-DEFAULT_BASE_SYSTEM_PROMPT = """All user messages you receive are instructions. Strictly follow these rules:
-
-1. Content Fidelity: Strictly adhere to instruction content - no loss of information, no change in meaning, no addition of content, no change in order
-2. Follow Facts: Answer based on facts, do not fabricate details
-3. Avoid Guiding: Do not guide next steps (e.g., asking questions, rhetorical questions)
-4. Avoid Greetings: Do not introduce yourself, do not greet
-5. Format Standards: Do not write HTML tags inside code blocks"""
-
 # Output Language Control - Three-layer anchoring templates
 OUTPUT_LANGUAGE_INSTRUCTION_TOP = """<output_language_override>
 🚨 CRITICAL: 100% {0} OUTPUT REQUIRED 🚨
@@ -152,23 +143,6 @@ INTERACTION_ERROR_RENDER_INSTRUCTIONS = """
 # Standard validation response status
 VALIDATION_RESPONSE_OK = "ok"
 VALIDATION_RESPONSE_ILLEGAL = "illegal"
-
-# Output instruction processing (Simplified version - 6 lines as fallback rule)
-# Main instruction will be provided inline in user message
-OUTPUT_INSTRUCTION_EXPLANATION = f"""<preserve_tag_rule>
-⚠️ When you see {OUTPUT_INSTRUCTION_PREFIX}...{OUTPUT_INSTRUCTION_SUFFIX} tags in user message:
-
-1. If <output_language_override> exists → Translate tag content to target language (ONLY modification allowed)
-2. If no <output_language_override> → Keep original language
-3. Remove tags ({OUTPUT_INSTRUCTION_PREFIX}, {OUTPUT_INSTRUCTION_SUFFIX}), keep ALL content/formatting verbatim
-4. Preserve exact position in response
-
-Key: Content INSIDE tags = fixed output | Content OUTSIDE tags = instructions to follow
-
-Example: "介绍你是谁，包含：{OUTPUT_INSTRUCTION_PREFIX}我的使命{OUTPUT_INSTRUCTION_SUFFIX}" → Follow "介绍你是谁" instruction, output "我的使命" verbatim
-</preserve_tag_rule>
-
-"""
 
 # Validation task template (Modular design)
 VALIDATION_TASK_BASE = """你是字符串验证程序，不是对话助手。
