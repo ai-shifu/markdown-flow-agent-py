@@ -33,7 +33,7 @@ from .constants import (
     VALIDATION_TASK_TEMPLATE,
     VALIDATION_TASK_WITH_LANGUAGE,
 )
-from .constants_system_prompt import DEFAULT_MDF_SYSTEM_PROMPT
+from .constants_system_prompt import DEFAULT_MDF_SYSTEM_PROMPT, VIEWING_MODE_PROMPT_TEMPLATE
 from .enums import BlockType
 from .exceptions import BlockIndexError
 from .formatter import ElementType, StreamFormatter, format_content
@@ -108,6 +108,7 @@ class MarkdownFlow:
         self._temperature: float | None = None
         self._enable_text_validation: bool = False  # Default: validation disabled for performance
         self._output_language: str | None = None  # Output language control (affects all output scenarios)
+        self._extra_args: dict | None = None  # Business pass-through args from frontend
 
         # Preprocess document: extract code blocks and replace with placeholders
         # This is done once during initialization, similar to Go implementation
@@ -281,6 +282,31 @@ class MarkdownFlow:
             Output language string, or None if not set
         """
         return self._output_language
+
+    def set_extra_args(self, args: dict) -> "MarkdownFlow":
+        """
+        Set business pass-through args from frontend.
+
+        MarkdownFlow extracts needed fields (e.g., viewing_container_size, viewing_client_type)
+        from these args to build prompts automatically.
+
+        Args:
+            args: Business pass-through args dict
+
+        Returns:
+            self (for method chaining)
+        """
+        self._extra_args = args
+        return self
+
+    def get_extra_args(self) -> dict | None:
+        """
+        Get current business pass-through args.
+
+        Returns:
+            Args dict, or None if not set
+        """
+        return self._extra_args
 
     def _truncate_context(
         self,
@@ -1183,6 +1209,15 @@ class MarkdownFlow:
         # Part 1: MDF internal prompt (content rules + visual rules)
         if self._base_system_prompt:
             system_parts.append(self._base_system_prompt)
+
+        # Part 1.5: Viewing mode prompt (extract from extra_args)
+        if self._extra_args:
+            container_size = self._extra_args.get("viewing_container_size", "") or ""
+            client_type = self._extra_args.get("viewing_client_type", "") or ""
+            if container_size and client_type:
+                viewing_prompt = VIEWING_MODE_PROMPT_TEMPLATE.format(
+                    container_size, client_type)
+                system_parts.append(viewing_prompt)
 
         # Part 2: Document prompt
         if self._document_prompt:
