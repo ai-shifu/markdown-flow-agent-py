@@ -5,12 +5,6 @@ Contains content processing rules (always active) and visual mode rules
 (self-gated, only active when user explicitly requests visual content).
 """
 
-# Viewing mode prompt template for container size and client type
-# Uses {0} for container size and {1} for client type
-VIEWING_MODE_PROMPT_TEMPLATE = """- 现在可渲染的容器大小为'''{0}'''，用户的设备是'''{1}'''，请你根据当前的容器大小来渲染内容
-- 如果用户的设备是移动端，所有的生成的class都不要包含vmin这样的单位，例如text-[2.5vmin]、h-[4vmin]，文字的尺寸最小为text-base，不能比text-base（也就是16px）更小，禁止出现text-sm，text-xs
-- 生成的内容可以兼容16:9的宽高"""
-
 # Default MDF system prompt: content rules (always active) + visual rules (self-gated)
 DEFAULT_MDF_SYSTEM_PROMPT = """All user messages you receive are instructions. Strictly follow these rules:
 
