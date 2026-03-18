@@ -8,6 +8,7 @@ from .format import format_content
 from .stream import StreamFormatter
 from .types import ClassifyResult, ElementType, FormattedElement
 
+
 __all__ = [
     "ElementType",
     "FormattedElement",

@@ -7,6 +7,7 @@ Mirrors Go formatter/patterns.go.
 
 import re
 
+
 # === Inherited from splitter/patterns.go ===
 
 # SVG open tag <svg or <svg>
