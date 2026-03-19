@@ -73,6 +73,4 @@ def _should_new_number(started: bool, cr: ClassifyResult, last_type: str) -> boo
         return False  # title <-> text don't increment
     if cr.type == ElementType.HTML:
         return True  # Each new html block increments
-    if cr.type == last_type:
-        return False  # Same type doesn't increment
-    return True  # Different type increments
+    return cr.type != last_type  # Different type increments

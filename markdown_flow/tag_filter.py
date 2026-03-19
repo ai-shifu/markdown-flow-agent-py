@@ -30,10 +30,7 @@ def _is_tag_prefix(s: str) -> bool:
     """检查 s 是否是任意一个标签的前缀（非空且不等于完整标签）。"""
     if not s:
         return False
-    for tag in _PRESERVE_TAGS:
-        if len(s) < len(tag) and tag.startswith(s):
-            return True
-    return False
+    return any(len(s) < len(tag) and tag.startswith(s) for tag in _PRESERVE_TAGS)
 
 
 class StreamTagFilter:

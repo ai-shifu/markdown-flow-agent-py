@@ -142,7 +142,7 @@ class Classifier:
             self._table_confirmed = True
             return ClassifyResult(type=ElementType.TABLES, is_continuation=True)
         # No longer a table row, table ends
-        self._state = _State.TEXT
+        self._state = _State.TEXT  # type: ignore[unreachable]
         self._table_confirmed = False
         return self._handle_text(line)
 
@@ -187,7 +187,7 @@ class Classifier:
             return ClassifyResult(type=ElementType.DIFF)
 
         # 3. Display math ($$)
-        if display_math_re.match(line):
+        if display_math_re.match(line):  # type: ignore[unreachable]
             self._state = _State.LATEX_BLOCK
             return ClassifyResult(type=ElementType.LATEX)
 
