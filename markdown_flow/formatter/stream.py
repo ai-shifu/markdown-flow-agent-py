@@ -125,6 +125,4 @@ class StreamFormatter:
             return False
         if cr.type == ElementType.HTML:
             return True
-        if cr.type == self._last_type:
-            return False
-        return True
+        return cr.type != self._last_type
