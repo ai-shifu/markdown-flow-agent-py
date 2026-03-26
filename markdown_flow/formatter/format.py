@@ -38,9 +38,8 @@ def format_content(content: str) -> list[FormattedElement]:
         # Non-last lines get \n appended; last line only if original content didn't end with \n
         line_content = line + "\n" if i < len(lines) - 1 else line
 
-        # Empty lines attach to previous element (same type, same number)
-        if line.strip() == "" and started:
-            elements.append(FormattedElement(content=line_content, type=last_type, number=current_number))
+        # Empty lines are skipped
+        if line.strip() == "":
             continue
 
         cr = c.classify_line(line)
