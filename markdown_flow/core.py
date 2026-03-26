@@ -611,8 +611,12 @@ class MarkdownFlow:
 
             return stream_generator()
 
-    def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None) -> LLMResult:
-        """Process preserved content block, output as-is without LLM call."""
+    def _process_preserved_content(self, block_index: int, variables: dict[str, str | list[str]] | None):
+        """Process preserved content block, output as-is without LLM call.
+
+        Returns a generator that yields LLMResult for each formatted element,
+        with element type determined by the classifier (html/text/svg/code etc.).
+        """
         block = self.get_block(block_index)
 
         # Extract preserved content (remove !=== markers)
@@ -624,10 +628,24 @@ class MarkdownFlow:
         # Restore code blocks (replace placeholders with original code blocks)
         content = self._preprocessor.restore_code_blocks(content)
 
-        result = LLMResult(content=content)
-        if content:
-            result.formatted_elements = format_content(content)
-        return result
+        if not content:
+            return LLMResult(content="")
+
+        elements = format_content(content)
+
+        def preserved_generator():
+            for elem in elements:
+                yield LLMResult(
+                    content=elem.content,
+                    type=elem.type,
+                    number=elem.number,
+                    metadata={
+                        "block_type": elem.type,
+                        "block_index": block_index,
+                    },
+                )
+
+        return preserved_generator()
 
     def _process_interaction_render(
         self,
