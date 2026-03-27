@@ -52,9 +52,8 @@ class StreamFormatter:
             line = combined[:nl_idx]
             combined = combined[nl_idx + 1 :]
 
-            # Empty lines attach to previous element (same type, same number)
-            if line.strip() == "" and self._started:
-                elements.append(FormattedElement(content=line + "\n", type=self._last_type, number=self._current_number))
+            # Empty lines are skipped (multi-line block internals handled by classifier's IsContinuation)
+            if line.strip() == "":
                 continue
 
             cr = self._classifier.classify_line(line)
@@ -81,9 +80,9 @@ class StreamFormatter:
         remaining = self._line_buffer
         self._line_buffer = ""
 
-        # Empty line attaches to previous element
-        if remaining.strip() == "" and self._started:
-            return [FormattedElement(content=remaining, type=self._last_type, number=self._current_number)]
+        # Empty line is skipped
+        if remaining.strip() == "":
+            return []
 
         cr = self._classifier.classify_line(remaining)
 
