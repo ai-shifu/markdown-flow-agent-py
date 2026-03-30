@@ -68,3 +68,6 @@ heading_re = re.compile(r"^\s{0,3}#{1,6}\s")
 
 # HTML <img> tag
 html_img_re = re.compile(r"(?i)^\s*<img\s")
+
+# HTML <link> tag (void element, typically CSS include)
+html_link_re = re.compile(r"(?i)^\s*<link\s")
