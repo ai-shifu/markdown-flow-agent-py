@@ -17,6 +17,7 @@ from .patterns import (
     html_close_re,
     html_close_tag_re,
     html_img_re,
+    html_link_re,
     html_open_tag_re,
     image_line_re,
     inline_math_line_re,
@@ -208,6 +209,10 @@ class Classifier:
         # 6. HTML <img> tag
         if html_img_re.match(line):
             return ClassifyResult(type=ElementType.IMG)
+
+        # 6.5 HTML <link> tag (void element, append to previous HTML block)
+        if html_link_re.match(line):
+            return ClassifyResult(type=ElementType.HTML, is_append=True)
 
         # 7. Block-level HTML open tag
         m = block_html_open_re.match(line)
