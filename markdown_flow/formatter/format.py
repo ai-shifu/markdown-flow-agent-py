@@ -34,13 +34,25 @@ def format_content(content: str) -> list[FormattedElement]:
     if len(lines) > 0 and lines[-1] == "" and content.endswith("\n"):
         lines = lines[:-1]
 
+    pending_newlines = 0
+
     for i, line in enumerate(lines):
         # Non-last lines get \n appended; last line only if original content didn't end with \n
         line_content = line + "\n" if i < len(lines) - 1 else line
 
-        # Empty lines are skipped
+        # Empty lines: buffer the \n instead of discarding
         if line.strip() == "":
+            pending_newlines += 1
             continue
+
+        # Consume pending newlines: append to previous element or prepend to current
+        if pending_newlines > 0:
+            extra = "\n" * pending_newlines
+            if elements:
+                elements[-1].content += extra
+            else:
+                line_content = extra + line_content
+            pending_newlines = 0
 
         cr = c.classify_line(line)
 
@@ -57,6 +69,10 @@ def format_content(content: str) -> list[FormattedElement]:
         elements.append(FormattedElement(content=line_content, type=cr.type, number=current_number))
         last_type = cr.type
         started = True
+
+    # Trailing empty lines: append to last element
+    if pending_newlines > 0 and elements:
+        elements[-1].content += "\n" * pending_newlines
 
     return elements
 
