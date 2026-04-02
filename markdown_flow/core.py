@@ -1203,7 +1203,7 @@ class MarkdownFlow:
 
         # Process output instructions and detect if preserved content exists
         # Returns: (processed_content, has_preserved_content)
-        block_content, _ = process_output_instructions(block_content)
+        block_content, has_preserved_content = process_output_instructions(block_content)
 
         # Replace variables
         block_content = replace_variables_in_text(block_content, variables or {})
@@ -1254,10 +1254,13 @@ class MarkdownFlow:
         # Build User Message (layer by layer from inside to outside)
         user_content = block_content
 
-        # Step 1: Preserved content needs no extra instruction
-        # preserve_tag_rule already explains how to handle <preserve_or_translate> tags in system message
-        # Use block_content directly, let LLM process according to system rules
-        # (Remove [INSTRUCTION: ...] prefix to avoid LLM confusing task instructions with fixed content)
+        # Step 1: If has preserved content, add inline processing instruction
+        if has_preserved_content:
+            if self._output_language:
+                instruction = f"[INSTRUCTION: Remove <preserve_or_translate> tags, translate content inside tags to {self._output_language}, keep formatting.]\n\n"
+            else:
+                instruction = "[INSTRUCTION: Remove <preserve_or_translate> tags, keep content with all formatting and position.]\n\n"
+            user_content = instruction + user_content
 
         # Step 2: If has outputLanguage, add language wrapper (outermost layer, highest priority)
         # Use XML tags to clarify this is a processing instruction, not content to output

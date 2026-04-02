@@ -27,6 +27,7 @@ class StreamFormatter:
         self._last_html_number: int = 0
         self._last_type: str = ""
         self._started: bool = False
+        self._pending_newlines: int = 0
 
     # ------------------------------------------------------------------
     # Public API
@@ -52,9 +53,24 @@ class StreamFormatter:
             line = combined[:nl_idx]
             combined = combined[nl_idx + 1 :]
 
-            # Empty lines are skipped (multi-line block internals handled by classifier's IsContinuation)
+            # Empty lines: buffer the \n instead of discarding
             if line.strip() == "":
+                self._pending_newlines += 1
                 continue
+
+            # Consume pending newlines
+            line_content = line + "\n"
+            if self._pending_newlines > 0:
+                extra = "\n" * self._pending_newlines
+                if elements:
+                    elements[-1].content += extra
+                elif self._started:
+                    # Previous elements already returned; prepend to current line
+                    line_content = extra + line_content
+                else:
+                    # Leading empty lines: prepend to first element
+                    line_content = extra + line_content
+                self._pending_newlines = 0
 
             cr = self._classifier.classify_line(line)
 
@@ -66,7 +82,7 @@ class StreamFormatter:
             if cr.type == ElementType.HTML and not cr.is_continuation and not cr.is_append:
                 self._last_html_number = self._current_number
 
-            elements.append(FormattedElement(content=line + "\n", type=cr.type, number=self._current_number))
+            elements.append(FormattedElement(content=line_content, type=cr.type, number=self._current_number))
             self._last_type = cr.type
             self._started = True
 
@@ -74,17 +90,22 @@ class StreamFormatter:
 
     def flush(self) -> list[FormattedElement]:
         """Release remaining buffered content at stream end."""
-        if not self._line_buffer:
-            return []
-
         remaining = self._line_buffer
         self._line_buffer = ""
 
-        # Empty line is skipped
-        if remaining.strip() == "":
+        if not remaining or remaining.strip() == "":
+            # No real content to flush; any pending newlines are trailing
+            # They cannot be attached since caller must handle via returned list
+            self._pending_newlines = 0
             return []
 
-        cr = self._classifier.classify_line(remaining)
+        # Consume pending newlines: prepend to remaining content
+        if self._pending_newlines > 0:
+            extra = "\n" * self._pending_newlines
+            remaining = extra + remaining
+            self._pending_newlines = 0
+
+        cr = self._classifier.classify_line(remaining.lstrip("\n"))
 
         if cr.is_append:
             self._current_number = self._last_html_number
