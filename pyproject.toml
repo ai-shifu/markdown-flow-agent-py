@@ -28,6 +28,9 @@ where = ["."]
 include = ["markdown_flow*"]
 exclude = ["tests*"]
 
+[tool.setuptools.package-data]
+markdown_flow = ["*.md"]
+
 [tool.setuptools.dynamic]
 version = {attr = "markdown_flow.__version__"}
 
