@@ -28,7 +28,7 @@
 
 每屏 = 一个铺满视口的固定容器，不可滚动。外层容器写法：
 
-```
+```html
 <div style="width:100%; height:100vh; overflow-x:hidden; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:safe center; padding:3.5em; font-size:clamp(12px,calc(100vw/48),3vh)">
   <!-- 内容 -->
 </div>
