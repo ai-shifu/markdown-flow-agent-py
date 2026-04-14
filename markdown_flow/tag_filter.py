@@ -1,5 +1,5 @@
 """
-preserve_or_translate 标签过滤器
+原样输出 标签过滤器
 
 LLM 有时不遵守 system prompt 中的指令，会在输出中保留这些标签。
 本模块提供硬过滤，确保返回给调用方的内容中不包含这些标签。
@@ -9,15 +9,15 @@ from .constants import OUTPUT_INSTRUCTION_PREFIX, OUTPUT_INSTRUCTION_SUFFIX
 
 
 _PRESERVE_TAGS = [
-    OUTPUT_INSTRUCTION_PREFIX,  # <preserve_or_translate>
-    OUTPUT_INSTRUCTION_SUFFIX,  # </preserve_or_translate>
+    OUTPUT_INSTRUCTION_PREFIX,  # <原样输出>
+    OUTPUT_INSTRUCTION_SUFFIX,  # </原样输出>
 ]
 
 _MAX_TAG_LEN = max(len(tag) for tag in _PRESERVE_TAGS)
 
 
 def strip_preserve_tags(content: str) -> str:
-    """从完整文本中移除所有 preserve_or_translate 标签。
+    """从完整文本中移除所有 原样输出 标签。
 
     用于 Complete 模式，此时拿到的是完整文本。
     """
@@ -36,7 +36,7 @@ def _is_tag_prefix(s: str) -> bool:
 class StreamTagFilter:
     """流式模式下的标签过滤器。
 
-    处理标签可能跨 chunk 分割的情况（如 chunk1="<preserve_or"，chunk2="_translate>"）。
+    处理标签可能跨 chunk 分割的情况（如 chunk1="<mandatory_"，chunk2="output>"）。
     维护一个最多 _MAX_TAG_LEN-1 字符的缓冲区，保存可能是标签前缀的尾部内容。
     """
 

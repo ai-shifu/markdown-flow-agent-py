@@ -47,7 +47,7 @@ def extract_variables_from_text(text: str) -> list[str]:
 
 def is_inside_preserve_tag(text: str, pos: int) -> bool:
     """
-    Check if the given position is inside a <preserve_or_translate> tag.
+    Check if the given position is inside a <原样输出> tag.
 
     Detection logic:
     1. Find the most recent opening tag before pos

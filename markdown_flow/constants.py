@@ -70,8 +70,8 @@ JSON_OBJECT_PATTERN = r"\{(?:[^{}]|(?:\{[^{}]*\}))*\}"
 COMPILED_JSON_OBJECT_REGEX = re.compile(JSON_OBJECT_PATTERN)
 
 # Output instruction markers
-OUTPUT_INSTRUCTION_PREFIX = "<preserve_or_translate>"
-OUTPUT_INSTRUCTION_SUFFIX = "</preserve_or_translate>"
+OUTPUT_INSTRUCTION_PREFIX = "<原样输出>"
+OUTPUT_INSTRUCTION_SUFFIX = "</原样输出>"
 
 # Output Language Control - Three-layer anchoring templates
 OUTPUT_LANGUAGE_INSTRUCTION_TOP = """<output_language_override>
