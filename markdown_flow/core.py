@@ -553,7 +553,7 @@ class MarkdownFlow:
                 raise ValueError(LLM_PROVIDER_REQUIRED_ERROR)
 
             content = self._llm_provider.complete(messages, model=self._model, temperature=self._temperature)
-            # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
+            # 过滤 LLM 输出中可能泄露的 原样输出 标签
             content = strip_preserve_tags(content)
             result = LLMResult(content=content, prompt=messages[-1]["content"])
             if content:
@@ -569,7 +569,7 @@ class MarkdownFlow:
                 stream_fmt = StreamFormatter()
                 prompt_text = messages[-1]["content"]
                 for chunk in self._llm_provider.stream(messages, model=self._model, temperature=self._temperature):  # type: ignore[attr-defined]
-                    # 过滤 preserve_or_translate 标签（处理跨 chunk 分割）
+                    # 过滤 原样输出 标签（处理跨 chunk 分割）
                     filtered = tag_filter.process(chunk)
                     if filtered:
                         for elem in stream_fmt.process(filtered):
@@ -711,7 +711,7 @@ class MarkdownFlow:
             # Reconstruct interaction content with translation
             translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, translated_json, interaction_info)
 
-            # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
+            # 过滤 LLM 输出中可能泄露的 原样输出 标签
             translated_content = strip_preserve_tags(translated_content)
 
             return LLMResult(
@@ -753,7 +753,7 @@ class MarkdownFlow:
                 # Reconstruct interaction content with translation
                 translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, full_response, interaction_info)
 
-                # 过滤 LLM 输出中可能泄露的 preserve_or_translate 标签
+                # 过滤 LLM 输出中可能泄露的 原样输出 标签
                 translated_content = strip_preserve_tags(translated_content)
 
                 # Return complete content once (not incremental)
@@ -1257,9 +1257,9 @@ class MarkdownFlow:
         # Step 1: If has preserved content, add inline processing instruction
         if has_preserved_content:
             if self._output_language:
-                instruction = f"[INSTRUCTION: Remove <preserve_or_translate> tags, translate content inside tags to {self._output_language}, keep formatting.]\n\n"
+                instruction = f"[INSTRUCTION: Remove <原样输出> tags, translate content inside tags to {self._output_language}, keep formatting.]\n\n"
             else:
-                instruction = "[INSTRUCTION: Remove <preserve_or_translate> tags, keep content with all formatting and position.]\n\n"
+                instruction = "[INSTRUCTION: Remove <原样输出> tags, keep content with all formatting and position.]\n\n"
             user_content = instruction + user_content
 
         # Step 2: If has outputLanguage, add language wrapper (outermost layer, highest priority)

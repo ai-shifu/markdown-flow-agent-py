@@ -81,9 +81,9 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
     Process output instruction markers, converting === and !=== formats to XML format.
 
     Priority rules (to avoid conflicts):
-      1. !===content!=== → <preserve_or_translate>content</preserve_or_translate> (single line !===, highest priority)
-      2. !===\ncontent\n!=== → <preserve_or_translate>content</preserve_or_translate> (multiline fence)
-      3. ===content=== → <preserve_or_translate>content</preserve_or_translate> (single line ===, historical compatibility)
+      1. !===content!=== → <原样输出>content</原样输出> (single line !===, highest priority)
+      2. !===\ncontent\n!=== → <原样输出>content</原样输出> (multiline fence)
+      3. ===content=== → <原样输出>content</原样输出> (single line ===, historical compatibility)
 
     Args:
         content: Raw content containing output instructions
