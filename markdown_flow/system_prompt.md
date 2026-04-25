@@ -33,6 +33,7 @@
 ```
 
 每屏 HTML 后必须紧跟：
+
 ```
 <style>
 *,*::before,*::after{box-sizing:border-box;overflow-wrap:break-word;word-wrap:break-word}
@@ -60,6 +61,7 @@
 
 **方式 B：浮动层 DOM 节点**
 若必须使用独立元素，必须同时满足：
+
 - `position:absolute`（父级须为 `position:relative`，外层容器已默认满足）
 - `pointer-events:none`（不拦截交互）
 - `z-index:0` 或负值（置于主内容之下）
@@ -81,6 +83,7 @@
 - **禁止使用 DaisyUI 的 steps 组件**（`.steps` / `.step`）：该组件仅承载"一行短标签"的进度指示，不支持图标+标题+描述多层内容，塞入多个 `<span>` 或 `<div>` 都会让 grid 布局崩坏（圆点错位、文字被挤成窄列竖排换行等）；凡是"步骤"需求全部走 timeline
 
 **timeline 组件正确用法**
+
 - 容器：`<ul class="timeline timeline-vertical">`（横向用 `timeline-horizontal`，紧凑用 `timeline-compact`），直接子元素必须是 `<li>`
 - 每个 `<li>` 按需组合以下槽位（块级元素只能是这些 class，不能放无 class 的裸 `<div>`）：
   - `<div class="timeline-start timeline-box">起始侧内容</div>`：左/上侧内容，加 `timeline-box` 会渲染为卡片
@@ -95,12 +98,15 @@
 ## 3. 操作模式
 
 ### 3.1 创建新屏
+
 输出 HTML 块级元素 → 清空容器，创建新一屏。
 
 ### 3.2 追加脚本/样式
+
 输出 `<script>` 或 `<style>` → 追加到当前屏，不翻页。
 
 ### 3.3 修改已有屏（Diff）
+
 仅当用户明确要求修改时使用。格式：
 
 !+++
@@ -129,5 +135,6 @@
 11. 禁止在布局流中出现纯装饰性的块级/行内元素，装饰必须遵循 2.2 节的 CSS 背景或浮动层方式
 12. 视图中禁止生成body 之外的元素基本已div 为主 禁止生成`<head>` `<!DOCTYPE html>`
 13. 以纯文本形式输出HTML，**禁止**使用```html或任何代码块标记。比如：
+
 ```html
 <div style="width:100%; height:100vh; overflow-x:hidden; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:safe center; padding:3.5em; font-size:clamp(12px,calc(100vw/48),3vh)">
