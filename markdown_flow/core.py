@@ -666,43 +666,45 @@ class MarkdownFlow:
 
         # Extract translatable content (JSON format)
         translatable_json, interaction_info = self._extract_translatable_content(processed_block.content)
-        if not interaction_info:
-            # Parse failed, return original content
-            return LLMResult(
+
+        def _render_as_is(*, translation_skipped: bool = False):
+            """Return the interaction content unchanged, honoring the mode.
+
+            STREAM mode must return a generator yielding LLMResult (callers
+            iterate the result); COMPLETE returns the LLMResult directly.
+            """
+            metadata = {
+                "block_type": "interaction",
+                "block_index": block_index,
+            }
+            if translation_skipped:
+                metadata["translation_skipped"] = True
+            result = LLMResult(
                 content=processed_block.content,
                 type=ElementType.INTERACTION,
                 number=block_index,
-                metadata={
-                    "block_type": "interaction",
-                    "block_index": block_index,
-                },
+                metadata=metadata,
             )
+            if mode == ProcessMode.STREAM:
+
+                def stream_generator():
+                    yield result
+
+                return stream_generator()
+            return result
+
+        if not interaction_info:
+            # Parse failed, return original content
+            return _render_as_is()
 
         # If no translatable content, return directly
         if not translatable_json or translatable_json == "{}":
-            return LLMResult(
-                content=processed_block.content,
-                type=ElementType.INTERACTION,
-                number=block_index,
-                metadata={
-                    "block_type": "interaction",
-                    "block_index": block_index,
-                },
-            )
+            return _render_as_is()
 
         # If no output language is configured, skip translation entirely:
         # return the interaction content as-is without any LLM call.
         if not self._output_language:
-            return LLMResult(
-                content=processed_block.content,
-                type=ElementType.INTERACTION,
-                number=block_index,
-                metadata={
-                    "block_type": "interaction",
-                    "block_index": block_index,
-                    "translation_skipped": True,
-                },
-            )
+            return _render_as_is(translation_skipped=True)
 
         # Build translation messages
         messages = self._build_translation_messages(translatable_json)
