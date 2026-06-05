@@ -1550,12 +1550,12 @@ Original Error: {error_message}
         messages.append({"role": "system", "content": render_prompt})
 
         # Add conversation history context if provided.
-        # Transform interaction syntax in the context the same way the content
-        # path does, so raw ?[...] blocks are expanded to {user}/{assistant}
-        # pairs instead of leaking into this auxiliary LLM call.
-        truncated_context = self._truncate_context(context)
-        if truncated_context:
-            transformed_context = self._transform_context_messages(truncated_context, variables)
+        # Context is already truncated by the caller (_render_error), so reuse it
+        # directly here. Transform interaction syntax in the context the same way
+        # the content path does, so raw ?[...] blocks are expanded to
+        # {user}/{assistant} pairs instead of leaking into this auxiliary LLM call.
+        if context:
+            transformed_context = self._transform_context_messages(context, variables)
             if transformed_context:
                 messages.extend(transformed_context)
 
