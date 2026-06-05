@@ -86,24 +86,21 @@ OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM = """<output_language_final_check>
 </output_language_final_check>"""
 
 # Interaction prompt templates (Modular design)
-INTERACTION_PROMPT_BASE = """<interaction_processing_rules>
-⚠️⚠️⚠️ JSON 处理任务 ⚠️⚠️⚠️
+INTERACTION_PROMPT_BASE = """# JSON 交互翻译任务
 
-## 任务说明
-
-你将收到一个包含交互元素的 JSON 对象（buttons 和/或 question 字段）。
+你将收到一个包含交互元素的 JSON 对象（`buttons` 和/或 `question` 字段），需要把其中的文本翻译为目标语言。
 
 ## 输出格式要求
 
-- **必须返回纯 JSON**，不要添加任何解释或 markdown 代码块
-- **格式必须与输入完全一致**，包括空格、标点、引号
-- 不要添加或删除任何字段
-- 不要修改 JSON 的结构"""
+- 必须返回纯 JSON，不要添加任何解释或 markdown 代码块
+- JSON 结构必须与输入完全一致：不增删字段、不修改键名、不调整顺序
+- 保留原有的空格、标点和引号"""
 
 INTERACTION_PROMPT_NO_TRANSLATION = """
 ## 处理规则
 
-**逐字符原样返回输入的 JSON**
+逐字符原样返回输入的 JSON：
+
 - 不翻译任何文本
 - 不修改任何格式
 - 不添加任何内容（如 display//value 分离）
@@ -112,23 +109,22 @@ INTERACTION_PROMPT_NO_TRANSLATION = """
 
 ## 示例
 
-输入：{"buttons": ["产品经理", "开发者"], "question": "其他身份"}
-
-✅ 输出：{"buttons": ["产品经理", "开发者"], "question": "其他身份"}
-</interaction_processing_rules>"""
+- 输入 `{"buttons": ["产品经理", "开发者"], "question": "其他身份"}`
+- 输出 `{"buttons": ["产品经理", "开发者"], "question": "其他身份"}`"""
 
 INTERACTION_PROMPT_WITH_TRANSLATION = """
-## 处理规则
+## 翻译规则
 
-**将 buttons 和 question 文本翻译到指定语言**
-- 保持 JSON 格式完全不变
-- 仅翻译显示文本（Display 部分），不改变结构
-- 如果存在 display//value 分离，只翻译 display 部分，保留 value 不变
-- 100% 纯目标语言，ZERO 混排
-- 先翻译所有非目标语言的词，再输出
+- 将 `buttons` 和 `question` 中的文本翻译为目标语言
+- 仅翻译显示文本（Display 部分），不改变 JSON 结构
+- 如果存在 `display//value` 分离（如 `Yes//1`），只翻译 `//` 前的 Display 部分，保留 value 不变
+- 100% 使用目标语言，不允许混排；先把所有非目标语言的词翻译完再输出
+- 若某段文本的原文语言已与目标语言一致，则原样返回该文本（例如目标语言为中文、原文也是中文时不做任何改写）
 
-示例：{"buttons": ["Yes//1", "No//0"]} → 西班牙语 → {"buttons": ["Sí//1", "No//0"]}
-</interaction_processing_rules>"""
+## 示例
+
+- 输入 `{"buttons": ["Yes//1", "No//0"]}`，目标语言西班牙语 → `{"buttons": ["Sí//1", "No//0"]}`
+- 输入 `{"buttons": ["初级", "高级"], "question": "其他"}`，目标语言英语 → `{"buttons": ["Beginner", "Advanced"], "question": "Other"}`"""
 
 # Default: use no translation version (backward compatible)
 DEFAULT_INTERACTION_PROMPT = INTERACTION_PROMPT_BASE + "\n" + INTERACTION_PROMPT_NO_TRANSLATION

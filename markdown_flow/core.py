@@ -690,6 +690,20 @@ class MarkdownFlow:
                 },
             )
 
+        # If no output language is configured, skip translation entirely:
+        # return the interaction content as-is without any LLM call.
+        if not self._output_language:
+            return LLMResult(
+                content=processed_block.content,
+                type=ElementType.INTERACTION,
+                number=block_index,
+                metadata={
+                    "block_type": "interaction",
+                    "block_index": block_index,
+                    "translation_skipped": True,
+                },
+            )
+
         # Build translation messages
         messages = self._build_translation_messages(translatable_json)
 
@@ -1315,26 +1329,19 @@ class MarkdownFlow:
         """
         messages = []
 
-        # Build system message: choose template based on whether outputLanguage exists
+        # Build system message. This method is only reached when an output
+        # language is configured (callers short-circuit otherwise), so the
+        # prompt always performs translation.
         system_parts = []
 
-        # Determine if translation is needed
-        need_translation = self._output_language is not None and self._output_language != ""
+        # 1. Output language anchoring (top)
+        system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
 
-        if need_translation:
-            # Translation scenario: language anchoring + translation rules
-            # 1. Output language anchoring (top)
-            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_TOP.format(self._output_language))
+        # 2. Interaction processing base + translation rules
+        system_parts.append(INTERACTION_PROMPT_BASE + "\n" + INTERACTION_PROMPT_WITH_TRANSLATION)
 
-            # 2. Interaction processing base + translation rules
-            system_parts.append(INTERACTION_PROMPT_BASE + "\n" + INTERACTION_PROMPT_WITH_TRANSLATION)
-
-            # 3. Output language anchoring (bottom)
-            system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
-        else:
-            # No translation scenario: use default no-translation prompt
-            # Use default prompt (includes Base + NoTranslation)
-            system_parts.append(self._interaction_prompt)
+        # 3. Output language anchoring (bottom)
+        system_parts.append(OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM.format(self._output_language))
 
         # Combine all parts
         system_content = "\n\n".join(system_parts)
