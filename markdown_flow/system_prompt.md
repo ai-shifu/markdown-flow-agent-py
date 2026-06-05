@@ -26,7 +26,7 @@
 
 每屏 = 一个铺满视口的固定容器，不可滚动。外层容器写法：
 
-```
+```text
 <div style="width:100%; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:flex; flex-direction:column; align-items:center; padding:1em; font-size:clamp(12px,calc(100vw/48),3vh)">
   <!-- 内容 -->
 </div>
@@ -34,7 +34,7 @@
 
 每屏 HTML 后必须紧跟：
 
-```
+```text
 <style>
 *,*::before,*::after{box-sizing:border-box;overflow-wrap:break-word;word-wrap:break-word}
 </style>
