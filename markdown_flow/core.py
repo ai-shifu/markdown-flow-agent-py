@@ -803,7 +803,7 @@ class MarkdownFlow:
         # Basic validation
         if not user_input or not any(values for values in user_input.values()):
             error_msg = INPUT_EMPTY_ERROR
-            return self._render_error(error_msg, mode, context)
+            return self._render_error(error_msg, mode, context, variables)
 
         # Get the target variable value from user_input
         target_values = user_input.get(target_variable, [])
@@ -817,7 +817,7 @@ class MarkdownFlow:
 
         if "error" in parse_result:
             error_msg = INTERACTION_PARSE_ERROR.format(error=parse_result["error"])
-            return self._render_error(error_msg, mode, context)
+            return self._render_error(error_msg, mode, context, variables)
 
         interaction_type = parse_result.get("type")
 
@@ -942,6 +942,7 @@ class MarkdownFlow:
                 mode,
                 interaction_type,
                 context,
+                variables,
             )
 
         if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
@@ -995,7 +996,7 @@ class MarkdownFlow:
                 context=context,
             )
         error_msg = f"No input provided for variable '{target_variable}'"
-        return self._render_error(error_msg, mode, context)
+        return self._render_error(error_msg, mode, context, variables)
 
     def _match_button_values(
         self,
@@ -1038,6 +1039,7 @@ class MarkdownFlow:
         mode: ProcessMode,
         interaction_type: InteractionType,
         context: list[dict[str, str]] | None = None,
+        variables: dict[str, str | list[str]] | None = None,
     ) -> LLMResult | Generator[LLMResult, None, None]:
         """
         Simplified button validation with new input format.
@@ -1082,7 +1084,7 @@ class MarkdownFlow:
             # Pure button mode requires input
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Please select from: {', '.join(button_displays)}"
-            return self._render_error(error_msg, mode, context)
+            return self._render_error(error_msg, mode, context, variables)
 
         # Validate input values against available buttons
         valid_values = []
@@ -1107,7 +1109,7 @@ class MarkdownFlow:
         if invalid_values and not allow_text_input:
             button_displays = [btn["display"] for btn in buttons]
             error_msg = f"Invalid options: {', '.join(invalid_values)}. Please select from: {', '.join(button_displays)}"
-            return self._render_error(error_msg, mode, context)
+            return self._render_error(error_msg, mode, context, variables)
 
         # Success: return validated values
         result = LLMResult(
@@ -1180,13 +1182,14 @@ class MarkdownFlow:
         error_message: str,
         mode: ProcessMode,
         context: list[dict[str, str]] | None = None,
+        variables: dict[str, str | list[str]] | None = None,
     ) -> LLMResult | Generator[LLMResult, None, None]:
         """Render user-friendly error message."""
         # Truncate context to configured maximum length
         truncated_context = self._truncate_context(context)
 
         # Build error messages with context
-        messages = self._build_error_render_messages(error_message, truncated_context)
+        messages = self._build_error_render_messages(error_message, truncated_context, variables)
 
         if mode == ProcessMode.COMPLETE:
             if not self._llm_provider:
@@ -1531,6 +1534,7 @@ class MarkdownFlow:
         self,
         error_message: str,
         context: list[dict[str, str]] | None = None,
+        variables: dict[str, str | list[str]] | None = None,
     ) -> list[dict[str, str]]:
         """Build error rendering messages."""
         render_prompt = f"""{self._interaction_error_prompt}
@@ -1545,10 +1549,15 @@ Original Error: {error_message}
 
         messages.append({"role": "system", "content": render_prompt})
 
-        # Add conversation history context if provided
+        # Add conversation history context if provided.
+        # Transform interaction syntax in the context the same way the content
+        # path does, so raw ?[...] blocks are expanded to {user}/{assistant}
+        # pairs instead of leaking into this auxiliary LLM call.
         truncated_context = self._truncate_context(context)
         if truncated_context:
-            messages.extend(truncated_context)
+            transformed_context = self._transform_context_messages(truncated_context, variables)
+            if transformed_context:
+                messages.extend(transformed_context)
 
         messages.append({"role": "user", "content": error_message})
 
