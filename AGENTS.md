@@ -7,7 +7,7 @@ This file provides comprehensive guidance to all Coding Agents such as Claude Co
 ### Most Common Tasks
 
 | Task | Command | Location |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | Install package (dev) | `pip install -e .` | Root directory |
 | Run code formatting | `ruff format` | Root directory |
 | Run linting | `ruff check --fix` | Root directory |
@@ -650,7 +650,7 @@ validation_result = mf.process(0, user_input=user_input)
 **Value Naming Best Practices:**
 
 | Scenario | Display (Chinese) | Value (Recommended) |
-|----------|-------------------|---------------------|
+| ---------- | ------------------- | --------------------- |
 | Difficulty Level | 初级/中级/高级 | beginner/intermediate/advanced |
 | Yes/No Selection | 是/否 | yes/no or true/false or 1/0 |
 | Fruit Selection | 苹果/香蕉/橙子 | apple/banana/orange |
@@ -672,7 +672,7 @@ pytest tests/ -k "interaction" -v
 **Solution Comparison:**
 
 | Feature | Automatic Conversion (v1.0+) | Manual display//value |
-|---------|------------------------------|----------------------|
+| --------- | ------------------------------ | ---------------------- |
 | Document Modification | Not required | Required |
 | Value Type | Original Chinese | Custom (e.g., English, numbers) |
 | Use Cases | General scenarios | Scenarios requiring stable English values |
@@ -1511,7 +1511,7 @@ export PYTHONDONTWRITEBYTECODE=1  # Prevent .pyc files
 ### Common Issues and Solutions
 
 | Issue | Symptoms | Solution |
-|-------|----------|----------|
+| ------- | ---------- | ---------- |
 | `ModuleNotFoundError: No module named 'markdown_flow'` | Import fails | Run `pip install -e .` in project root |
 | Pre-commit hooks fail | Git commit rejected | Run `pre-commit install` then `pre-commit run --all-files` |
 | Import errors during development | Module not found | Ensure editable install: `pip install -e .` |
