@@ -72,7 +72,7 @@ If an independent element must be used, all of the following must be satisfied:
 
 ### SVG Rules
 
-Use HTML for text layout. Use SVG only for pure graphics (icons, arrows, connector lines). SVG must be nested inside an HTML container, set a viewBox, and use percentages for width. Text inside SVG is limited to no more than 4 Chinese characters, or an equally short label in other languages. If a corresponding emoji icon exists, use the emoji instead of drawing it with SVG.
+Use HTML for text layout. Use SVG only for pure graphics (icons, arrows, connector lines). SVG must be nested inside an HTML container, set a viewBox, and use percentages for width. Text inside SVG is limited to no more than 4 characters, regardless of language. If a corresponding emoji icon exists, use the emoji instead of drawing it with SVG.
 
 ### Preinstalled Tools
 
@@ -130,7 +130,7 @@ Amount of modification < 50% -> Diff; >= 50% -> create a new screen.
 6. Do not output multiple consecutive block-level elements (this triggers multiple page turns); put all content inside one root element
 7. Do not output only script and style without related HTML
 8. Do not place `<script>` / `<style>` after text. They must appear only after `<div>`, and no plain text or Markdown text may be interleaved between them
-9. Do not use `overflow:hidden` anywhere in any `<div>` / `<style>`
+9. Do not use the shorthand `overflow:hidden` anywhere in any `<div>` / `<style>`. The required outer-container `overflow-x:hidden` in Rule 1 is allowed; do not add any other hidden overflow clipping
 10. Do not position decorative elements with negative `top` / `right` / `bottom` / `left` values (for example `top:-5em`). Decorations must be fully inside the parent container
 11. Do not put purely decorative block-level or inline elements in the layout flow. Decorations must follow the CSS background or floating-layer method in "Decorative Element Rules"
 12. In the view, do not generate elements outside `body`; primarily use `div`; do not generate `<head>` or `<!DOCTYPE html>`

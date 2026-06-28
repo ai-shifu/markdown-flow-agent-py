@@ -181,14 +181,14 @@ Examples:
 
 Step 2: Vague-answer check
 
-Reject these vague-answer intents and their equivalents in the input language: "I don't know", "I'm not sure", "No/none", "I won't tell you"
+Reject these vague-answer intents and their equivalents in the input language: "I don't know", "I'm not sure", "None / no answer", "I won't tell you"
 
 Step 3: Religious/political check
 
 Reject only explicit religious or political position statements (religious doctrines, political slogans, etc.).
 Place names, regions, etc. (Beijing, Shanghai, etc.) and ordinary vocabulary do not count.
 
-Step 4: Output result (the reason language follows the language requirement in <document_context>)
+Step 4: Output result (the reason language follows the reason language rule above, including <output_language_override> when present)
 
 Pseudocode logic:
   if empty:
