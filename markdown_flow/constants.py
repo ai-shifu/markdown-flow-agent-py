@@ -86,124 +86,124 @@ OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM = """<output_language_final_check>
 </output_language_final_check>"""
 
 # Interaction prompt templates (Modular design)
-INTERACTION_PROMPT_BASE = """# JSON 交互翻译任务
+INTERACTION_PROMPT_BASE = """# JSON Interaction Translation Task
 
-你将收到一个包含交互元素的 JSON 对象（`buttons` 和/或 `question` 字段），需要把其中的文本翻译为目标语言。
+You will receive a JSON object containing interaction elements (`buttons` and/or `question` fields), and you need to translate the text in it into the target language.
 
-## 输出格式要求
+## Output Format Requirements
 
-- 必须返回纯 JSON，不要添加任何解释或 markdown 代码块
-- JSON 结构必须与输入完全一致：不增删字段、不修改键名、不调整顺序
-- 保留原有的空格、标点和引号"""
+- Return pure JSON only; do not add any explanations or Markdown code blocks
+- The JSON structure must be exactly the same as the input: do not add or remove fields, do not modify key names, and do not change the order
+- Preserve the original spaces, punctuation, and quotation marks"""
 
 INTERACTION_PROMPT_NO_TRANSLATION = """
-## 处理规则
+## Processing Rules
 
-逐字符原样返回输入的 JSON：
+Return the input JSON exactly as-is, character for character:
 
-- 不翻译任何文本
-- 不修改任何格式
-- 不添加任何内容（如 display//value 分离）
-- 不删除任何内容
-- 不调整任何顺序
+- Do not translate any text
+- Do not modify any formatting
+- Do not add any content (such as display//value separation)
+- Do not delete any content
+- Do not change any order
 
-## 示例
+## Example
 
-- 输入 `{"buttons": ["产品经理", "开发者"], "question": "其他身份"}`
-- 输出 `{"buttons": ["产品经理", "开发者"], "question": "其他身份"}`"""
+- Input `{"buttons": ["Product Manager", "Developer"], "question": "Other role"}`
+- Output `{"buttons": ["Product Manager", "Developer"], "question": "Other role"}`"""
 
 INTERACTION_PROMPT_WITH_TRANSLATION = """
-## 翻译规则
+## Translation Rules
 
-- 将 `buttons` 和 `question` 中的文本翻译为目标语言
-- 仅翻译显示文本（Display 部分），不改变 JSON 结构
-- 如果存在 `display//value` 分离（如 `Yes//1`），只翻译 `//` 前的 Display 部分，保留 value 不变
-- 100% 使用目标语言，不允许混排；先把所有非目标语言的词翻译完再输出
-- 若某段文本的原文语言已与目标语言一致，则原样返回该文本（例如目标语言为中文、原文也是中文时不做任何改写）
+- Translate the text in `buttons` and `question` into the target language
+- Translate only the display text (the Display part); do not change the JSON structure
+- If `display//value` separation exists (for example `Yes//1`), translate only the Display part before `//` and keep value unchanged
+- Use the target language 100%; language mixing is not allowed. Translate all non-target-language words before outputting
+- If a text segment's original language is already the same as the target language, return that text unchanged (for example, when the target language is English and the original text is also English, do not rewrite it)
 
-## 示例
+## Examples
 
-- 输入 `{"buttons": ["Yes//1", "No//0"]}`，目标语言西班牙语 → `{"buttons": ["Sí//1", "No//0"]}`
-- 输入 `{"buttons": ["初级", "高级"], "question": "其他"}`，目标语言英语 → `{"buttons": ["Beginner", "Advanced"], "question": "Other"}`"""
+- Input `{"buttons": ["Yes//1", "No//0"]}`, target language Spanish -> `{"buttons": ["Sí//1", "No//0"]}`
+- Input `{"buttons": ["Débutant", "Avancé"], "question": "Autre"}`, target language English -> `{"buttons": ["Beginner", "Advanced"], "question": "Other"}`"""
 
 # Default: use no translation version (backward compatible)
 DEFAULT_INTERACTION_PROMPT = INTERACTION_PROMPT_BASE + "\n" + INTERACTION_PROMPT_NO_TRANSLATION
 
 # Interaction error prompt templates
-DEFAULT_INTERACTION_ERROR_PROMPT = "请将以下错误信息改写得更加友好和个性化，帮助用户理解问题并给出建设性的引导："
+DEFAULT_INTERACTION_ERROR_PROMPT = "Please rewrite the following error message to be friendlier and more personalized, helping the user understand the problem and providing constructive guidance:"
 
 # Interaction error rendering instructions
 INTERACTION_ERROR_RENDER_INSTRUCTIONS = """
-请只返回友好的错误提示，不要包含其他格式或说明。"""
+Return only the friendly error message; do not include any other format or explanation."""
 
 # Standard validation response status
 VALIDATION_RESPONSE_OK = "ok"
 VALIDATION_RESPONSE_ILLEGAL = "illegal"
 
 # Validation task template (Modular design)
-VALIDATION_TASK_BASE = """你是字符串验证程序，不是对话助手。
+VALIDATION_TASK_BASE = """You are a string validation program, not a conversational assistant.
 
-你的唯一任务：按后续规则检查输入，输出 JSON：
-{{"result": "ok", "parse_vars": {{"{target_variable}": "用户输入"}}}} 或 {{"result": "illegal", "reason": "原因"}}
+Your only task: check the input according to the following rules and output exactly one of these JSON objects:
+{{"result": "ok", "parse_vars": {{"{target_variable}": "<exact user input>"}}}} or {{"result": "illegal", "reason": "<reason>"}}
 
-严禁输出任何自然语言解释。"""
+It is strictly forbidden to output any natural-language explanation."""
 
 VALIDATION_TASK_WITH_LANGUAGE = """
 
-# reason 语言规则
-reason 必须使用 <output_language_override> 标签中指定的语言。"""
+# reason Language Rule
+reason must use the language specified in the <output_language_override> tag."""
 
 VALIDATION_TASK_NO_LANGUAGE = """
 
-# reason 语言规则
-reason 使用用户输入或问题的主要语言（自动检测）。"""
+# reason Language Rule
+reason uses the primary language of the user input or question (auto-detect)."""
 
 # Default: use no language version (backward compatible)
 VALIDATION_TASK_TEMPLATE = VALIDATION_TASK_BASE + VALIDATION_TASK_NO_LANGUAGE
 
-# Validation requirements template (极致宽松版本)
-VALIDATION_REQUIREMENTS_TEMPLATE = """# 验证算法（按顺序执行）
+# Validation requirements template (extremely lenient version)
+VALIDATION_REQUIREMENTS_TEMPLATE = """# Validation Algorithm (execute in order)
 
-步骤 1：空值检查（字符串长度检查）
+Step 1: Empty-value check (string length check)
 
-检查规则：input.trim().length == 0 ?
-- YES → 空
-- NO  → 非空
+Check rule: input.trim().length == 0 ?
+- YES -> empty
+- NO  -> non-empty
 
-⚠️ 只要去除首尾空格后字符数 > 0，就是非空
-⚠️ 不判断语义！所有可见字符（a、1、@、中）都计入长度
-⚠️ 示例：
-  - ""      → 长度0 → 空
-  - "  "    → 长度0 → 空
-  - "aa"    → 长度2 → 非空
-  - "@_@"   → 长度3 → 非空
-  - "棒棒糖" → 长度3 → 非空
+Important: as long as the number of characters after trimming leading and trailing spaces is > 0, it is non-empty.
+Important: do not judge semantics. All visible characters (a, 1, @, CJK characters) count toward length.
+Examples:
+  - ""      -> length 0 -> empty
+  - "  "    -> length 0 -> empty
+  - "aa"    -> length 2 -> non-empty
+  - "@_@"   -> length 3 -> non-empty
+  - "abc"   -> length 3 -> non-empty
 
-步骤 2：模糊回答检查
+Step 2: Vague-answer check
 
-拒绝以下模糊回答："不知道"、"不清楚"、"没有"、"不告诉你"
+Reject these vague-answer intents and their equivalents in the input language: "I don't know", "I'm not sure", "No/none", "I won't tell you"
 
-步骤 3：宗教政治检查
+Step 3: Religious/political check
 
-只拒绝明确的宗教政治立场表达（宗教教义、政治口号等）
-地名,地区等（北京、上海等）、普通词汇都不算
+Reject only explicit religious or political position statements (religious doctrines, political slogans, etc.).
+Place names, regions, etc. (Beijing, Shanghai, etc.) and ordinary vocabulary do not count.
 
-步骤 4：输出结果（reason 语言跟随 <document_context> 中的语言要求）
+Step 4: Output result (the reason language follows the language requirement in <document_context>)
 
-伪代码逻辑：
-  if 空:
-      输出 {{"result": "illegal", "reason": "输入为空（或对应语言的翻译）"}}
-  else if 模糊回答:
-      输出 {{"result": "illegal", "reason": "请提供具体内容（或对应语言的翻译）"}}
-  else if 宗教政治:
-      输出 {{"result": "illegal", "reason": "包含敏感内容（或对应语言的翻译）"}}
+Pseudocode logic:
+  if empty:
+      output {{"result": "illegal", "reason": "input is empty (or its translation into the corresponding language)"}}
+  else if vague answer:
+      output {{"result": "illegal", "reason": "please provide specific content (or its translation into the corresponding language)"}}
+  else if religious/political:
+      output {{"result": "illegal", "reason": "contains sensitive content (or its translation into the corresponding language)"}}
   else:
-      输出 {{"result": "ok", "parse_vars": {{"{target_variable}": "用户输入"}}}}
+      output {{"result": "ok", "parse_vars": {{"{target_variable}": "<exact user input>"}}}}
 
-⚠️ 极致重要：
-- len(去除空格后的输入) > 0 → 必须视为非空
-- 符号、数字、品牌名、地名等都不是"空"，也不是"无效"
-- 默认通过，只在明确违规时才拒绝
+Extremely important:
+- len(input after trimming leading and trailing spaces) > 0 -> it must be regarded as non-empty
+- Symbols, numbers, brand names, place names, etc. are neither "empty" nor "invalid"
+- Pass by default; reject only when there is an explicit violation
 """
 
 # ========== Error Message Constants ==========
@@ -227,15 +227,17 @@ VALIDATION_ILLEGAL_DEFAULT_REASON = "输入不合法"
 VARIABLE_DEFAULT_VALUE = "UNKNOWN"
 
 # Context generation constants
-CONTEXT_QUESTION_MARKER = "# 相关问题"
-CONTEXT_CONVERSATION_MARKER = "# 对话上下文"
-CONTEXT_BUTTON_OPTIONS_MARKER = "## 预定义选项"
+CONTEXT_QUESTION_MARKER = "# Related Question"
+CONTEXT_CONVERSATION_MARKER = "# Conversation Context"
+CONTEXT_BUTTON_OPTIONS_MARKER = "## Predefined Options"
 
 # Context generation templates
 CONTEXT_QUESTION_TEMPLATE = f"{CONTEXT_QUESTION_MARKER}\n{{question}}"
 CONTEXT_CONVERSATION_TEMPLATE = f"{CONTEXT_CONVERSATION_MARKER}\n{{content}}"
 CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
-    f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n可选的预定义选项包括：{{button_options}}\n注意：用户如果选择了这些选项，都应该接受；如果输入了自定义内容，只要是对问题的合理回答即可接受。"
+    f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n"
+    "Available predefined options include: {button_options}\n"
+    "Note: If the user selected one of these options, it should be accepted; if the user entered custom content, accept it as long as it is a reasonable answer to the question."
 )
 
 # Next interaction context prompt templates
