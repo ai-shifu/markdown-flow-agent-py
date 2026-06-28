@@ -1263,6 +1263,10 @@ class MarkdownFlow:
         if self._document_prompt:
             system_parts.append(f"# Document Prompt\n\n{self._document_prompt}")
 
+        next_interaction_context = self._build_next_interaction_context_prompt(block_index, variables)
+        if next_interaction_context:
+            system_parts.append(next_interaction_context)
+
         # Combine all parts and add as system message
         if system_parts:
             system_msg = "\n\n".join(system_parts)
@@ -1293,10 +1297,6 @@ class MarkdownFlow:
         # Use XML tags to clarify this is a processing instruction, not content to output
         if self._output_language:
             user_content = f"<output_language_instruction>\n🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨\n</output_language_instruction>\n\n{user_content}"
-
-        next_interaction_context = self._build_next_interaction_context_prompt(block_index, variables)
-        if next_interaction_context:
-            user_content = f"{user_content}\n\n{next_interaction_context}"
 
         # Add processed content as user message (as instruction to LLM)
         messages.append({"role": "user", "content": user_content})
@@ -1340,12 +1340,13 @@ class MarkdownFlow:
         option_displays: list[str],
     ) -> str:
         """Format the type-specific part of the next interaction prompt."""
-        options = ", ".join(option_displays)
+        options = json.dumps(option_displays, ensure_ascii=False) if option_displays else ""
+        question_text = json.dumps(question, ensure_ascii=False) if question else ""
 
         if interaction_type == InteractionType.TEXT_ONLY:
             if not question:
                 return ""
-            return NEXT_INTERACTION_TEXT_INPUT_TEMPLATE.format(question=question)
+            return NEXT_INTERACTION_TEXT_INPUT_TEMPLATE.format(question=question_text)
 
         if interaction_type in [InteractionType.BUTTONS_ONLY, InteractionType.NON_ASSIGNMENT_BUTTON]:
             if not options:
@@ -1362,7 +1363,7 @@ class MarkdownFlow:
             if options:
                 detail_parts.append(NEXT_INTERACTION_PREDEFINED_OPTIONS_TEMPLATE.format(options=options))
             if question:
-                detail_parts.append(NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE.format(question=question))
+                detail_parts.append(NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE.format(question=question_text))
             return " ".join(detail_parts)
 
         if interaction_type == InteractionType.BUTTONS_MULTI_WITH_TEXT:
@@ -1370,7 +1371,7 @@ class MarkdownFlow:
             if options:
                 detail_parts.append(NEXT_INTERACTION_PREDEFINED_OPTIONS_TEMPLATE.format(options=options))
             if question:
-                detail_parts.append(NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE.format(question=question))
+                detail_parts.append(NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE.format(question=question_text))
             return " ".join(detail_parts)
 
         return ""

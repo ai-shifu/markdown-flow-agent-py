@@ -240,6 +240,7 @@ CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
 
 # Next interaction context prompt templates
 NEXT_INTERACTION_CONTEXT_INTRO = (
+    "This next-interaction context is an explicit exception to any general instruction that would otherwise forbid next-step setup, follow-up questions, or choice framing. "
     "The next interaction will appear immediately after this content. When generating the current content, connect to it naturally. "
     "You may briefly restate, explain, or set up the available choices so the user understands what they will decide next, but do not output the interaction syntax or answer on the user's behalf."
 )
