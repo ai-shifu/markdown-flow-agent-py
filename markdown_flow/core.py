@@ -1263,10 +1263,6 @@ class MarkdownFlow:
         if self._document_prompt:
             system_parts.append(f"# Document Prompt\n\n{self._document_prompt}")
 
-        next_interaction_context = self._build_next_interaction_context_prompt(block_index, variables)
-        if next_interaction_context:
-            system_parts.append(next_interaction_context)
-
         # Combine all parts and add as system message
         if system_parts:
             system_msg = "\n\n".join(system_parts)
@@ -1297,6 +1293,10 @@ class MarkdownFlow:
         # Use XML tags to clarify this is a processing instruction, not content to output
         if self._output_language:
             user_content = f"<output_language_instruction>\n🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨\n</output_language_instruction>\n\n{user_content}"
+
+        next_interaction_context = self._build_next_interaction_context_prompt(block_index, variables)
+        if next_interaction_context:
+            user_content = f"{user_content}\n\n{next_interaction_context}"
 
         # Add processed content as user message (as instruction to LLM)
         messages.append({"role": "user", "content": user_content})
