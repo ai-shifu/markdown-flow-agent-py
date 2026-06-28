@@ -25,6 +25,14 @@ from .constants import (
     INTERACTION_PROMPT_BASE,
     INTERACTION_PROMPT_WITH_TRANSLATION,
     LLM_PROVIDER_REQUIRED_ERROR,
+    NEXT_INTERACTION_CONTEXT_INTRO,
+    NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE,
+    NEXT_INTERACTION_MULTIPLE_CHOICE_TEMPLATE,
+    NEXT_INTERACTION_MULTIPLE_CHOICE_WITH_TEXT_INTRO,
+    NEXT_INTERACTION_PREDEFINED_OPTIONS_TEMPLATE,
+    NEXT_INTERACTION_SINGLE_CHOICE_TEMPLATE,
+    NEXT_INTERACTION_SINGLE_CHOICE_WITH_TEXT_INTRO,
+    NEXT_INTERACTION_TEXT_INPUT_TEMPLATE,
     OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM,
     OUTPUT_LANGUAGE_INSTRUCTION_TOP,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
@@ -1286,10 +1294,86 @@ class MarkdownFlow:
         if self._output_language:
             user_content = f"<output_language_instruction>\n🚨 OUTPUT: 100% {self._output_language} - Translate ALL non-{self._output_language} words/phrases to {self._output_language} 🚨\n</output_language_instruction>\n\n{user_content}"
 
+        next_interaction_context = self._build_next_interaction_context_prompt(block_index, variables)
+        if next_interaction_context:
+            user_content = f"{user_content}\n\n{next_interaction_context}"
+
         # Add processed content as user message (as instruction to LLM)
         messages.append({"role": "user", "content": user_content})
 
         return messages
+
+    def _build_next_interaction_context_prompt(
+        self,
+        block_index: int,
+        variables: dict[str, str | list[str]] | None,
+    ) -> str:
+        """Build natural prompt context from the immediately following interaction block."""
+        blocks = self.get_all_blocks()
+        next_index = block_index + 1
+        if next_index >= len(blocks):
+            return ""
+
+        next_block = blocks[next_index]
+        if next_block.block_type != BlockType.INTERACTION:
+            return ""
+
+        interaction_content = replace_variables_in_text(next_block.content, variables or {})
+        parse_result = InteractionParser().parse(interaction_content)
+        if parse_result.get("error"):
+            return ""
+
+        question = parse_result.get("question", "").strip()
+        buttons = parse_result.get("buttons") or []
+        option_displays = [button.get("display", "").strip() for button in buttons if button.get("display", "").strip()]
+
+        detail = self._format_next_interaction_detail(parse_result.get("type"), question, option_displays)
+        if not detail:
+            return ""
+
+        return f"{NEXT_INTERACTION_CONTEXT_INTRO}\n{detail}"
+
+    def _format_next_interaction_detail(
+        self,
+        interaction_type: InteractionType | None,
+        question: str,
+        option_displays: list[str],
+    ) -> str:
+        """Format the type-specific part of the next interaction prompt."""
+        options = ", ".join(option_displays)
+
+        if interaction_type == InteractionType.TEXT_ONLY:
+            if not question:
+                return ""
+            return NEXT_INTERACTION_TEXT_INPUT_TEMPLATE.format(question=question)
+
+        if interaction_type in [InteractionType.BUTTONS_ONLY, InteractionType.NON_ASSIGNMENT_BUTTON]:
+            if not options:
+                return ""
+            return NEXT_INTERACTION_SINGLE_CHOICE_TEMPLATE.format(options=options)
+
+        if interaction_type == InteractionType.BUTTONS_MULTI_SELECT:
+            if not options:
+                return ""
+            return NEXT_INTERACTION_MULTIPLE_CHOICE_TEMPLATE.format(options=options)
+
+        if interaction_type == InteractionType.BUTTONS_WITH_TEXT:
+            detail_parts = [NEXT_INTERACTION_SINGLE_CHOICE_WITH_TEXT_INTRO]
+            if options:
+                detail_parts.append(NEXT_INTERACTION_PREDEFINED_OPTIONS_TEMPLATE.format(options=options))
+            if question:
+                detail_parts.append(NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE.format(question=question))
+            return " ".join(detail_parts)
+
+        if interaction_type == InteractionType.BUTTONS_MULTI_WITH_TEXT:
+            detail_parts = [NEXT_INTERACTION_MULTIPLE_CHOICE_WITH_TEXT_INTRO]
+            if options:
+                detail_parts.append(NEXT_INTERACTION_PREDEFINED_OPTIONS_TEMPLATE.format(options=options))
+            if question:
+                detail_parts.append(NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE.format(question=question))
+            return " ".join(detail_parts)
+
+        return ""
 
     def _extract_translatable_content(self, interaction_content: str) -> tuple[str, dict[str, Any] | None]:
         """Extract translatable parts from interaction content as JSON format

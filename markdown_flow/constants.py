@@ -237,3 +237,16 @@ CONTEXT_CONVERSATION_TEMPLATE = f"{CONTEXT_CONVERSATION_MARKER}\n{{content}}"
 CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
     f"{CONTEXT_BUTTON_OPTIONS_MARKER}\n可选的预定义选项包括：{{button_options}}\n注意：用户如果选择了这些选项，都应该接受；如果输入了自定义内容，只要是对问题的合理回答即可接受。"
 )
+
+# Next interaction context prompt templates
+NEXT_INTERACTION_CONTEXT_INTRO = (
+    "The next interaction will appear immediately after this content. When generating the current content, connect to it naturally. "
+    "You may briefly restate, explain, or set up the available choices so the user understands what they will decide next, but do not output the interaction syntax or answer on the user's behalf."
+)
+NEXT_INTERACTION_TEXT_INPUT_TEMPLATE = "The next interaction asks the user to answer in text: {question}"
+NEXT_INTERACTION_SINGLE_CHOICE_TEMPLATE = "The next interaction is a single-choice question. The user will choose one option from: {options}"
+NEXT_INTERACTION_MULTIPLE_CHOICE_TEMPLATE = "The next interaction is a multiple-choice question. The user can choose one or more options from: {options}"
+NEXT_INTERACTION_SINGLE_CHOICE_WITH_TEXT_INTRO = "The next interaction is a single-choice question with an optional custom text answer."
+NEXT_INTERACTION_MULTIPLE_CHOICE_WITH_TEXT_INTRO = "The next interaction is a multiple-choice question with an optional custom text answer."
+NEXT_INTERACTION_PREDEFINED_OPTIONS_TEMPLATE = "The predefined options are: {options}."
+NEXT_INTERACTION_CUSTOM_TEXT_PROMPT_TEMPLATE = "The custom text prompt is: {question}"
