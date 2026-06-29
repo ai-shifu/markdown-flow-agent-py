@@ -1420,28 +1420,60 @@ class MarkdownFlow:
 - [ ] CI/CD checks passing
 - [ ] At least one approval from maintainer
 
-### Release Process
+### Release Process — Publish via GitHub Action ⭐
 
-1. **Version Update**: Update version in `markdown_flow/__init__.py`
-2. **Changelog**: Update CHANGELOG.md with new features and fixes
-3. **Testing**: Run comprehensive tests on multiple Python versions
-4. **Build**: Create distribution packages (`python -m build`)
-5. **Tag**: Create git tag with version number
-6. **Release**: Publish to PyPI
+Publishing to PyPI is done through the manually-triggered **Publish** GitHub Action
+(`.github/workflows/publish.yml`), **not** by running build/twine locally. This lets any
+collaborator publish from any branch without a local script or the PyPI token. The PyPI
+credential is injected from the `PYPI_TOKEN` repository secret.
+
+**Version source of truth**: `markdown_flow/__init__.py` (`__version__`). The Action bumps
+this single line; `pyproject.toml` reads it via `[tool.setuptools.dynamic]`.
+
+#### Two package types
+
+| Type | Input version | Final version | Install |
+|------|---------------|---------------|---------|
+| `dev` | `0.2.83` (base) | `0.2.83.devN` (auto-incremented) | `pip install --pre markdown-flow==0.2.83.dev1` |
+| `release` | `0.2.83` (base) | `0.2.83` | `pip install markdown-flow==0.2.83` |
+
+Always enter the **clean base version** (e.g. `0.2.83`); the `.devN` suffix is added
+automatically for dev builds. The Action validates the input: PEP 440 format, must be
+greater than the latest stable release on PyPI, and not already taken.
+
+#### Workflow (strategy A — never publish from `main`)
+
+`main` is protected. The Action **refuses to run on `main`** (a guard step fails fast).
+Publish from a release branch, then PR the version bump back:
+
+1. Branch from main: `git checkout main && git pull && git checkout -b release/0.2.83`, then push it.
+2. **Actions → Publish → Run workflow** → "Use workflow from" = your release branch →
+   `version=0.2.83`, `release_type=dev` (for testing) or `release` (for the real thing).
+3. The Action: validates → bumps `__init__.py` → `build` + `twine check` + `twine upload`
+   → commits `chore: release <version>` and pushes it back to the **selected branch**.
+4. Open a PR from the release branch to `main`.
+
+#### ⚠️ Critical rule: PRs to `main` must carry a RELEASE version, not a dev version
+
+`dev` packages are throwaway test builds for the release branch only. Before opening (or
+merging) a PR into `main`, the version in `__init__.py` **must be a clean release version**
+(`X.Y.Z`), never `X.Y.Z.devN`. If you tested with dev builds, run the Action once more with
+`release_type=release` so the final commit on the branch lands a clean version, then PR that.
+
+#### Triggering from the CLI / by an AI agent
+
+The Action is fully driveable via `gh`, so an agent can publish and read back the result:
 
 ```bash
-# Example release workflow
-git checkout main
-git pull origin main
-# Update version in __init__.py
-python -m build
-twine check dist/*
-git add .
-git commit -m "chore: bump version to 0.1.6"
-git tag v0.1.6
-git push origin main --tags
-twine upload dist/*
+# Trigger a build on a branch
+gh workflow run publish.yml --ref release/0.2.83 -f version=0.2.83 -f release_type=dev
+
+# Watch the latest run to completion, then read the published version
+gh run list --workflow=publish.yml --limit 1
+gh run view <run-id> --log | grep -iE "Resolved final version|Uploading markdown"
 ```
+
+Requires `publish.yml` on the default branch and `PYPI_TOKEN` configured.
 
 ## Environment Configuration
 
