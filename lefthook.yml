@@ -43,7 +43,9 @@ pre-commit:
       stage_fixed: true
     check-merge-conflict:
       glob: "*"
-      run: bash -c 'for f in {staged_files}; do grep -Eq "^(<<<<<<<|>>>>>>>) " "$f" && { echo "Merge conflict marker in $f"; exit 1; }; done; exit 0'
+      # Files are passed as positional args so empty input is a no-op and
+      # filenames with spaces are handled correctly.
+      run: bash -c 'for f in "$@"; do grep -Eq "^(<<<<<<<|>>>>>>>) " "$f" && { echo "Merge conflict marker in $f"; exit 1; }; done; exit 0' -- {staged_files}
 
 commit-msg:
   commands:
