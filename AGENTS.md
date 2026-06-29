@@ -1460,6 +1460,15 @@ merging) a PR into `main`, the version in `__init__.py` **must be a clean releas
 (`X.Y.Z`), never `X.Y.Z.devN`. If you tested with dev builds, run the Action once more with
 `release_type=release` so the final commit on the branch lands a clean version, then PR that.
 
+This rule is **enforced by CI**: the **Check release version** workflow
+(`.github/workflows/check-release-version.yml`) runs on every PR into `main` and fails if
+`__version__` is a pre-release/dev build. (Add it as a required status check in the `main`
+ruleset to actually block merges.)
+
+> **Why this matters**: downstream projects pin `markdown-flow` from its published releases,
+> so `main` must only ever carry release versions. dev builds stay on feature branches for
+> testing and never land on `main`.
+
 #### Triggering from the CLI / by an AI agent
 
 The Action is fully driveable via `gh`, so an agent can publish and read back the result:
