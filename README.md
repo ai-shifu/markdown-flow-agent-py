@@ -712,7 +712,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [Ruff](https://docs.astral.sh/ruff/) for lightning-fast Python linting and formatting
 - [MyPy](https://mypy.readthedocs.io/) for static type checking
 - [Commitizen](https://commitizen-tools.github.io/commitizen/) for standardized commit messages
-- [Pre-commit](https://pre-commit.com/) for automated code quality checks
+- [Lefthook](https://lefthook.dev/) for automated code quality checks (git hooks + CI)
 
 ## 📞 Support
 

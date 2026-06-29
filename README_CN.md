@@ -712,7 +712,7 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 - [Ruff](https://docs.astral.sh/ruff/) 提供闪电般快速的 Python 代码检查和格式化
 - [MyPy](https://mypy.readthedocs.io/) 提供静态类型检查
 - [Commitizen](https://commitizen-tools.github.io/commitizen/) 提供标准化提交消息
-- [Pre-commit](https://pre-commit.com/) 提供自动化代码质量检查
+- [Lefthook](https://lefthook.dev/) 提供自动化代码质量检查(git 钩子 + CI)
 
 ## 📞 支持
 

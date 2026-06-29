@@ -7,11 +7,11 @@ This file provides comprehensive guidance to all Coding Agents such as Claude Co
 ### Most Common Tasks
 
 | Task | Command | Location |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | Install package (dev) | `pip install -e .` | Root directory |
 | Run code formatting | `ruff format` | Root directory |
 | Run linting | `ruff check --fix` | Root directory |
-| Run pre-commit hooks | `pre-commit run --all-files` | Root directory |
+| Run all checks | `lefthook run pre-commit --all-files` | Root directory |
 | Build package | `python -m build` | Root directory |
 | Run Python tests | `pytest` | Root directory (when tests exist) |
 | Check installed version | `python -c "import markdown_flow; print(markdown_flow.__version__)"` | Any directory |
@@ -22,14 +22,14 @@ This file provides comprehensive guidance to all Coding Agents such as Claude Co
 # Core dependencies (none for runtime)
 # Development dependencies
 pip install -e .[dev]  # When dev dependencies are configured
-pip install pre-commit ruff mypy pytest  # Manual installation
+pip install ruff mypy pytest commitizen  # Python tools; lefthook + markdownlint-cli via brew/npm
 ```
 
 ## Critical Warnings ⚠️
 
 ### MUST DO Before Any Commit
 
-1. **Run pre-commit hooks**: `pre-commit run --all-files` (MANDATORY)
+1. **Run the lefthook checks**: `lefthook run pre-commit --all-files` (MANDATORY)
 2. **Test your changes**: Verify core functionality with test scripts
 3. **Use English for all code**: Comments, variables, docstrings, commit messages
 4. **Follow Conventional Commits**: `type: description` (lowercase type, imperative mood)
@@ -37,7 +37,7 @@ pip install pre-commit ruff mypy pytest  # Manual installation
 
 ### Common Pitfalls to Avoid
 
-- **Don't skip pre-commit** - It catches formatting and style issues automatically
+- **Don't skip the lefthook checks** - They catch formatting and style issues automatically
 - **Don't use Chinese in code** - English only (except example data)
 - **Don't hardcode API keys** - Use environment variables or config files
 - **Don't modify installed packages** - Always work with editable installation (`pip install -e .`)
@@ -151,14 +151,14 @@ python -c "from markdown_flow import MarkdownFlow, ProcessMode; print('Import su
 ### Code Quality
 
 ```bash
-# Install pre-commit hooks (first time)
-pre-commit install
+# Install the git hooks (first time)
+lefthook install
 
-# Run pre-commit on all files
-pre-commit run --all-files
+# Run all checks on every file
+lefthook run pre-commit --all-files
 
-# Run pre-commit on modified files only
-pre-commit run
+# Run checks on staged files only
+lefthook run pre-commit
 
 # Ruff linting with auto-fix (replaces Flake8 + isort + more)
 ruff check --fix
@@ -650,7 +650,7 @@ validation_result = mf.process(0, user_input=user_input)
 **Value Naming Best Practices:**
 
 | Scenario | Display (Chinese) | Value (Recommended) |
-|----------|-------------------|---------------------|
+| ---------- | ------------------- | --------------------- |
 | Difficulty Level | 初级/中级/高级 | beginner/intermediate/advanced |
 | Yes/No Selection | 是/否 | yes/no or true/false or 1/0 |
 | Fruit Selection | 苹果/香蕉/橙子 | apple/banana/orange |
@@ -672,7 +672,7 @@ pytest tests/ -k "interaction" -v
 **Solution Comparison:**
 
 | Feature | Automatic Conversion (v1.0+) | Manual display//value |
-|---------|------------------------------|----------------------|
+| --------- | ------------------------------ | ---------------------- |
 | Document Modification | Not required | Required |
 | Value Type | Original Chinese | Custom (e.g., English, numbers) |
 | Use Cases | General scenarios | Scenarios requiring stable English values |
@@ -1214,7 +1214,7 @@ class TestMarkdownFlow:
 
 **Configuration Files**: Use lowercase with dots
 
-- ✅ Correct: `.gitignore`, `pyproject.toml`, `.pre-commit-config.yaml`
+- ✅ Correct: `.gitignore`, `pyproject.toml`, `lefthook.yml`
 - ❌ Wrong: `GitIgnore`, `PyProject.TOML`
 
 **Documentation**: Use kebab-case
@@ -1222,31 +1222,31 @@ class TestMarkdownFlow:
 - ✅ Correct: `api-reference.md`, `user-guide.md`
 - ❌ Wrong: `apiReference.md`, `user_guide.md`
 
-### Pre-commit Hooks
+### Git Hooks (lefthook)
 
-The project uses comprehensive pre-commit hooks for code quality:
+The project uses [lefthook](https://lefthook.dev/) to run code-quality checks
+as git hooks. Lefthook calls the tools already installed on your machine (no
+isolated environments, no per-run package downloads):
 
 **Automatic Checks**:
 
-- End-of-file fixer
-- Trailing whitespace removal
-- YAML syntax validation
-- Python syntax validation
-- JSON formatting
 - Ruff linting and formatting
-- MyPy type checking (when configured)
+- MyPy type checking
+- Markdownlint for documentation
+- Merge-conflict marker detection
+- Commitizen commit-message validation (commit-msg hook)
 
 **Manual Execution**:
 
 ```bash
 # Install hooks (first time)
-pre-commit install
+lefthook install
 
 # Run on all files
-pre-commit run --all-files
+lefthook run pre-commit --all-files
 
 # Run on staged files only
-pre-commit run
+lefthook run pre-commit
 ```
 
 ## Performance Guidelines
@@ -1398,7 +1398,7 @@ class MarkdownFlow:
 **Before Creating PR**:
 
 - [ ] Code follows project conventions
-- [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
+- [ ] Lefthook checks pass (`lefthook run pre-commit --all-files`)
 - [ ] Tests added/updated and passing
 - [ ] Version updated if needed (in `__init__.py`)
 - [ ] Documentation updated if needed
@@ -1497,7 +1497,7 @@ Requires `publish.yml` on the default branch and `PYPI_TOKEN` configured.
 **Development Dependencies** (manual installation):
 
 ```bash
-pip install pre-commit ruff mypy pytest pytest-cov
+pip install ruff mypy pytest pytest-cov commitizen
 ```
 
 **Environment Variables** (for development):
@@ -1545,16 +1545,16 @@ export PYTHONDONTWRITEBYTECODE=1  # Prevent .pyc files
 
 - Enable Ruff plugin for linting and formatting
 - Configure pytest as test runner
-- Enable pre-commit plugin
+- Install the lefthook git hooks (`lefthook install`)
 
 ## Error Handling and Debugging
 
 ### Common Issues and Solutions
 
 | Issue | Symptoms | Solution |
-|-------|----------|----------|
+| ------- | ---------- | ---------- |
 | `ModuleNotFoundError: No module named 'markdown_flow'` | Import fails | Run `pip install -e .` in project root |
-| Pre-commit hooks fail | Git commit rejected | Run `pre-commit install` then `pre-commit run --all-files` |
+| Lefthook checks fail | Git commit rejected | Run `lefthook install` then `lefthook run pre-commit --all-files` |
 | Import errors during development | Module not found | Ensure editable install: `pip install -e .` |
 | LLM provider errors | Processing fails | Check API keys and network connectivity |
 | Variable replacement not working | Variables not substituted | Verify variable names match exactly (case-sensitive) |
@@ -1562,7 +1562,7 @@ export PYTHONDONTWRITEBYTECODE=1  # Prevent .pyc files
 | Performance issues with large documents | Slow processing | Enable streaming mode and optimize batch sizes |
 | Type checking errors | MyPy warnings | Add proper type hints to function signatures |
 | Commitizen not found | `cz: command not found` | Install commitizen: `pip install commitizen` |
-| Commit message validation fails | Pre-commit hook rejects commit | Use conventional format: `type: description` or run `cz commit` |
+| Commit message validation fails | Lefthook commit-msg hook rejects commit | Use conventional format: `type: description` or run `cz commit` |
 | Version bump fails | `cz bump` command errors | Check `cz.json` configuration and ensure clean git state |
 
 ### Debug Commands
@@ -1576,8 +1576,8 @@ which python
 # Validate package installation
 python -c "import markdown_flow; print('Package imported successfully')"
 
-# Check pre-commit status
-pre-commit --version
+# Check lefthook status
+lefthook version
 git status
 
 # Test document parsing
@@ -1976,7 +1976,7 @@ mf = ValidatedMarkdownFlow(document, llm_provider, validators)
 - **GitHub Repository**: <https://github.com/ai-shifu/markdown-flow-agent-py>
 - **MarkdownFlow Specification**: <https://markdownflow.ai>
 - **Python Documentation**: <https://docs.python.org/>
-- **Pre-commit Documentation**: <https://pre-commit.com/>
+- **Lefthook Documentation**: <https://lefthook.dev/>
 - **Ruff Documentation**: <https://docs.astral.sh/ruff/>
 - **Conventional Commits**: <https://www.conventionalcommits.org/>
 

@@ -1,0 +1,52 @@
+# Lefthook configuration for markdown-flow-agent-py
+#
+# Replaces pre-commit / pre-commit.ci. Lefthook is a single Go binary that
+# calls the tools already installed on your machine (ruff, mypy, markdownlint,
+# commitizen) directly -- no isolated environments, no per-run package
+# downloads. This is what makes it fast and removes the "always pulling
+# packages" pain of pre-commit.
+#
+# One-time setup (pin versions so local matches CI -- lefthook, unlike
+# pre-commit, does not pin tool versions itself):
+#   brew install lefthook commitizen
+#   npm install -g markdownlint-cli@0.45.0
+#   pip install ruff==0.13.1 mypy==1.18.2          # or via your project env
+#   lefthook install                               # wire up the git hooks
+#
+# Manual runs:
+#   lefthook run pre-commit               # only staged files
+#   lefthook run pre-commit --all-files   # whole repo (what CI runs)
+
+pre-commit:
+  # Sequential: ruff-check and ruff-format both rewrite *.py files, so they
+  # must not run in parallel on the same file. The tools are fast enough that
+  # sequencing costs nothing meaningful.
+  parallel: false
+  commands:
+    ruff-check:
+      glob: "*.py"
+      run: ruff check --fix {staged_files}
+      stage_fixed: true
+    ruff-format:
+      glob: "*.py"
+      run: ruff format {staged_files}
+      stage_fixed: true
+    mypy:
+      glob: "*.py"
+      # Same flags the previous pre-commit mirrors-mypy hook used, so the
+      # enforced strictness is identical to before (pyproject [tool.mypy]
+      # alone is stricter and would surface latent warnings).
+      run: mypy --ignore-missing-imports --follow-imports=silent --no-strict-optional --allow-untyped-defs --allow-incomplete-defs --no-warn-no-return --show-error-codes {staged_files}
+    markdownlint:
+      glob: "*.md"
+      run: markdownlint --fix {staged_files}
+      stage_fixed: true
+    check-merge-conflict:
+      glob: "*"
+      run: bash -c 'for f in {staged_files}; do grep -Eq "^(<<<<<<<|>>>>>>>) " "$f" && { echo "Merge conflict marker in $f"; exit 1; }; done; exit 0'
+
+commit-msg:
+  commands:
+    commitizen:
+      # Validates the message follows Conventional Commits (config in pyproject.toml).
+      run: cz check --commit-msg-file {1}
