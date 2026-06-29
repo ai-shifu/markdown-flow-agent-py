@@ -1465,10 +1465,9 @@ This rule is **enforced by CI**: the **Check release version** workflow
 `__version__` is a pre-release/dev build. (Add it as a required status check in the `main`
 ruleset to actually block merges.)
 
-> **Why this matters**: `markdown-flow` is consumed by the `ai-shifu` project (pinned in its
-> `src/api/requirements.txt`). A change here is usually made to be used there. ai-shifu also
-> refuses to merge a dev pin into its own `main`, so `markdown-flow`'s `main` must only ever
-> carry release versions — dev builds stay on feature branches for cross-repo testing.
+> **Why this matters**: downstream projects pin `markdown-flow` from its published releases,
+> so `main` must only ever carry release versions. dev builds stay on feature branches for
+> testing and never land on `main`.
 
 #### Triggering from the CLI / by an AI agent
 
