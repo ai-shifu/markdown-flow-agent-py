@@ -1,0 +1,223 @@
+name: Publish
+
+# Manually-triggered publish workflow.
+# Lets any collaborator build and upload markdown-flow to PyPI from any branch,
+# without needing the local public.sh script or the PyPI token on their machine.
+#
+# How to run:
+#   Actions -> Publish -> Run workflow
+#     - "Use workflow from": pick the branch to publish from
+#     - version:      base version, e.g. 0.2.83 (no suffix)
+#     - release_type: dev (-> 0.2.83.devN, needs `pip install --pre`) or release (-> 0.2.83)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Base version number, e.g. 0.2.83 (no .dev/rc suffix)"
+        required: true
+        type: string
+      release_type:
+        description: "Package type"
+        required: true
+        type: choice
+        default: dev
+        options:
+          - dev
+          - release
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # allow pushing the version-bump commit back to the branch
+
+    steps:
+      # Strategy A: never publish directly from the protected default branch.
+      # Run from a release branch, then PR the version bump back into main.
+      - name: Guard against publishing from main
+        if: github.ref_name == 'main'
+        run: |
+          echo "::error::Do not publish from 'main'. Run this workflow from a release branch, then open a PR to merge the version bump back into main."
+          exit 1
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade build twine packaging
+
+      - name: Validate version and compute final version
+        id: resolve
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          import sys
+          import urllib.request
+
+          from packaging.version import InvalidVersion, Version
+
+          raw = os.environ["INPUT_VERSION"].strip()
+          release_type = os.environ["RELEASE_TYPE"].strip()
+
+          def fail(msg: str) -> None:
+              print(f"::error::{msg}", file=sys.stderr)
+              sys.exit(1)
+
+          # 1. Parse and enforce PEP 440 format.
+          try:
+              parsed = Version(raw)
+          except InvalidVersion:
+              fail(f"Invalid version '{raw}': not a valid PEP 440 version.")
+
+          # 2. Require a clean base version (no pre/dev/post/local segment).
+          if parsed.is_prerelease or parsed.is_devrelease or parsed.is_postrelease or parsed.local:
+              fail(
+                  f"Please enter only the BASE version (e.g. 0.2.83), got '{raw}'. "
+                  "The dev suffix is added automatically for dev builds."
+              )
+
+          base = parsed.base_version
+
+          # 3. Fetch existing releases from PyPI.
+          url = "https://pypi.org/pypi/markdown-flow/json"
+          try:
+              with urllib.request.urlopen(url, timeout=30) as resp:
+                  data = json.load(resp)
+              existing = set(data.get("releases", {}).keys())
+          except Exception as exc:  # noqa: BLE001 - network/parse errors are all fatal here
+              fail(f"Failed to query PyPI: {exc}")
+
+          parsed_existing = []
+          for key in existing:
+              try:
+                  parsed_existing.append(Version(key))
+              except InvalidVersion:
+                  continue
+
+          # 4. Must be greater than the latest STABLE release on PyPI.
+          stable = [v for v in parsed_existing if not (v.is_prerelease or v.is_devrelease)]
+          latest_stable = max(stable) if stable else None
+          if latest_stable is not None and Version(base) <= latest_stable:
+              fail(
+                  f"Version {base} must be greater than the latest PyPI release {latest_stable}."
+              )
+
+          # 5. Compute the final version.
+          if release_type == "release":
+              final = base
+              if final in existing:
+                  fail(f"Version {final} already exists on PyPI.")
+          elif release_type == "dev":
+              # Pick the next free .devN for this base version.
+              used = []
+              for v in parsed_existing:
+                  if v.base_version == base and v.is_devrelease and v.dev is not None:
+                      used.append(v.dev)
+              n = (max(used) + 1) if used else 1
+              final = f"{base}.dev{n}"
+              while final in existing:
+                  n += 1
+                  final = f"{base}.dev{n}"
+          else:
+              fail(f"Unknown release_type '{release_type}'.")
+
+          print(f"final_version={final}")
+          print(f"base_version={base}")
+          PY
+
+      - name: Show resolved version
+        run: |
+          echo "Resolved final version: ${{ steps.resolve.outputs.final_version }}"
+          echo "Release type:           ${{ inputs.release_type }}"
+
+      - name: Write version into __init__.py
+        env:
+          FINAL_VERSION: ${{ steps.resolve.outputs.final_version }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+
+          path = "markdown_flow/__init__.py"
+          final = os.environ["FINAL_VERSION"]
+          with open(path, encoding="utf-8") as f:
+              content = f.read()
+
+          new_content, count = re.subn(
+              r'^__version__\s*=\s*["\'].*["\']',
+              f'__version__ = "{final}"',
+              content,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          if count != 1:
+              raise SystemExit(f"Could not find __version__ assignment in {path}")
+
+          with open(path, "w", encoding="utf-8") as f:
+              f.write(new_content)
+          print(f"Set __version__ = {final}")
+          PY
+
+      - name: Build package
+        run: |
+          rm -rf build/ dist/ ./*.egg-info/
+          python -m build
+
+      - name: Check package integrity
+        run: python -m twine check dist/*
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: python -m twine upload --non-interactive dist/*
+
+      - name: Commit and push version bump
+        env:
+          FINAL_VERSION: ${{ steps.resolve.outputs.final_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add markdown_flow/__init__.py
+          git commit -m "chore: release ${FINAL_VERSION}"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Summary
+        env:
+          FINAL_VERSION: ${{ steps.resolve.outputs.final_version }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          {
+            echo "## Published \`markdown-flow\` ${FINAL_VERSION}"
+            echo ""
+            echo "- Branch: \`${{ github.ref_name }}\`"
+            echo "- Type: \`${RELEASE_TYPE}\`"
+            echo ""
+            if [ "${RELEASE_TYPE}" = "dev" ]; then
+              echo "Install:"
+              echo '```bash'
+              echo "pip install --pre markdown-flow==${FINAL_VERSION}"
+              echo '```'
+            else
+              echo "Install:"
+              echo '```bash'
+              echo "pip install markdown-flow==${FINAL_VERSION}"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
