@@ -7,7 +7,7 @@ token tracking, and comprehensive metadata.
 
 import time
 from collections.abc import Generator
-from typing import Any
+from typing import Any, cast
 
 from ..llm import LLMProvider
 from .config import ProviderConfig
@@ -82,7 +82,7 @@ class OpenAIProvider(LLMProvider):
             self._print_request_info(messages, actual_model, actual_temperature)
 
         # Format messages
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = cast(Any, self._format_messages(messages))
 
         # Record start time
         start_time = time.time()
@@ -168,18 +168,21 @@ class OpenAIProvider(LLMProvider):
             self._print_request_info(messages, actual_model, actual_temperature)
 
         # Format messages
-        formatted_messages = self._format_messages(messages)
+        formatted_messages = cast(Any, self._format_messages(messages))
 
         # Record start time
         start_time = time.time()
 
         try:
             # Create streaming response
-            stream = self.client.chat.completions.create(
-                model=actual_model,
-                messages=formatted_messages,
-                temperature=actual_temperature,
-                stream=True,
+            stream = cast(
+                Any,
+                self.client.chat.completions.create(
+                    model=actual_model,
+                    messages=formatted_messages,
+                    temperature=actual_temperature,
+                    stream=True,
+                ),
             )
 
             for chunk in stream:

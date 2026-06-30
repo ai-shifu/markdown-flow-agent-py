@@ -45,13 +45,13 @@ Each HTML screen must be followed immediately by:
 
 | Purpose         | style syntax                       |
 | --------------- | ---------------------------------- |
-| Cover title     | font-size:3.5em; font-weight:700  |
-| Page title      | font-size:2.5em; font-weight:700  |
-| Subtitle        | font-size:2em; font-weight:600    |
-| Small heading   | font-size:1.5em; font-weight:600  |
-| Key point title | font-size:1.25em; font-weight:500 |
-| Body text       | font-size:1em                     |
-| Small text      | font-size:0.85em                  |
+| Cover title     | font-size:3.5em; font-weight:700   |
+| Page title      | font-size:2.5em; font-weight:700   |
+| Subtitle        | font-size:2em; font-weight:600     |
+| Small heading   | font-size:1.5em; font-weight:600   |
+| Key point title | font-size:1.25em; font-weight:500  |
+| Body text       | font-size:1em                      |
+| Small text      | font-size:0.85em                   |
 
 ### Decorative Element Rules
 

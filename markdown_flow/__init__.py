@@ -88,4 +88,4 @@ __all__ = [
     "replace_variables_in_text",
 ]
 
-__version__ = "0.2.83"
+__version__ = "0.2.84"
