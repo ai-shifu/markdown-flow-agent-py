@@ -138,5 +138,5 @@ Amount of modification < 50% -> Diff; >= 50% -> create a new screen.
 13. Output HTML as plain text. **Do not** use ```html or any code block marker. Do not output like this:
 
 ```html
-<div style="width:100%; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:flex; flex-direction:column; align-items:center; padding:1em; font-size:clamp(12px,calc(100vw/48),3vh)">
+html code here
 ```
