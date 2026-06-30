@@ -723,10 +723,10 @@ The text validation toggle affects these three interaction types that include te
 
 #### Toggle State Comparison
 
-| State | Behavior | Performance | Use Cases |
-|-------|----------|-------------|-----------|
-| **Disabled (default)** | Directly accept all text inputs | Fastest, no LLM calls | Dev/testing, trusted input, cost priority |
-| **Enabled** | Use LLM to validate text inputs | Slower, requires LLM | Production, need input validation |
+| State                  | Behavior                         | Performance           | Use Cases                                 |
+| ---------------------- | -------------------------------- | --------------------- | ----------------------------------------- |
+| **Disabled (default)** | Directly accept all text inputs  | Fastest, no LLM calls | Dev/testing, trusted input, cost priority |
+| **Enabled**            | Use LLM to validate text inputs  | Slower, requires LLM  | Production, need input validation         |
 
 #### Usage Examples
 
@@ -1441,10 +1441,10 @@ this single line; `pyproject.toml` reads it via `[tool.setuptools.dynamic]`.
 
 #### Two package types
 
-| Type | Input version | Final version | Install |
-|------|---------------|---------------|---------|
-| `dev` | `0.2.83` (base) | `0.2.83.devN` (auto-incremented) | `pip install --pre markdown-flow==0.2.83.dev1` |
-| `release` | `0.2.83` (base) | `0.2.83` | `pip install markdown-flow==0.2.83` |
+| Type      | Input version   | Final version                        | Install                                            |
+| --------- | --------------- | ------------------------------------ | -------------------------------------------------- |
+| `dev`     | `0.2.83` (base) | `0.2.83.devN` (auto-incremented)     | `pip install --pre markdown-flow==0.2.83.dev1`     |
+| `release` | `0.2.83` (base) | `0.2.83`                             | `pip install markdown-flow==0.2.83`                |
 
 Always enter the **clean base version** (e.g. `0.2.83`); the `.devN` suffix is added
 automatically for dev builds. The Action validates the input: PEP 440 format, must be
