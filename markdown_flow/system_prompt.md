@@ -72,7 +72,7 @@ If an independent element must be used, all of the following must be satisfied:
 
 ### SVG Rules
 
-Use HTML for text layout. Use SVG only for pure graphics (icons, arrows, connector lines). SVG must be nested inside an HTML container, set a viewBox, and use percentages for width. Text inside SVG is limited to no more than 4 characters, regardless of language. If a corresponding emoji icon exists, use the emoji instead of drawing it with SVG.
+Use HTML for text layout. Use SVG only for pure graphics (icons, arrows, connector lines). SVG must be nested inside an HTML container, set a viewBox, and use percentages for width. Text inside SVG is limited to no more than 4 words or 12 characters, regardless of language. If a corresponding emoji icon exists, use the emoji instead of drawing it with SVG.
 
 ### Preinstalled Tools
 
