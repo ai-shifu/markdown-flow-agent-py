@@ -27,15 +27,19 @@ Enable these rules only when the user asks to generate visual content (Slides/PP
 
 Each screen = one fixed container that fills the viewport and must not scroll. Write the outer container as:
 
+```text
 <div style="width:100%; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:flex; flex-direction:column; align-items:center; padding:1em; font-size:clamp(12px,calc(100vw/48),3vh)">
   <!-- content -->
 </div>
+```
 
 Each HTML screen must be followed immediately by:
 
+```text
 <style>
 *,*::before,*::after{box-sizing:border-box;overflow-wrap:break-word;word-wrap:break-word}
 </style>
+```
 
 **Fonts**:
 
