@@ -11,6 +11,7 @@ This file provides comprehensive guidance to all Coding Agents such as Claude Co
 | Install package (dev) | `pip install -e .` | Root directory |
 | Run code formatting | `ruff format` | Root directory |
 | Run linting | `ruff check --fix` | Root directory |
+| Verify dev toolchain | `python scripts/check_dev_tools.py` | Root directory |
 | Run all checks | `lefthook run pre-commit --all-files` | Root directory |
 | Build package | `python -m build` | Root directory |
 | Run Python tests | `pytest` | Root directory (when tests exist) |
@@ -25,15 +26,23 @@ pip install -e .[dev]  # When dev dependencies are configured
 pip install ruff mypy pytest commitizen  # Python tools; lefthook + markdownlint-cli via brew/npm
 ```
 
+> **The lefthook hooks only run after `lefthook install` wires them into
+> `.git/hooks`, and each hook needs its tool on `PATH`.** If you skip
+> `lefthook install` (or never install lefthook), the pre-commit checks are
+> **silently skipped** on commit — nothing warns you, and the gap only surfaces
+> in CI. Run `python scripts/check_dev_tools.py` to confirm the whole toolchain
+> is installed; it lists anything missing and the exact command to install it.
+
 ## Critical Warnings ⚠️
 
 ### MUST DO Before Any Commit
 
-1. **Run the lefthook checks**: `lefthook run pre-commit --all-files` (MANDATORY)
-2. **Test your changes**: Verify core functionality with test scripts
-3. **Use English for all code**: Comments, variables, docstrings, commit messages
-4. **Follow Conventional Commits**: `type: description` (lowercase type, imperative mood)
-5. **Validate package integrity**: Ensure imports work after installation
+1. **Verify the toolchain is installed**: `python scripts/check_dev_tools.py`. If it reports missing tools, install them with the commands it prints before committing — otherwise the hooks may be silently skipped. Coding agents must run this before `git commit` and pause to surface the install commands rather than committing past missing tools.
+2. **Run the lefthook checks**: `lefthook run pre-commit --all-files` (MANDATORY)
+3. **Test your changes**: Verify core functionality with test scripts
+4. **Use English for all code**: Comments, variables, docstrings, commit messages
+5. **Follow Conventional Commits**: `type: description` (lowercase type, imperative mood)
+6. **Validate package integrity**: Ensure imports work after installation
 
 ### Common Pitfalls to Avoid
 
@@ -1555,6 +1564,7 @@ export PYTHONDONTWRITEBYTECODE=1  # Prevent .pyc files
 | ------- | ---------- | ---------- |
 | `ModuleNotFoundError: No module named 'markdown_flow'` | Import fails | Run `pip install -e .` in project root |
 | Lefthook checks fail | Git commit rejected | Run `lefthook install` then `lefthook run pre-commit --all-files` |
+| Hooks never run, or a tool reports "command not found" | Commits skip checks, or a hook errors | Run `python scripts/check_dev_tools.py` and install what it lists |
 | Import errors during development | Module not found | Ensure editable install: `pip install -e .` |
 | LLM provider errors | Processing fails | Check API keys and network connectivity |
 | Variable replacement not working | Variables not substituted | Verify variable names match exactly (case-sensitive) |
