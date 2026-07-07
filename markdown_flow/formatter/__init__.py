@@ -5,6 +5,7 @@ Provides content classification and structured output for SSE streams.
 """
 
 from .format import format_content
+from .sanitize import strip_untagged_code_fences
 from .stream import StreamFormatter
 from .types import ClassifyResult, ElementType, FormattedElement
 
@@ -15,4 +16,5 @@ __all__ = [
     "ClassifyResult",
     "format_content",
     "StreamFormatter",
+    "strip_untagged_code_fences",
 ]
