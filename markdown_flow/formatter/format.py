@@ -6,20 +6,31 @@ Mirrors Go formatter/format.go.
 """
 
 from .classifier import Classifier
+from .sanitize import strip_untagged_code_fences
 from .types import ClassifyResult, ElementType, FormattedElement, is_text_family
 
 
-def format_content(content: str) -> list[FormattedElement]:
+def format_content(content: str, *, strip_untagged_fences: bool = True) -> list[FormattedElement]:
     """Format complete content into structured elements.
 
     Args:
         content: The full content string to format.
+        strip_untagged_fences: When True (default), untagged (language-less)
+            code-fence markers are removed before classification, so HTML/SVG
+            an LLM wrapped in a bare ``` renders as its real type instead of a
+            code block. Language-tagged fences (``` ```html ```, ``` ```mermaid ```,
+            ...) are always preserved. Set False to keep raw CommonMark behaviour.
 
     Returns:
         A list of FormattedElement instances.
     """
     if not content:
         return []
+
+    if strip_untagged_fences:
+        content = strip_untagged_code_fences(content)
+        if not content:
+            return []
 
     c = Classifier()
     elements: list[FormattedElement] = []
