@@ -12,7 +12,7 @@ Core Features:
     - Support multiple processing modes: COMPLETE, STREAM
 
 Supported Interaction Types:
-    - TEXT_ONLY: ?[%{{var}}...question] - Text input only
+    - TEXT_ONLY: ?[%{{var}}...question] or ?[...question] - Text input only
     - BUTTONS_ONLY: ?[%{{var}} A|B] - Button selection only
     - BUTTONS_WITH_TEXT: ?[%{{var}} A|B|...question] - Buttons + text input
     - BUTTONS_MULTI_SELECT: ?[%{{var}} A||B||C] - Multi-select buttons

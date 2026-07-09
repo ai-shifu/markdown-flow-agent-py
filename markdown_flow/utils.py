@@ -32,6 +32,7 @@ from .constants import (
     VALIDATION_TASK_TEMPLATE,
     VARIABLE_DEFAULT_VALUE,
 )
+from .parser.interaction import InteractionParser as CanonicalInteractionParser
 
 
 def extract_variables_from_text(text: str) -> list[str]:
@@ -196,7 +197,7 @@ class InteractionParser:
             if has_variable:
                 assert variable_name is not None, "variable_name should not be None when has_variable is True"
                 return self._layer3_parse_variable_interaction(variable_name, remaining_content)
-            return self._layer3_parse_display_buttons(inner_content)
+            return CanonicalInteractionParser().parse(content)
 
         except Exception as e:
             return self._create_error_result(f"Parsing error: {str(e)}")

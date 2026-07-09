@@ -281,19 +281,22 @@ class InteractionType(NamedTuple):
 
 ```python
 # TEXT_ONLY: Text input with question
-"?[%{{name}} What is your name?]"
+"?[%{{name}}...What is your name?]"
+
+# TEXT_ONLY without an explicit variable: stored under user_input
+"?[...What is your name?]"
 
 # BUTTONS_ONLY: Button selection only
 "?[%{{level}} Beginner | Intermediate | Expert]"
 
 # BUTTONS_WITH_TEXT: Buttons with fallback text input
-"?[%{{preference}} Option A | Option B | Please specify...]"
+"?[%{{preference}} Option A | Option B | ...Please specify]"
 
 # BUTTONS_MULTI_SELECT: Multi-select buttons
 "?[%{{skills}} Python||JavaScript||Go||Rust]"
 
 # BUTTONS_MULTI_WITH_TEXT: Multi-select with text fallback
-"?[%{{frameworks}} React||Vue||Angular||Please specify others...]"
+"?[%{{frameworks}} React||Vue||Angular||...Please specify others]"
 
 # NON_ASSIGNMENT_BUTTON: Display buttons without variable assignment
 "?[Continue | Cancel | Go Back]"
@@ -391,7 +394,8 @@ result = mf.process(
 # Dictionary format with list values
 user_input = {
     'language': ['Python'],                    # Single selection as list
-    'skills': ['Python', 'JavaScript', 'Go']  # Multi-selection
+    'skills': ['Python', 'JavaScript', 'Go'],  # Multi-selection
+    'user_input': ['Custom answer']            # No-variable text input
 }
 
 # Process interaction

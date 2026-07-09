@@ -394,6 +394,14 @@ class MarkdownFlow:
                 continue
 
             variable_name = parse_result.get("variable")
+            interaction_type = parse_result.get("type")
+
+            if not variable_name and interaction_type in [
+                InteractionType.TEXT_ONLY,
+                InteractionType.BUTTONS_WITH_TEXT,
+                InteractionType.BUTTONS_MULTI_WITH_TEXT,
+            ]:
+                variable_name = "user_input"
 
             # No variable interaction (e.g. ?[Continue])
             if not variable_name:
@@ -828,6 +836,12 @@ class MarkdownFlow:
             return self._render_error(error_msg, mode, context, variables)
 
         interaction_type = parse_result.get("type")
+        if parse_result.get("uses_default_input") and not target_values:
+            for values in user_input.values():
+                if values:
+                    target_values = values
+                    user_input = {target_variable: values}
+                    break
 
         # Process user input based on interaction type
         if interaction_type in [

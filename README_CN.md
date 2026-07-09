@@ -281,19 +281,22 @@ class InteractionType(NamedTuple):
 
 ```python
 # TEXT_ONLY：带问题的文本输入
-"?[%{{name}} 你的名字是什么？]"
+"?[%{{name}}...你的名字是什么？]"
+
+# 无显式变量的 TEXT_ONLY：存储在 user_input 下
+"?[...你的名字是什么？]"
 
 # BUTTONS_ONLY：仅按钮选择
 "?[%{{level}} 初学者 | 中级 | 高级]"
 
 # BUTTONS_WITH_TEXT：按钮与备用文本输入
-"?[%{{preference}} 选项 A | 选项 B | 请指定...]"
+"?[%{{preference}} 选项 A | 选项 B | ...请指定]"
 
 # BUTTONS_MULTI_SELECT：多选按钮
 "?[%{{skills}} Python||JavaScript||Go||Rust]"
 
 # BUTTONS_MULTI_WITH_TEXT：多选带文本备选
-"?[%{{frameworks}} React||Vue||Angular||请指定其他...]"
+"?[%{{frameworks}} React||Vue||Angular||...请指定其他]"
 
 # NON_ASSIGNMENT_BUTTON：显示按钮但不分配变量
 "?[继续 | 取消 | 返回]"
@@ -391,7 +394,8 @@ result = mf.process(
 # 字典格式，值为列表
 user_input = {
     'language': ['Python'],                    # 单选作为列表
-    'skills': ['Python', 'JavaScript', 'Go']  # 多选
+    'skills': ['Python', 'JavaScript', 'Go'],  # 多选
+    'user_input': ['自定义答案']                # 无变量文本输入
 }
 
 # 处理交互

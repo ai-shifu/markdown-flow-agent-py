@@ -93,7 +93,7 @@ class InteractionParser:
             if has_variable:
                 assert variable_name is not None, "variable_name should not be None when has_variable is True"
                 return self._layer3_parse_variable_interaction(variable_name, remaining_content)
-            return self._layer3_parse_display_buttons(inner_content)
+            return self._layer3_parse_no_variable_interaction(inner_content)
 
         except Exception as e:
             return self._create_error_result(f"Parsing error: {str(e)}")
@@ -357,3 +357,36 @@ class InteractionParser:
             Error result dictionary
         """
         return {"type": None, "error": error_message}  # type: ignore[unreachable]
+
+    def _layer3_parse_no_variable_interaction(self, content: str) -> dict[str, Any]:
+        """
+        Layer 3: Parse no-variable interactions.
+
+        Args:
+            content: Content to parse
+
+        Returns:
+            Parsing result dictionary
+        """
+        if "..." not in content:
+            return self._layer3_parse_display_buttons(content)
+
+        before_ellipsis, question = (part.strip() for part in content.split("...", 1))
+
+        if before_ellipsis:
+            buttons, is_multi_select = self._parse_buttons(before_ellipsis)
+            interaction_type = InteractionType.BUTTONS_MULTI_WITH_TEXT if is_multi_select else InteractionType.BUTTONS_WITH_TEXT
+            return {
+                "type": interaction_type,
+                "buttons": buttons,
+                "question": question,
+                "is_multi_select": is_multi_select,
+                "uses_default_input": True,
+            }
+
+        return {
+            "type": InteractionType.TEXT_ONLY,
+            "question": question,
+            "is_multi_select": False,
+            "uses_default_input": True,
+        }
