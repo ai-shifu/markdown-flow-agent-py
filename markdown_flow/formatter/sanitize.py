@@ -23,7 +23,7 @@ The transformation is opt-in: callers apply it explicitly to generated content.
 It does not change the behaviour of the classifier or ``format_content``.
 """
 
-from ..parser.code_fence_utils import is_code_fence_end, parse_code_fence_start
+from ..parser.code_fence_utils import CodeFenceInfo, is_code_fence_end, parse_code_fence_start
 
 
 def _fence_info_string(fence_line: str, fence_char: str) -> str:
@@ -65,7 +65,7 @@ def strip_untagged_code_fences(content: str) -> str:
     # matching closing fence, so nested bare backticks and the closing fence
     # itself are preserved.
     inside_tagged_fence = False
-    open_fence = None
+    open_fence: CodeFenceInfo | None = None
 
     for line in lines:
         if inside_tagged_fence:
