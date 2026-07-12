@@ -41,7 +41,7 @@ from .constants import (
     VALIDATION_TASK_TEMPLATE,
     VALIDATION_TASK_WITH_LANGUAGE,
 )
-from .constants_system_prompt import DEFAULT_MDF_SYSTEM_PROMPT
+from .constants_system_prompt import DEFAULT_MDF_SYSTEM_PROMPT, HIGHER_PRIORITY_INSTRUCTIONS_PROMPT
 from .enums import BlockType
 from .exceptions import BlockIndexError
 from .formatter import ElementType, StreamFormatter, format_content
@@ -1247,8 +1247,7 @@ class MarkdownFlow:
         # Build message array
         messages = []
 
-        # Build system message with Markdown headings (no XML tags)
-        # Two parts: MDF internal prompt + Document prompt
+        # Build system message from the MDF prompt and optional higher-priority instructions.
         system_parts = []
 
         # Part 1: MDF internal prompt (content rules + visual rules)
@@ -1259,9 +1258,10 @@ class MarkdownFlow:
         if self._viewing_mode_prompt:
             system_parts.append(self._viewing_mode_prompt)
 
-        # Part 2: Document prompt
-        if self._document_prompt:
-            system_parts.append(f"# Document Prompt\n\n{self._document_prompt}")
+        # Part 2: Document prompt, wrapped as higher-priority instructions. This
+        # part remains last so every supplied Markdown heading stays in scope.
+        if self._document_prompt and self._document_prompt.strip():
+            system_parts.append(f"{HIGHER_PRIORITY_INSTRUCTIONS_PROMPT}\n\n{self._document_prompt}")
 
         # Combine all parts and add as system message
         if system_parts:
