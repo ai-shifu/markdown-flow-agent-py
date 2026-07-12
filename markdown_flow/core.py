@@ -1260,7 +1260,7 @@ class MarkdownFlow:
 
         # Part 2: Document prompt, wrapped as higher-priority instructions. This
         # part remains last so every supplied Markdown heading stays in scope.
-        if self._document_prompt:
+        if self._document_prompt and self._document_prompt.strip():
             system_parts.append(f"{HIGHER_PRIORITY_INSTRUCTIONS_PROMPT}\n\n{self._document_prompt}")
 
         # Combine all parts and add as system message
