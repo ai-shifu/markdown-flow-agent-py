@@ -12,4 +12,4 @@ from pathlib import Path
 
 
 DEFAULT_MDF_SYSTEM_PROMPT = (Path(__file__).parent / "system_prompt.md").read_text(encoding="utf-8")
-HIGHER_PRIORITY_INSTRUCTIONS_PROMPT = (Path(__file__).parent / "higher_priority_prompt.md").read_text(encoding="utf-8").strip()
+HIGHER_PRIORITY_INSTRUCTIONS_PROMPT = (Path(__file__).parent / "higher-priority-prompt.md").read_text(encoding="utf-8").strip()
