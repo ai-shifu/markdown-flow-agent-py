@@ -41,8 +41,43 @@ pip install ruff mypy pytest commitizen  # Python tools; lefthook + markdownlint
 2. **Run the lefthook checks**: `lefthook run pre-commit --all-files` (MANDATORY)
 3. **Test your changes**: Verify core functionality with test scripts
 4. **Use English for all code**: Comments, variables, docstrings, commit messages
-5. **Follow Conventional Commits**: `type: description` (lowercase type, imperative mood)
+5. **Follow the git commit message requirements below**: use the required
+   subject, body, and classification rules.
 6. **Validate package integrity**: Ensure imports work after installation
+
+### Git Commit Message Requirements
+
+All git commit message requirements live in this section. Other guidance may
+point here, but must not duplicate or redefine the policy.
+
+- Human-authored and coding-agent-authored commit messages must follow the
+  policy below.
+- The local `commit-msg` hook is only a baseline Conventional Commits syntax
+  check. It does not enforce the `Changed:` / `Benefit:` body or the
+  classification rules below.
+- Subject: use English Conventional Commits without scope parentheses, such as
+  `type: summary`; do not use `type(scope): summary`. Write the summary in
+  plain language that product users can understand. When a change affects
+  users, describe the user-visible outcome or benefit instead of only naming
+  the internal implementation detail.
+- Body: include exactly two sections, `Changed:` and `Benefit:`.
+- Classification: use `chore` for repository-maintenance-only instructions or
+  guidance updates like this file.
+- Runtime prompt, template, and system-prompt changes affect product behavior:
+  use `feat` when adding capability and `fix` when correcting behavior; do not
+  use `docs`.
+
+Example:
+
+```text
+chore: make commit titles clear to product users
+
+Changed:
+Added one canonical commit message policy to the root AGENTS.md file.
+
+Benefit:
+Contributors can understand each change and its value from the git history.
+```
 
 ### Common Pitfalls to Avoid
 
@@ -1176,38 +1211,13 @@ class TestMarkdownFlow:
 - **Constants and enums**: All constant values and enumeration names
 - **Log messages**: All logging statements and debug information
 - **Error messages in code**: Internal error messages and exception messages
-- **Git commit messages**: MUST use Conventional Commits format in English
+- **Git commit messages**: English only
 - **Documentation**: README files, API documentation, code architecture docs
 
 #### Exceptions
 
 - **Test data**: Test data can be in any language for internationalization testing
 - **Example content**: MarkdownFlow documents used as examples can contain non-English content
-
-### Conventional Commits Format
-
-**Required Format**: `<type>: <description>` (e.g., `feat: add stream processing support`)
-
-**Common Types**:
-
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `docs:` - Documentation
-- `refactor:` - Code refactoring
-- `test:` - Tests
-- `chore:` - Maintenance
-- `perf:` - Performance improvements
-- `style:` - Formatting (no code change)
-- `ci:` - CI configuration
-- `build:` - Build system or dependencies
-
-**Style Rules**:
-
-- Type must be lowercase
-- Use imperative mood ("add", not "added")
-- Keep subject line ≤72 characters
-- No trailing period
-- English only
 
 ### File Naming Conventions
 
