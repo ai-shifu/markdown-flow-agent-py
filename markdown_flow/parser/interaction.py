@@ -251,7 +251,7 @@ class InteractionParser:
                 "is_multi_select": False,
             }
 
-        if "|" in content:
+        if "|" in content:  # type: ignore[unreachable]
             # Button group: ?[A | B] or ?[A || B]
             buttons, is_multi_select = self._parse_buttons(content)
             return {
