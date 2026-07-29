@@ -17,7 +17,11 @@ Supported Interaction Types:
     - BUTTONS_WITH_TEXT: ?[%{{var}} A|B|...question] - Buttons + text input
     - BUTTONS_MULTI_SELECT: ?[%{{var}} A||B||C] - Multi-select buttons
     - BUTTONS_MULTI_WITH_TEXT: ?[%{{var}} A||B||...question] - Multi-select + text input
-    - NON_ASSIGNMENT_BUTTON: ?[Continue|Cancel] - Display buttons only
+    - NON_ASSIGNMENT_BUTTON: ?[Continue|Cancel] - No-variable interaction.
+      Supports the same shapes as variable interactions (?[A|B], ?[A||B],
+      ?[...question], ?[A|B|...question]); the answer is not assigned to a
+      variable but fed back into the conversation context via the
+      "user_answer" context message field.
 
 Basic Usage:
     from markdown_flow import MarkdownFlow, ProcessMode
@@ -49,6 +53,10 @@ Import Guide:
 """
 
 # Import core classes and enums
+from .constants import (
+    DEFAULT_NON_ASSIGNMENT_INPUT_KEY,
+    USER_ANSWER_CONTEXT_KEY,
+)
 from .core import MarkdownFlow
 from .enums import BlockType, InputType
 from .formatter import (
@@ -88,6 +96,9 @@ __all__ = [
     "StreamFormatter",
     "format_content",
     "strip_untagged_code_fences",
+    # Non-assignment interaction contract
+    "DEFAULT_NON_ASSIGNMENT_INPUT_KEY",
+    "USER_ANSWER_CONTEXT_KEY",
     # Main utility functions
     "generate_smart_validation_template",
     "extract_interaction_question",
@@ -95,4 +106,4 @@ __all__ = [
     "replace_variables_in_text",
 ]
 
-__version__ = "0.2.86"
+__version__ = "0.3.0"

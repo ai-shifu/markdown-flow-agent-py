@@ -445,7 +445,7 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 - `BUTTONS_WITH_TEXT`: `?[%{{var}} A|B|...question]` - Buttons with fallback text input
 - `BUTTONS_MULTI_SELECT`: `?[%{{var}} A||B||C]` - Multi-select buttons using `||` separator
 - `BUTTONS_MULTI_WITH_TEXT`: `?[%{{var}} A||B||...question]` - Multi-select buttons with text fallback
-- `NON_ASSIGNMENT_BUTTON`: `?[Continue|Cancel]` - Display buttons without variable assignment
+- `NON_ASSIGNMENT_BUTTON`: `?[Continue|Cancel]` - No-variable interaction; supports the same shapes as variable interactions (`?[A|B]`, `?[A||B]`, `?[...question]`, `?[A|B|...question]`). The answer is not assigned to a variable; `process()` normalizes it (button display -> value, free text passed through) into `metadata["answer"]`, and callers feed it back through the `user_answer` context message field, which `_transform_context_messages` expands into `{user: answer}` + `{assistant: "ok"}` (empty answer skips the turn; absent field keeps legacy `{user: "ok"}`).
 
 ### Utility Functions
 
@@ -754,7 +754,7 @@ The text validation toggle affects these three interaction types that include te
 **Not affected:**
 
 - BUTTONS_ONLY - Uses local validation only, no LLM call
-- NON_ASSIGNMENT_BUTTON - No validation needed
+- NON_ASSIGNMENT_BUTTON - Local normalization only (button display -> value, free text passed through), no LLM call
 
 #### Toggle State Comparison
 
