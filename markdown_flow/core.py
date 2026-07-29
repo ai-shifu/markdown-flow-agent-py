@@ -410,7 +410,14 @@ class MarkdownFlow:
             # No variable interaction (e.g. ?[Continue] or ?[A | B])
             if not variable_name:
                 if USER_ANSWER_CONTEXT_KEY in msg:
-                    user_answer = str(msg.get(USER_ANSWER_CONTEXT_KEY) or "").strip()
+                    # Accept both a flattened string and a list of values
+                    # (callers may pass metadata["answer"] through directly,
+                    # beyond the declared str value type).
+                    raw_answer: Any = msg.get(USER_ANSWER_CONTEXT_KEY)
+                    if isinstance(raw_answer, list):
+                        user_answer = ", ".join(str(value) for value in raw_answer if value is not None).strip()
+                    else:
+                        user_answer = str(raw_answer or "").strip()
                     if user_answer:
                         result.append({"role": "user", "content": user_answer})
                         result.append({"role": "assistant", "content": "ok"})
