@@ -28,6 +28,15 @@ COMPILED_BRACE_VARIABLE_REGEX = re.compile(
 )
 COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
 
+# Canonical user_input key for non-assignment interactions (?[A|B] without a
+# variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};
+# the library also tolerantly merges values from any other key.
+DEFAULT_NON_ASSIGNMENT_INPUT_KEY = "input"
+
+# Context message extension field carrying the user's answer to a
+# non-assignment interaction. Stripped before messages reach the LLM.
+USER_ANSWER_CONTEXT_KEY = "user_answer"
+
 # Document parsing constants (using shared INTERACTION_PATTERN defined above)
 
 # Separators

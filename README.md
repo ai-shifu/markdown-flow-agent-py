@@ -295,9 +295,39 @@ class InteractionType(NamedTuple):
 # BUTTONS_MULTI_WITH_TEXT: Multi-select with text fallback
 "?[%{{frameworks}} React||Vue||Angular||Please specify others...]"
 
-# NON_ASSIGNMENT_BUTTON: Display buttons without variable assignment
+# NON_ASSIGNMENT_BUTTON: No-variable interaction. Supports the same shapes as
+# variable interactions; the answer is not assigned to a variable but fed back
+# into the conversation context (see "Non-assignment interactions" below).
 "?[Continue | Cancel | Go Back]"
+"?[JavaScript||TypeScript||Python]"
+"?[...Anything to add?]"
+"?[Option A | Option B | ...Other, please specify]"
 ```
+
+### Non-assignment interactions
+
+Interactions without a `%{{variable}}` collect an answer that is not stored in
+any variable — it flows back into the conversation context instead:
+
+1. Clients submit the answer under the canonical key `input`
+   (`DEFAULT_NON_ASSIGNMENT_INPUT_KEY`); the library tolerantly merges values
+   from any other key.
+2. `process()` normalizes values matching a button (by display or value) to the
+   button value and accepts anything else as free text. The normalized answer
+   is returned in `result.metadata["answer"]` (`list[str]`).
+3. Callers persist that answer and attach it to the interaction's context
+   message via the `user_answer` extension field (`USER_ANSWER_CONTEXT_KEY`):
+
+   ```python
+   context = [
+       {"role": "assistant", "content": "?[Option A | Option B]", "user_answer": "Option A"},
+   ]
+   ```
+
+   When building LLM messages the library expands this into
+   `{user: "Option A"}` + `{assistant: "ok"}`. An empty `user_answer` skips the
+   turn entirely; omitting the field keeps the legacy `{user: "ok"}` behavior.
+   Extension fields are stripped before messages reach the LLM.
 
 ### Utility Functions
 

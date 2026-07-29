@@ -295,9 +295,35 @@ class InteractionType(NamedTuple):
 # BUTTONS_MULTI_WITH_TEXT：多选带文本备选
 "?[%{{frameworks}} React||Vue||Angular||请指定其他...]"
 
-# NON_ASSIGNMENT_BUTTON：显示按钮但不分配变量
+# NON_ASSIGNMENT_BUTTON：无变量交互。支持与变量交互相同的全部形态；
+# 答案不写入任何变量，而是回流到对话上下文（见下方「无变量交互」）
 "?[继续 | 取消 | 返回]"
+"?[JavaScript||TypeScript||Python]"
+"?[...还有什么想补充的？]"
+"?[选项A | 选项B | ...其他，请说明]"
 ```
+
+### 无变量交互
+
+不带 `%{{variable}}` 的交互块收集的答案不写入变量，而是回流到对话上下文：
+
+1. 客户端用规范 key `input`（`DEFAULT_NON_ASSIGNMENT_INPUT_KEY`）提交答案；
+   库也会宽容地合并任意其他 key 下的值。
+2. `process()` 会把命中按钮（display 或 value 均可）的值归一化为按钮 value，
+   未命中的按自由文本放行。归一化后的答案在 `result.metadata["answer"]`
+   （`list[str]`）中返回。
+3. 调用方持久化该答案，并通过 `user_answer` 扩展字段
+   （`USER_ANSWER_CONTEXT_KEY`）挂到交互块对应的上下文消息上：
+
+   ```python
+   context = [
+       {"role": "assistant", "content": "?[选项A | 选项B]", "user_answer": "选项A"},
+   ]
+   ```
+
+   构造 LLM 消息时库会将其展开为 `{user: "选项A"}` + `{assistant: "ok"}`。
+   `user_answer` 为空串表示该轮未作答、整轮跳过；不带该字段则保持旧版
+   `{user: "ok"}` 行为。扩展字段在消息发给 LLM 前会被剥离。
 
 ### 实用函数
 

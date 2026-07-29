@@ -209,7 +209,12 @@ class InteractionParser:
 
     def _layer3_parse_display_buttons(self, content: str) -> dict[str, Any]:
         """
-        Layer 3: Parse display buttons (non-variable assignment type).
+        Layer 3: Parse non-assignment interactions (no variable).
+
+        Mirrors the variable branch: supports button groups (single/multi
+        select) and the `...` text-input suffix. The collected answer is not
+        assigned to a variable; callers feed it back into the conversation
+        context instead.
 
         Args:
             content: Content to parse
@@ -224,13 +229,43 @@ class InteractionParser:
                 "buttons": [{"display": "", "value": ""}],
             }
 
-        if "|" in content:
-            # Multiple buttons
-            buttons, _ = self._parse_buttons(content)  # Display buttons don't use multi-select
-            return {"type": InteractionType.NON_ASSIGNMENT_BUTTON, "buttons": buttons}
+        ellipsis_match = COMPILED_LAYER3_ELLIPSIS_REGEX.match(content)
+        if ellipsis_match:
+            before_ellipsis = ellipsis_match.group(1).strip()
+            question = ellipsis_match.group(2).strip()
+
+            if before_ellipsis:
+                # Buttons + text input: ?[A | B | ...question]
+                buttons, is_multi_select = self._parse_buttons(before_ellipsis)
+                return {
+                    "type": InteractionType.NON_ASSIGNMENT_BUTTON,
+                    "buttons": buttons,
+                    "question": question,
+                    "is_multi_select": is_multi_select,
+                }
+            # Pure text input: ?[...question]
+            return {
+                "type": InteractionType.NON_ASSIGNMENT_BUTTON,
+                "buttons": [],
+                "question": question,
+                "is_multi_select": False,
+            }
+
+        if "|" in content:  # type: ignore[unreachable]
+            # Button group: ?[A | B] or ?[A || B]
+            buttons, is_multi_select = self._parse_buttons(content)
+            return {
+                "type": InteractionType.NON_ASSIGNMENT_BUTTON,
+                "buttons": buttons,
+                "is_multi_select": is_multi_select,
+            }
         # Single button
         button = self._parse_single_button(content)
-        return {"type": InteractionType.NON_ASSIGNMENT_BUTTON, "buttons": [button]}
+        return {
+            "type": InteractionType.NON_ASSIGNMENT_BUTTON,
+            "buttons": [button],
+            "is_multi_select": False,
+        }
 
     def _parse_buttons(self, content: str) -> tuple[list[dict[str, str]], bool]:
         """

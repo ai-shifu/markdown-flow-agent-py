@@ -17,6 +17,7 @@ from .constants import (
     CONTEXT_QUESTION_TEMPLATE,
     DEFAULT_INTERACTION_ERROR_PROMPT,
     DEFAULT_INTERACTION_PROMPT,
+    DEFAULT_NON_ASSIGNMENT_INPUT_KEY,
     INPUT_EMPTY_ERROR,
     INTERACTION_ERROR_RENDER_INSTRUCTIONS,
     INTERACTION_PARSE_ERROR,
@@ -36,6 +37,7 @@ from .constants import (
     OUTPUT_LANGUAGE_INSTRUCTION_BOTTOM,
     OUTPUT_LANGUAGE_INSTRUCTION_TOP,
     UNSUPPORTED_PROMPT_TYPE_ERROR,
+    USER_ANSWER_CONTEXT_KEY,
     VALIDATION_REQUIREMENTS_TEMPLATE,
     VALIDATION_TASK_BASE,
     VALIDATION_TASK_TEMPLATE,
@@ -363,9 +365,17 @@ class MarkdownFlow:
         Transform context messages containing interaction syntax into LLM-friendly format.
 
         For assistant messages containing ?[...] syntax:
-        - No variable (e.g. ?[Continue]): replace with {user: "ok"} + {assistant: "ok"}
+        - No variable + "user_answer" field present and non-empty: replace with
+          {user: answer} + {assistant: "ok"}
+        - No variable + "user_answer" field present but empty: skip the message
+          (the interaction was never answered; do not fabricate an "ok")
+        - No variable + no "user_answer" field: replace with {user: "ok"} +
+          {assistant: "ok"} (legacy behavior for callers unaware of the field)
         - Has variable + value found: replace with {user: value} + {assistant: "ok"}
         - Has variable + value not found: skip the message
+
+        Non-standard fields such as "user_answer" are stripped from the
+        returned messages; the output only ever contains {role, content}.
 
         Args:
             context: Context message list
@@ -382,7 +392,9 @@ class MarkdownFlow:
 
         for msg in context:
             if msg.get("role") != "assistant" or not has_interaction(msg.get("content", "")):
-                result.append(msg)
+                # Whitelist {role, content}: callers may attach extension
+                # fields (e.g. user_answer) that must not reach the LLM.
+                result.append({"role": msg.get("role", ""), "content": msg.get("content", "")})
                 continue
 
             # Parse interaction syntax
@@ -395,8 +407,23 @@ class MarkdownFlow:
 
             variable_name = parse_result.get("variable")
 
-            # No variable interaction (e.g. ?[Continue])
+            # No variable interaction (e.g. ?[Continue] or ?[A | B])
             if not variable_name:
+                if USER_ANSWER_CONTEXT_KEY in msg:
+                    # Accept both a flattened string and a list of values
+                    # (callers may pass metadata["answer"] through directly,
+                    # beyond the declared str value type).
+                    raw_answer: Any = msg.get(USER_ANSWER_CONTEXT_KEY)
+                    if isinstance(raw_answer, list):
+                        user_answer = ", ".join(str(value) for value in raw_answer if value is not None).strip()
+                    else:
+                        user_answer = str(raw_answer or "").strip()
+                    if user_answer:
+                        result.append({"role": "user", "content": user_answer})
+                        result.append({"role": "assistant", "content": "ok"})
+                    # Empty answer: the interaction was never answered, skip it
+                    continue
+                # Legacy behavior for callers that do not supply user_answer
                 result.append({"role": "user", "content": "ok"})
                 result.append({"role": "assistant", "content": "ok"})
                 continue
@@ -806,15 +833,11 @@ class MarkdownFlow:
     ) -> LLMResult | Generator[LLMResult, None, None]:
         """Process interaction user input."""
         block = self.get_block(block_index)
-        target_variable = block.variables[0] if block.variables else "user_input"
 
         # Basic validation
         if not user_input or not any(values for values in user_input.values()):
             error_msg = INPUT_EMPTY_ERROR
             return self._render_error(error_msg, mode, context, variables)
-
-        # Get the target variable value from user_input
-        target_values = user_input.get(target_variable, [])
 
         # Apply variable replacement to interaction content
         processed_content = replace_variables_in_text(block.content, variables or {})
@@ -828,6 +851,20 @@ class MarkdownFlow:
             return self._render_error(error_msg, mode, context, variables)
 
         interaction_type = parse_result.get("type")
+
+        # Derive the target variable from the parsed interaction, not from
+        # block.variables: text interpolation (e.g. ?[{{userName}} Continue])
+        # must not be mistaken for the assignment target.
+        target_variable = parse_result.get("variable") or DEFAULT_NON_ASSIGNMENT_INPUT_KEY
+
+        # Get the target variable value from user_input
+        if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
+            # Non-assignment interactions have no variable name for clients to
+            # key on; accept the answer from any key ("", "input", legacy
+            # "user_input", ...) by merging all submitted values.
+            target_values = [value for values in user_input.values() for value in values]
+        else:
+            target_values = user_input.get(target_variable, [])
 
         # Process user input based on interaction type
         if interaction_type in [
@@ -954,14 +991,22 @@ class MarkdownFlow:
             )
 
         if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
-            # Non-assignment buttons: ?[Continue] or ?[Continue|Cancel]
-            # These buttons don't assign variables, any input completes the interaction
+            # Non-assignment interactions: ?[Continue], ?[A|B], ?[A||B],
+            # ?[...question], ?[A|B|...question]. The answer is not assigned
+            # to a variable; values matching a button (by display or value)
+            # are normalized to the button value, anything else is accepted
+            # as free text. Callers should persist metadata["answer"] and
+            # feed it back through the "user_answer" context field so the
+            # choice reaches the next LLM request.
+            buttons = parse_result.get("buttons", [])
+            matched_values, unmatched_values = self._match_button_values(buttons, target_values)
             result = LLMResult(
                 content="",  # Empty content indicates interaction complete
-                variables={},  # Non-assignment buttons don't set variables
+                variables={},  # Non-assignment interactions don't set variables
                 metadata={
                     "interaction_type": "non_assignment_button",
                     "user_input": user_input,
+                    "answer": matched_values + unmatched_values,
                 },
             )
             # Return generator for STREAM mode, direct result for COMPLETE mode
@@ -1327,7 +1372,12 @@ class MarkdownFlow:
         buttons = parse_result.get("buttons") or []
         option_displays = [button.get("display", "").strip() for button in buttons if button.get("display", "").strip()]
 
-        detail = self._format_next_interaction_detail(parse_result.get("type"), question, option_displays)
+        detail = self._format_next_interaction_detail(
+            parse_result.get("type"),
+            question,
+            option_displays,
+            parse_result.get("is_multi_select", False),
+        )
         if not detail:
             return ""
 
@@ -1338,17 +1388,29 @@ class MarkdownFlow:
         interaction_type: InteractionType | None,
         question: str,
         option_displays: list[str],
+        is_multi_select: bool = False,
     ) -> str:
         """Format the type-specific part of the next interaction prompt."""
         options = json.dumps(option_displays, ensure_ascii=False) if option_displays else ""
         question_text = json.dumps(question, ensure_ascii=False) if question else ""
+
+        # Non-assignment interactions share the same shapes as variable ones
+        # (buttons / multi-select / text input / buttons+text); map to the
+        # equivalent variable type so the prompt wording matches.
+        if interaction_type == InteractionType.NON_ASSIGNMENT_BUTTON:
+            if option_displays and question:
+                interaction_type = InteractionType.BUTTONS_MULTI_WITH_TEXT if is_multi_select else InteractionType.BUTTONS_WITH_TEXT
+            elif question:
+                interaction_type = InteractionType.TEXT_ONLY
+            else:
+                interaction_type = InteractionType.BUTTONS_MULTI_SELECT if is_multi_select else InteractionType.BUTTONS_ONLY
 
         if interaction_type == InteractionType.TEXT_ONLY:
             if not question:
                 return ""
             return NEXT_INTERACTION_TEXT_INPUT_TEMPLATE.format(question=question_text)
 
-        if interaction_type in [InteractionType.BUTTONS_ONLY, InteractionType.NON_ASSIGNMENT_BUTTON]:
+        if interaction_type == InteractionType.BUTTONS_ONLY:
             if not options:
                 return ""
             return NEXT_INTERACTION_SINGLE_CHOICE_TEMPLATE.format(options=options)
