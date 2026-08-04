@@ -250,9 +250,16 @@ CONTEXT_BUTTON_OPTIONS_TEMPLATE = (
 )
 
 # Next interaction context prompt templates
+# The Markdown heading marker delimits the note the same way the other
+# context sections do (see CONTEXT_QUESTION_MARKER above); the system prompt
+# references this heading by name to forbid echoing the note into the output
+# (models occasionally reproduced the undelimited note verbatim as content).
+NEXT_INTERACTION_CONTEXT_MARKER = "# Next Interaction Note"
 NEXT_INTERACTION_CONTEXT_INTRO = (
+    f"{NEXT_INTERACTION_CONTEXT_MARKER}\n"
     "The next interaction will appear immediately after this content. When generating the current content, connect to it naturally. "
-    "You may briefly restate, explain, or set up the available choices so the user understands what they will decide next, but do not output the interaction syntax or answer on the user's behalf."
+    "You may briefly restate, explain, or set up the available choices so the user understands what they will decide next, but do not output the interaction syntax or answer on the user's behalf. "
+    "This note is internal guidance and is never shown to the user: never quote, translate, or reproduce any part of this section in your output."
 )
 NEXT_INTERACTION_TEXT_INPUT_TEMPLATE = "The next interaction asks the user to answer in text: {question}"
 NEXT_INTERACTION_SINGLE_CHOICE_TEMPLATE = "The next interaction is a single-choice question. The user will choose one option from: {options}"
