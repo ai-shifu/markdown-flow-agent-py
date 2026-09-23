@@ -12,8 +12,13 @@ from ..constants import (
     COMPILED_INTERACTION_REGEX,
     COMPILED_LAYER1_INTERACTION_REGEX,
     COMPILED_LAYER2_VARIABLE_REGEX,
-    COMPILED_LAYER3_ELLIPSIS_REGEX,
-    COMPILED_SINGLE_PIPE_SPLIT_REGEX,
+)
+from ..escaping import (
+    find_unescaped,
+    split_on_ellipsis,
+    split_on_single_pipe,
+    split_unescaped,
+    unescape_interaction_text,
 )
 
 
@@ -46,12 +51,10 @@ def extract_interaction_question(content: str) -> str | None:
     # Extract interaction content (remove ?[ and ])
     interaction_content = match.group(1) if match.groups() else match.group(0)[2:-1]
 
-    # Find ... separator, question text follows
-    if "..." in interaction_content:
-        # Split and get question part
-        parts = interaction_content.split("...", 1)
-        if len(parts) > 1:
-            return parts[1].strip()
+    # Find ... separator, question text follows. An ellipsis an option escaped is not one.
+    at = find_unescaped(interaction_content, "...")
+    if at >= 0:
+        return unescape_interaction_text(interaction_content[at + 3 :]).strip()
 
     return None  # type: ignore[unreachable]
 
@@ -153,13 +156,13 @@ class InteractionParser:
         Returns:
             Parsing result dictionary
         """
-        # Detect ... separator
-        ellipsis_match = COMPILED_LAYER3_ELLIPSIS_REGEX.match(content)
+        # Detect ... separator, ignoring any an option escaped.
+        ellipsis = split_on_ellipsis(content)
 
-        if ellipsis_match:
+        if ellipsis is not None:
             # Has ... separator
-            before_ellipsis = ellipsis_match.group(1).strip()
-            question = ellipsis_match.group(2).strip()
+            before_ellipsis = ellipsis[0].strip()
+            question = unescape_interaction_text(ellipsis[1]).strip()
 
             if before_ellipsis:
                 # Has prefix content (buttons or single option) + text input
@@ -180,7 +183,7 @@ class InteractionParser:
                 "is_multi_select": False,
             }
         # No ... separator
-        if ("|" in content or "||" in content) and content:  # type: ignore[unreachable]
+        if content and find_unescaped(content, "|") >= 0:  # type: ignore[unreachable]
             # Pure button group
             buttons, is_multi_select = self._parse_buttons(content)
             interaction_type = InteractionType.BUTTONS_MULTI_SELECT if is_multi_select else InteractionType.BUTTONS_ONLY
@@ -229,10 +232,10 @@ class InteractionParser:
                 "buttons": [{"display": "", "value": ""}],
             }
 
-        ellipsis_match = COMPILED_LAYER3_ELLIPSIS_REGEX.match(content)
-        if ellipsis_match:
-            before_ellipsis = ellipsis_match.group(1).strip()
-            question = ellipsis_match.group(2).strip()
+        ellipsis = split_on_ellipsis(content)
+        if ellipsis is not None:
+            before_ellipsis = ellipsis[0].strip()
+            question = unescape_interaction_text(ellipsis[1]).strip()
 
             if before_ellipsis:
                 # Buttons + text input: ?[A | B | ...question]
@@ -251,7 +254,7 @@ class InteractionParser:
                 "is_multi_select": False,
             }
 
-        if "|" in content:  # type: ignore[unreachable]
+        if find_unescaped(content, "|") >= 0:  # type: ignore[unreachable]
             # Button group: ?[A | B] or ?[A || B]
             buttons, is_multi_select = self._parse_buttons(content)
             return {
@@ -287,11 +290,10 @@ class InteractionParser:
             # Use different splitting logic based on separator type
             if is_multi_select:
                 # Multi-select mode: split on ||, preserve single |
-                button_parts = content.split("||")
+                button_parts = split_unescaped(content, "||")
             else:
                 # Single-select mode: split on single |, but preserve ||
-                # Use pre-compiled regex from constants
-                button_parts = COMPILED_SINGLE_PIPE_SPLIT_REGEX.split(content)
+                button_parts = split_on_single_pipe(content)
 
             for button_text in button_parts:
                 button_text = button_text.strip()
@@ -300,7 +302,8 @@ class InteractionParser:
                     buttons.append(button)
         except (TypeError, ValueError):
             # Fallback to treating entire content as single button
-            return [{"display": content.strip(), "value": content.strip()}], False
+            whole = unescape_interaction_text(content).strip()
+            return [{"display": whole, "value": whole}], False
 
         # For empty content (like just separators), return empty list
         if not buttons and (content.strip() == "||" or content.strip() == "|"):
@@ -308,7 +311,8 @@ class InteractionParser:
 
         # Ensure at least one button exists (but only if there's actual content)
         if not buttons and content.strip():
-            buttons = [{"display": content.strip(), "value": content.strip()}]
+            whole = unescape_interaction_text(content).strip()
+            buttons = [{"display": whole, "value": whole}]
 
         return buttons, is_multi_select
 
@@ -330,18 +334,19 @@ class InteractionParser:
             return {"display": "", "value": ""}
 
         try:
-            # Detect Button//value format - split only on first //
-            if "//" in button_text:
-                parts = button_text.split("//", 1)  # Split only on first //
-                display = parts[0].strip()
-                value = parts[1] if len(parts) > 1 else ""
+            # Detect Button//value format - split only on the first unescaped //
+            at = find_unescaped(button_text, "//")
+            if at >= 0:
+                display = unescape_interaction_text(button_text[:at]).strip()
                 # Don't strip value to preserve intentional spacing/formatting
+                value = unescape_interaction_text(button_text[at + 2 :])
                 return {"display": display, "value": value}
         except (ValueError, IndexError):
             # Fallback: use text as both display and value
             pass
 
-        return {"display": button_text, "value": button_text}
+        resolved = unescape_interaction_text(button_text)
+        return {"display": resolved, "value": resolved}
 
     def _detect_separator_type(self, content: str) -> tuple[str, bool]:
         """
@@ -359,9 +364,9 @@ class InteractionParser:
         if not content or not isinstance(content, str):
             return "|", False
 
-        # Find first occurrence of separators
-        single_pos = content.find("|")
-        double_pos = content.find("||")
+        # Find first occurrence of separators. A bar an option escaped is not one.
+        single_pos = find_unescaped(content, "|")
+        double_pos = find_unescaped(content, "||")
 
         # If no separators found
         if single_pos == -1 and double_pos == -1:

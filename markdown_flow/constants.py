@@ -13,9 +13,18 @@ COMPILED_PERCENT_VARIABLE_REGEX = re.compile(
 )
 
 # Interaction regex base patterns
-INTERACTION_PATTERN = r"(?<!\\)\?\[([^\]]*)\](?!\()"  # Base pattern with capturing group for content extraction, excludes escaped \?[]
-INTERACTION_PATTERN_NON_CAPTURING = r"(?<!\\)\?\[[^\]]*\](?!\()"  # Non-capturing version for block splitting, excludes escaped \?[]
-INTERACTION_PATTERN_SPLIT = r"((?<!\\)\?\[[^\]]*\](?!\())"  # Pattern for re.split() with outer capturing group, excludes escaped \?[]
+#
+# The bracket content accepts an escaped delimiter as one unit, so a `\]` inside an option does
+# not end the interaction. The three alternatives are mutually exclusive on purpose: a backslash
+# before a delimiter can only be read as an escape, so the pattern cannot backtrack into reading
+# it as plain text and then closing on the very bracket it escapes. Without that, this regex and
+# a left-to-right scanner disagree about `?[a\\]`, and two parsers of one grammar must not.
+# A backslash before anything else -- LaTeX such as `$\pi$`, or `\\` as a line break -- stays
+# ordinary text, exactly as it was before escapes existed. See markdown_flow.escaping.
+_INTERACTION_CONTENT = r"(?:\\[|/.\]]|\\(?![|/.\]])|[^\]\\])*"
+INTERACTION_PATTERN = rf"(?<!\\)\?\[({_INTERACTION_CONTENT})\](?!\()"  # Base pattern with capturing group for content extraction, excludes escaped \?[]
+INTERACTION_PATTERN_NON_CAPTURING = rf"(?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\()"  # Non-capturing version for block splitting, excludes escaped \?[]
+INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # Pattern for re.split() with outer capturing group, excludes escaped \?[]
 
 # InteractionParser specific regex patterns
 COMPILED_INTERACTION_REGEX = re.compile(INTERACTION_PATTERN)  # Main interaction pattern matcher
