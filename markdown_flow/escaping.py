@@ -48,7 +48,13 @@ def escape_interaction_text(text: str) -> str:
         char = text[index]
         if char == ".":
             run = len(text) - index - len(text[index:].lstrip("."))
-            if run >= 3:
+            # A run of three or more is the `...` delimiter. A shorter one still needs escaping
+            # when a literal backslash precedes it, because the parser would read that backslash
+            # and the dot as an escape pair and drop the backslash -- `a\\.b` would come back as
+            # `a.b`, the round trip would fail, and the question would be refused. Escaping the
+            # dot puts a second backslash in front of it, which the parser reads as one literal
+            # backslash followed by an escaped dot: exactly the text that went in.
+            if run >= 3 or (index > 0 and text[index - 1] == "\\"):
                 out.append("\\." * run)
             else:
                 out.append("." * run)
