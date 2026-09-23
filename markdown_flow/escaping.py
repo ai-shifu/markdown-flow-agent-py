@@ -30,14 +30,34 @@ def is_escape(text: str, index: int) -> bool:
 def escape_interaction_text(text: str) -> str:
     """Make `text` safe to write inside `?[...]`, keeping every character it has.
 
-    Escaping each delimiter rather than the backslashes as well is what keeps existing content
+    A dot is escaped only inside a run of three or more, because only `...` is a delimiter and a
+    single period ends most sentences: escaping every one turns `Yes, I agree.` into
+    `Yes, I agree\\.` in everything that stores or shows the raw interaction. Two dots cannot
+    become three on their own, and the run is escaped whole so it cannot be read as one.
+
+    Bars, brackets and slashes are escaped wherever they appear. They are rare in option text,
+    and escaping them unconditionally removes the need to reason about what a neighbouring
+    character might combine with once the option is written next to a separator.
+
+    Escaping the delimiters rather than the backslashes as well is what keeps existing content
     readable: a script that writes `$\\pi$` in an option still writes `$\\pi$` afterwards.
     """
     out: list[str] = []
-    for char in text:
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char == ".":
+            run = len(text) - index - len(text[index:].lstrip("."))
+            if run >= 3:
+                out.append("\\." * run)
+            else:
+                out.append("." * run)
+            index += run
+            continue
         if char in ESCAPABLE:
             out.append("\\")
         out.append(char)
+        index += 1
     return "".join(out)
 
 
