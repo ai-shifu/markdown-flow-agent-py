@@ -618,3 +618,33 @@ def test_interaction_bodies_keep_raw_markers_before_document_math():
     assert len(blocks) == 1
     assert blocks[0].block_type == BlockType.INTERACTION
     assert blocks[0].content == source
+
+
+@pytest.mark.parametrize("images", [False, True])
+def test_link_ancestor_invalidation_touches_each_label_only_once(images):
+    count = 2048
+    source = ("![" if images else "[") * count + "[x](u)" * count
+
+    class CountingLabels(list):
+        visits = 0
+
+        def __iter__(self):
+            for item in super().__iter__():
+                self.visits += 1
+                yield item
+
+        def __setitem__(self, key, value):
+            self.visits += 1
+            return super().__setitem__(key, value)
+
+    reader = document_context.DocumentLiteralReader(source)
+    labels = CountingLabels()
+    reader.labels = labels
+    at = 0
+    while at < len(source):
+        end = reader.read(at)
+        at = end if end is not None else at + 1
+    assert labels.visits <= 2 * count
+    assert len(labels) == count
+    assert all(image == images and active == images for image, active in labels)
+    assert extract_variables_from_text(source + " {{ real }}") == ["real"]

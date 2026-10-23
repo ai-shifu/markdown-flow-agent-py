@@ -224,6 +224,7 @@ class DocumentLiteralReader:
         self.last_html_ends = document_html_ends(text)
         self.math_spans = _math_spans(text, self.last_html_ends)
         self.labels: list[tuple[bool, bool]] = []
+        self.active_links: set[int] = set()
         self.resource_start = -1
         self.resource_image = False
 
@@ -236,7 +237,9 @@ class DocumentLiteralReader:
         if self.text[start] == "(" and start == self.resource_start:
             resource_end = read_link_resource_end(self.text, start)
             if resource_end is not None and not self.resource_image:
-                self.labels = [(image, active and image) for image, active in self.labels]
+                for index in self.active_links:
+                    self.labels[index] = (False, False)
+                self.active_links.clear()
             return resource_end
         if self.text[start] == "[":
             image = start > 0 and self.text[start - 1] == "!"
@@ -245,13 +248,17 @@ class DocumentLiteralReader:
                 before -= 1
             image = image and (start - 1 - before) % 2 == 0
             self.labels.append((image, True))
+            if not image:
+                self.active_links.add(len(self.labels) - 1)
         elif self.text[start] == "]" and self.labels:
+            self.active_links.discard(len(self.labels) - 1)
             self.resource_image, active = self.labels.pop()
             self.resource_start = start + 1 if active else -1
         elif self.text[start] == "\n":
             following = self.text.find("\n", start + 1)
             if not self.text[start + 1 : following if following >= 0 else len(self.text)].strip(" \t\r"):
                 self.labels.clear()
+                self.active_links.clear()
         return None
 
 
