@@ -77,3 +77,30 @@ def test_noninterrupting_lines_keep_inline_literal_examples(container):
 def test_same_container_and_lazy_continuations_keep_complete_inline_literals(prefix):
     source = prefix + "?[%{{ real }} A|B]"
     assert extract_variables_from_text(source) == ["real"]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("delimiter", ["`", "$"])
+@pytest.mark.parametrize("underline", ["=", "===", "-", "--"])
+def test_setext_heading_stops_inline_delimiter_pairing(newline, delimiter, underline):
+    source = newline.join(["Text " + delimiter + "{{ unfinished", underline, delimiter + " end", "", "?[%{{ real }} A|B]"])
+    assert extract_variables_from_text(source) == []
+    assert all(block.block_type == BlockType.CONTENT for block in MarkdownFlow(source).get_all_blocks())
+    assert replace_variables_in_text(source, {"real": "VALUE"}, add_quotes=False) == source
+
+
+@pytest.mark.parametrize("delimiter", ["`", "$"])
+@pytest.mark.parametrize("underline", ["=", "===", "-", "--"])
+def test_complete_inline_examples_in_setext_headings_keep_their_names(delimiter, underline):
+    prefix = "Text " + delimiter + "{{ example }}" + delimiter + "\n" + underline + "\n\n"
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["example", "real"]
+    assert MarkdownFlow(source).extract_variables() == ["example", "real"]
+    assert replace_variables_in_text(source, {"example": "VALUE"}, add_quotes=False) == source.replace("{{ example }}", "VALUE")
+
+
+@pytest.mark.parametrize("delimiter", ["`", "$"])
+@pytest.mark.parametrize("line", ["== ordinary text", "=-", "    ==="])
+def test_lines_that_are_not_setext_underlines_keep_the_inline_span(delimiter, line):
+    source = "Text " + delimiter + "{{ unfinished\n" + line + "\n" + delimiter + " end\n\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
