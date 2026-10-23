@@ -67,6 +67,8 @@ def _raw_html_bounds(text: str, start: int, last_html_ends: dict[str, int], bloc
         return None
     name, opening_end = opening
     closing = COMPILED_RAW_HTML_END_REGEX[name].search(text, opening_end)
+    if closing is not None:
+        blocks.closed_html_lines.add(blocks.line_at(closing.end()).start)
     return opening_end, blocks.line_at(closing.end()).content_end if closing is not None else len(text)
 
 
@@ -155,10 +157,8 @@ def read_link_resource_end(text: str, start: int) -> int | None:
 
 def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | None:
     """Read a complete definition resource without claiming an unfinished title."""
-    at = start
-    while at < len(text) and text[at] in " \t\r\n":
-        at += 1
-    if at >= len(text) or COMPILED_BLANK_LINE_REGEX.search(text, start, at) is not None:
+    at = blocks.reference_space(start, start)
+    if at is None or at >= len(text):
         return None
     destination_start = at
     if text[at] == "<":
@@ -200,9 +200,8 @@ def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | N
     destination_end = at
     destination_line = blocks.line_at(destination_end)
     fallback = destination_line.content_end if not text[destination_end : destination_line.content_end].strip(" \t") else None
-    while at < len(text) and text[at] in " \t\r\n":
-        at += 1
-    if COMPILED_BLANK_LINE_REGEX.search(text, destination_end, at) is not None or at >= len(text) or text[at] not in "\"'(":
+    at = blocks.reference_space(at, start)
+    if at is None or at >= len(text) or text[at] not in "\"'(":
         return fallback
     title_next_line = at > destination_line.content_end
     if at == destination_end:
@@ -215,7 +214,7 @@ def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | N
             at += 2
         elif text[at] == closing:
             line_end = blocks.line_at(at).content_end
-            if COMPILED_BLANK_LINE_REGEX.search(text, title_start, at) is not None or text[at + 1 : line_end].strip(" \t"):
+            if blocks.reference_has_blank(title_start, at) or text[at + 1 : line_end].strip(" \t"):
                 return fallback if title_next_line else None
             return line_end
         else:
@@ -227,7 +226,7 @@ def _math_spans(text: str, last_html_ends: dict[str, int], blocks: DocumentBlock
     """Index equal-width math delimiters once, bounded by paragraphs and blocks."""
     breaks: list[tuple[int, int]] = []
     for index, line in enumerate(blocks.lines):
-        value = text[line.start : line.content_end]
+        value = blocks.projected_line(index)
         opening = _raw_html_opening(text, line.start, last_html_ends, blocks)
         if not value.strip(" \t") or fence_opening(value) is not None or opening is not None or blocks.inline_block_interrupts(index):
             breaks.append((line.start, opening[1] if opening is not None else line.content_end))
@@ -343,7 +342,7 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
         opening_end += 1
     size = opening_end - start
     opening_line = blocks.line_at(start)
-    opening_heading = COMPILED_ATX_START_REGEX.match(text[opening_line.start : opening_line.content_end]) is not None
+    opening_heading = COMPILED_ATX_START_REGEX.match(blocks.projected_line(blocks.by_start[opening_line.start])) is not None
     at = opening_end
     while at < len(text):
         if text[at] in "\r\n":
@@ -351,7 +350,7 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
             following = blocks.by_start.get(line.end)
             if following is not None:
                 next_line = blocks.lines[following]
-                value = text[next_line.start : next_line.content_end]
+                value = blocks.projected_line(following)
                 if (
                     opening_heading
                     or COMPILED_ATX_START_REGEX.match(value) is not None

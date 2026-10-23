@@ -137,3 +137,83 @@ def test_inline_html_and_unclosed_tokens_keep_their_existing_boundaries(opening,
     assert extract_variables_from_text(inline) == []
     unclosed = opening + "\n{{ example }}\n?[%{{ real }} A|B]"
     assert extract_variables_from_text(unclosed) == ["example", "real"]
+
+
+CONTAINER_PREFIXES = [("> ", "> "), ("- ", "  "), ("1. ", "   "), ("> - ", ">   ")]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("delimiter", ["`", "$"])
+@pytest.mark.parametrize(("first", "continued"), CONTAINER_PREFIXES)
+def test_container_headings_interrupt_inline_pairing_at_original_offsets(newline, delimiter, first, continued):
+    source = newline.join([first + "Text " + delimiter + "{{ unfinished", continued + "# Heading " + delimiter + " end", "", "?[%{{ real }} A|B]"])
+    assert extract_variables_from_text(source) == []
+    assert all(block.block_type == BlockType.CONTENT for block in MarkdownFlow(source).get_all_blocks())
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(("first", "continued"), CONTAINER_PREFIXES)
+@pytest.mark.parametrize("tag", ["div", "custom"])
+@pytest.mark.parametrize("blank", [False, True])
+def test_container_html_examples_end_at_blank_or_container_dedent(newline, first, continued, tag, blank):
+    lines = [first + "<" + tag + ">", continued + "{{ unfinished", continued + "</" + tag + ">"]
+    prefix = newline.join(lines) + newline * (2 if blank else 1)
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    assert sum(block.block_type == BlockType.INTERACTION for block in MarkdownFlow(source).get_all_blocks()) == 1
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+    for marker in find_document_variable_markers(source):
+        assert marker.raw_name == source[marker.start + 2 : marker.end - 2]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("tag", ["script", "style", "pre", "textarea"])
+def test_closed_raw_html_allows_the_following_indented_example(newline, tag):
+    prefix = newline.join(["<" + tag + ">", "</" + tag + ">", "    {{ unfinished", "", ""])
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("fence", ["~~~", "```"])
+def test_stray_document_controls_end_before_a_confirmed_fence(newline, fence):
+    source = newline.join(["?[ unfinished", fence, "{{ x", fence, "?[%{{ real }} A|B]"])
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    owned = newline.join(["?[%{{ unfinished", fence, "{{ x", fence, "?[%{{ real }} A|B]"])
+    assert extract_variables_from_text(owned) == []
+    assert all(InteractionParser().parse(block.content).get("variable") != "real" for block in MarkdownFlow(owned).get_all_blocks() if block.block_type == BlockType.INTERACTION)
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(("first", "continued"), CONTAINER_PREFIXES)
+def test_container_reference_examples_keep_the_resource_local(newline, first, continued):
+    source = first + '[foo]: /url "{{ unfinished"' + newline * 2 + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    continuing = first + "Text" + newline + continued + '[foo]: /url "{{ unfinished"' + newline * 2 + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(continuing) == []
+
+
+def test_inline_html_does_not_enable_a_following_indented_block():
+    source = "Text <script></script>\n    {{ unfinished\n\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == []
+
+
+@pytest.mark.parametrize(
+    "prefix", ['> [foo]: /url\n>   "{{ unfinished"', '> [foo]:\n> /url "{{ unfinished"', '- [foo]: /url\n  "{{ unfinished"', '> [foo]: /url\n"{{ unfinished"', '> [foo]:\n/url "{{ unfinished"']
+)
+def test_multiline_container_reference_padding_keeps_original_resource_scope(prefix):
+    source = prefix + "\n\n{{ real }}"
+    assert extract_variables_from_text(source) == ["real"]
+
+
+@pytest.mark.parametrize("prefix", ["> <div>\n> %{{ a|b[🙂] }}\n> </div>\n\n", '> [foo]: /url "%{{ a|b[🙂] }}"\n\n'])
+def test_complete_container_examples_keep_exact_keys_and_source_offsets(prefix):
+    source = prefix + "{{ other }}"
+    assert set(extract_variables_from_text(source)) == {"a|b[🙂]", "other"}
+    assert replace_variables_in_text(source, {"other": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+    for marker in find_document_variable_markers(source):
+        assert marker.raw_name == source[marker.start + 2 : marker.end - 2]

@@ -194,6 +194,9 @@ class DocumentBlocks:
         self._html_last_ends: dict[str, int] | None = None
         self.lines = physical_lines(text)
         self.closed_fence_lines: set[int] = set()
+        self.closed_html_lines: set[int] = set()
+        self.content_starts = [line.start for line in self.lines]
+        self.container_steps: list[tuple[int, ...]] = [() for _ in self.lines]
         self.container_paragraphs = self._container_paragraphs()
         self.starts = [line.start for line in self.lines]
         self.by_start = {line.start: index for index, line in enumerate(self.lines)}
@@ -204,8 +207,11 @@ class DocumentBlocks:
 
     def blank(self, index: int) -> bool:
         """Test Markdown blank padding rather than all Unicode whitespace."""
-        line = self.lines[index]
-        return not self.text[line.start : line.content_end].strip(" \t")
+        return not self.projected_line(index).strip(" \t")
+
+    def projected_line(self, index: int) -> str:
+        """Read native block context after its container prefix at original offsets."""
+        return self.text[self.content_starts[index] : self.lines[index].content_end]
 
     def fence(self, start: int, *, final: bool = True) -> BlockSpan | None:
         """Read plain or quote/list-contained fenced code."""
@@ -271,10 +277,11 @@ class DocumentBlocks:
         if index is None:
             return None
         first = self.lines[index]
-        opening = COMPILED_DOCUMENT_TAG_REGEX.match(self.text[start : first.content_end])
+        content_start = self.content_starts[index]
+        opening = COMPILED_DOCUMENT_TAG_REGEX.match(self.text[content_start : first.content_end])
         if opening is None:
             return None
-        tag_start = self.text.find("<", start, first.content_end)
+        tag_start = self.text.find("<", content_start, first.content_end)
         block_tag = opening.group(1).lower() in HTML_BLOCK_TAGS
         if not block_tag and index and not self.blank(index - 1):
             return None
@@ -286,8 +293,10 @@ class DocumentBlocks:
         scan = max(index + 1, self.by_start.get(previous.start, index))
         for at in range(scan, len(self.lines)):
             line = self.lines[at]
-            if line.start >= token_end and self.blank(at):
-                return BlockSpan(previous.content_end, token_end, previous.content_end, closed=line.end > line.content_end)
+            steps = self.container_steps[index]
+            outside = steps and container_content_start(self.text[line.start : line.content_end], steps) is None
+            if line.start >= token_end and (self.blank(at) or outside):
+                return BlockSpan(previous.content_end, token_end, previous.content_end, closed=bool(outside) or line.end > line.content_end)
             previous = line
         return BlockSpan(len(self.text), token_end, len(self.text))
 
@@ -296,9 +305,10 @@ class DocumentBlocks:
         if index == 0 or self.blank(index - 1):
             return True
         previous = self.lines[index - 1]
-        value = self.text[previous.start : previous.content_end]
+        value = self.projected_line(index - 1)
         return bool(
             previous.start in self.closed_fence_lines
+            or previous.start in self.closed_html_lines
             or COMPILED_ATX_START_REGEX.match(value) is not None
             or COMPILED_DOCUMENT_BREAK_REGEX.fullmatch(value) is not None
             or (index > 1 and not self.blank(index - 2) and COMPILED_SETEXT_REGEX.fullmatch(value) is not None)
@@ -311,18 +321,57 @@ class DocumentBlocks:
         if index is None:
             return None
         line = self.lines[index]
-        match = COMPILED_REFERENCE_PREFIX_REGEX.match(self.text[start : line.content_end])
+        if self.container_steps[index] and not self.indented_may_start(index) and not self.paragraph_interrupts(index):
+            return None
+        content_start = self.content_starts[index]
+        match = COMPILED_REFERENCE_PREFIX_REGEX.match(self.text[content_start : line.content_end])
         if match is None or len(match.group(1)) > 999 or not match.group(1).strip(" \t"):
             return None
-        return start + match.end()
+        return content_start + match.end()
+
+    def reference_space(self, start: int, origin: int) -> int | None:
+        """Skip reference padding through matching container continuation prefixes."""
+        steps = self.container_steps[self.by_start[self.line_at(origin).start]]
+        at = start
+        while at < len(self.text):
+            index = self.by_start.get(at)
+            if index is not None and at > origin:
+                line = self.lines[index]
+                content = container_content_start(self.text[at : line.content_end], steps)
+                if self.blank(index):
+                    return None
+                if content is None:
+                    value = self.projected_line(index)
+                    if self.paragraph_interrupts(index) or self.inline_block_interrupts(index) or fence_opening(value) is not None or COMPILED_ATX_START_REGEX.match(value) is not None:
+                        return None
+                    content = 0  # A definition permits a lazy paragraph continuation.
+                at += content
+            if at >= len(self.text) or self.text[at] not in " \t\r\n":
+                break
+            at += 1
+        return at
+
+    def reference_has_blank(self, start: int, end: int) -> bool:
+        """Test only whole intervening physical lines after container projection."""
+        first = self.by_start[self.line_at(start).start]
+        last = self.by_start[self.line_at(end).start]
+        return any(self.blank(index) for index in range(first + 1, last))
 
     def interaction_limit(self, start: int, marker_end: Callable[[int], int | None], *, final: bool = True) -> tuple[int, bool]:
         """Stop incomplete document controls at a blank outside opaque markers."""
         at = start
         while at < len(self.text):
             index = self.by_start.get(at)
-            if index is not None and self.blank(index) and (final or self.lines[index].end > self.lines[index].content_end):
-                return at, False
+            if index is not None and at > start and (final or self.lines[index].end > self.lines[index].content_end):
+                value = self.projected_line(index)
+                if (
+                    self.blank(index)
+                    or fence_opening(value) is not None
+                    or COMPILED_ATX_START_REGEX.match(value) is not None
+                    or self.inline_block_interrupts(index)
+                    or self.paragraph_interrupts(index)
+                ):
+                    return at, False
             if self.text.startswith("{{", at):
                 end = marker_end(at)
                 if end is None:
@@ -354,6 +403,11 @@ class DocumentBlocks:
                 boundaries.add(index)
                 active = base + steps
                 remaining = remaining[after:]
+            offset = line.start + (content if content is not None else 0)
+            if steps and (not paragraph or self._explicit_interrupt(value[(content if content is not None else 0) :])):
+                offset += after
+            self.content_starts[index] = offset
+            self.container_steps[index] = active if content is not None or steps else ()
             if not remaining.strip(" \t"):
                 boundaries.add(index)
                 paragraph = False
@@ -381,7 +435,6 @@ class DocumentBlocks:
 
     def inline_block_interrupts(self, index: int) -> bool:
         """Report confirmed thematic and ordinary-HTML paragraph interruptions."""
-        line = self.lines[index]
-        value = self.text[line.start : line.content_end]
+        value = self.projected_line(index)
         tag = COMPILED_DOCUMENT_TAG_REGEX.match(value)
         return COMPILED_DOCUMENT_BREAK_REGEX.fullmatch(value) is not None or COMPILED_SETEXT_REGEX.fullmatch(value) is not None or (tag is not None and tag.group(1).lower() in HTML_BLOCK_TAGS)
