@@ -11,7 +11,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![Type Hints](https://img.shields.io/badge/Type_Hints-Enabled-green.svg)](https://docs.python.org/3/library/typing.html)
 
-English | [简体中文](README_CN.md)
+English | [Simplified Chinese](README_CN.md)
 
 </div>
 
