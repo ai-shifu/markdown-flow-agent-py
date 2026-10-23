@@ -469,8 +469,8 @@ with `markdown_flow.variable_names`. Names trim Python whitespace at their edges
 retain exact internal text, and end at the first literal `}}`; quotes and
 backslashes have no decoding rule. Emit padded markers through the public format
 helpers, and never reinterpret or translate the name as interaction body text.
-At document level, complete inline code, math, link resources, indented code,
-and raw-text HTML bodies bound local variable examples;
+At document level, complete inline code, math, link resources, URI/email angle
+autolinks, indented code, and raw-text HTML bodies bound local variable examples;
 complete declarations there retain collection/replacement, while escaped openers
 stay literal. Keep these document-stage rules out of the raw marker helper APIs.
 Run the shared corpus and document regressions with `python -m pytest scripts -q`

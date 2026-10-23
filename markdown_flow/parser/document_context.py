@@ -13,7 +13,7 @@ from ..constants import (
     COMPILED_RAW_HTML_START_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
-from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation
+from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -351,6 +351,8 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
     if text[start] == "\\":
         return start + 2 if start + 1 < len(text) and text[start + 1] in punctuation else None
     if text[start] == "<":
+        if (autolink_end := read_angle_autolink(text, start)) is not None:
+            return autolink_end
         if not _html_can_close(text, start, last_html_ends):
             return None
         return blocks.html_token_end(blocks.by_start[blocks.line_at(start).start], start)

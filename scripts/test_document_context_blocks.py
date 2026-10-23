@@ -1,5 +1,8 @@
 """Physical document contexts cannot hide later authored questions."""
 
+import json
+from pathlib import Path
+
 import pytest
 
 from markdown_flow import InteractionParser, MarkdownFlow
@@ -304,3 +307,101 @@ def test_unterminated_container_html_ends_at_confirmed_parent_dedent(newline, op
     assert extract_variables_from_text(source) == ["real"]
     assert MarkdownFlow(source).extract_variables() == ["real"]
     assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+AUTOLINK_EXAMPLES = [
+    "<foo:{{unfinished\x00>",
+    "<foo:{{unfinished\ufffd>",
+    "<foo:{{unfinished>",
+    "<https://example.com/{{unfinished>",
+    "<aa:{{unfinished>",
+    "<" + "a" * 32 + ":{{unfinished>",
+    "<foo:中文/{{unfinished>",
+    "<{{unfinished@example.com>",
+    "<{{unfinished@b>",
+    "<{{unfinished@" + "a" * 63 + ".com>",
+]
+INVALID_AUTOLINK_EXAMPLES = [
+    "<a:{{unfinished>",
+    "<" + "a" * 33 + ":{{unfinished>",
+    "<1foo:{{unfinished>",
+    "<foo:{{unfinished space>",
+    "<foo:{{unfinished\x7f>",
+    "<foo:{{unfinished\x01>",
+    "<foo:{{unfinished\n>",
+    "<foo:{{unfinished",
+    "<{{unfinished@-example.com>",
+    "<{{unfinished@example-.com>",
+    "<{{unfinished@" + "a" * 64 + ".com>",
+    "<{{unfinished@@example.com>",
+    "<{{unfinished@example..com>",
+]
+COMPLETE_AUTOLINK_KEYS = [
+    ("<foo:%{{a|b[🙂]}}>", "a|b[🙂]"),
+    (r"<foo:{{path\key}}>", r"path\key"),
+    ("<{{question?}}@example.com>", "question?"),
+    ("<foo:{{x<y}}>", "x<y"),
+]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("example", AUTOLINK_EXAMPLES)
+def test_complete_angle_autolinks_bound_unfinished_variable_examples(newline, example):
+    prefix = example + newline * 2
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == ["real"]
+    assert sum(block.block_type == BlockType.INTERACTION for block in flow.get_all_blocks()) == 1
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+@pytest.mark.parametrize("example", INVALID_AUTOLINK_EXAMPLES)
+def test_invalid_or_unclosed_angle_links_do_not_claim_literal_scope(example):
+    source = example + "\n\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == []
+    assert MarkdownFlow(source).extract_variables() == []
+
+
+@pytest.mark.parametrize(("example", "key"), COMPLETE_AUTOLINK_KEYS)
+def test_complete_variable_declarations_inside_angle_links_keep_exact_keys(example, key):
+    source = example + "\n\n?[%{{ real }} A|B]"
+    assert set(extract_variables_from_text(source)) == {key, "real"}
+    assert set(MarkdownFlow(source).extract_variables()) == {key, "real"}
+    assert replace_variables_in_text(source, {key: "VALUE"}, add_quotes=False) == (source if "%{{" in example else source.replace("{{" + key + "}}", "VALUE"))
+    for marker in find_document_variable_markers(source):
+        assert marker.raw_name == source[marker.start + 2 : marker.end - 2]
+
+
+def test_true_markers_remain_opaque_before_angle_link_syntax():
+    source = "{{ key<foo:?[Go]> }}\n\n?[%{{ real }} A|B]"
+    assert set(extract_variables_from_text(source)) == {"key<foo:?[Go]>", "real"}
+    assert sum(block.block_type == BlockType.INTERACTION for block in MarkdownFlow(source).get_all_blocks()) == 1
+
+
+AUTOLINK_CORPUS = json.loads(Path(__file__).with_name("autolink-cases.json").read_text())
+
+
+@pytest.mark.parametrize("case", AUTOLINK_CORPUS, ids=lambda case: case["id"])
+def test_shared_native_angle_autolink_corpus(case):
+    source = case["source"]
+    assert extract_variables_from_text(source) == case["names"]
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == case["names"]
+    assert bool([block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]) == ("real" in case["names"])
+
+
+def test_angle_link_continuation_witness_preserves_native_acceptance():
+    from markdown_flow.parser.document_blocks import compact_angle_autolink_prefix, read_angle_autolink
+
+    prefixes = ["<", "<f", "<foo", "<script", "<SCRIPT", "<" + "a" * 32, "<" + "a" * 33, "<foo:", "<foo:{{", "<{{", "<{{unfinished@a", "<a@b.", "<a@" + "x" * 63, "<a@" + "x" * 61 + "-"]
+    suffixes = [">", ":u>", ":{{unfinished>", "@b>", "b>", "->", ".b>", "@b:>", " {{", " ", "\n", "<", "$", "-", ":"]
+    for prefix in prefixes:
+        witness = compact_angle_autolink_prefix(prefix, 0)
+        assert witness is not None
+        assert len(witness) <= 70
+        for suffix in suffixes:
+            assert (read_angle_autolink(prefix + suffix, 0) is not None) == (read_angle_autolink(witness + suffix, 0) is not None), (prefix, suffix, witness)
+    for prefix in ["<foo:" + "u" * 50000, "<" + "a" * 50000, "<" + "x" * 50000 + "@" + "d." * 10000 + "tail"]:
+        witness = compact_angle_autolink_prefix(prefix, 0)
+        assert witness is not None and len(witness) <= 70

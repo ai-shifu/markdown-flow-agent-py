@@ -690,8 +690,8 @@ literal. Only a leading assignment marker sets the interaction's variable;
 markers elsewhere in its body remain literal option text. An unterminated
 marker keeps the remaining text opaque, without restarting at an inner `?[`.
 
-At document level, complete inline code, inline math, link resources, indented
-code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
+At document level, complete inline code, inline math, link resources, URI/email
+angle autolinks, indented code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
 variable examples. Quote/list-contained fences and ordinary HTML blocks also keep
 unfinished examples local. Reference-definition destinations and titles retain
 their complete variable examples. Physical CRLF, LF and CR boundaries preserve
