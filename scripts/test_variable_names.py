@@ -154,7 +154,7 @@ def test_translation_tokens_do_not_collide_and_reconstruction_does_not_match_ins
     flow.set_prompt("output_language", "French")
     parsed = InteractionParser().parse(flow.process(0).content)
     assert [button["display"] for button in parsed["buttons"]] == ["Keep __MDFLOW_VARIABLE_0__ " + raw, "Aller"]
-    assert "___MDFLOW_VARIABLE_1__" in provider.messages[-1]["content"]
+    assert "__MDFLOW_VARIABLE_N0_1__" in provider.messages[-1]["content"]
 
 
 def test_translation_extraction_and_reconstruction_preserve_ordinary_references():

@@ -71,9 +71,8 @@ def _translation_marker_spans(text: str) -> list[tuple[int, int]]:
     return [(marker.start - (marker.start > 0 and text[marker.start - 1] == "%"), marker.end) for marker in find_variable_markers(text)]
 
 
-def _mask_translation_markers(text: str, markers: dict[str, str]) -> str:
-    """Replace whole markers with collision-free tokens, without reading inside keys."""
-    tokens = {raw: token for token, raw in markers.items()}
+def _mask_translation_markers(text: str, tokens: dict[str, str]) -> str:
+    """Replace whole markers using the interaction's shared raw-to-token index."""
     parts: list[str] = []
     at = 0
     for start, end in _translation_marker_spans(text):
@@ -83,23 +82,29 @@ def _mask_translation_markers(text: str, markers: dict[str, str]) -> str:
     return "".join(parts)
 
 
-def _restore_translation_markers(original: str, translated: Any, markers: dict[str, str]) -> str:
-    """Accept a translated field only when all its marker tokens survive in order."""
+def _translation_token_pattern(markers: dict[str, str]) -> re.Pattern[str] | None:
+    """Match only the generated token namespace, without enumerating every token."""
+    if not markers:
+        return None
+    prefix = next(iter(markers)).rsplit("_", 3)[0] + "_"
+    return re.compile(re.escape(prefix) + r"[0-9]+__")
+
+
+def _restore_translation_markers(original: str, translated: Any, markers: dict[str, str], token_pattern: re.Pattern[str] | None = None) -> str:
+    """Accept a translated field only when its known marker tokens survive in order."""
+    if not isinstance(translated, str):
+        translated = original
+    if not markers:
+        return translated
+    token_pattern = token_pattern if token_pattern is not None else _translation_token_pattern(markers)
+    assert token_pattern is not None
 
     def token_sequence(text: str) -> list[str]:
-        positions = []
-        for token in markers:
-            at = 0
-            while (at := text.find(token, at)) >= 0:
-                positions.append((at, token))
-                at += len(token)
-        return [token for _, token in sorted(positions)]
+        return [match.group() for match in token_pattern.finditer(text) if match.group() in markers]
 
-    if not isinstance(translated, str) or token_sequence(original) != token_sequence(translated):
+    if token_sequence(original) != token_sequence(translated):
         translated = original
-    for token, raw in markers.items():
-        translated = translated.replace(token, raw)
-    return translated
+    return token_pattern.sub(lambda match: markers.get(match.group(), match.group()), translated)
 
 
 def _find_translation_text(text: str, old: str) -> int:
@@ -1537,22 +1542,33 @@ class MarkdownFlow:
 
         # Keep marker source out of the translation request. The prefix cannot
         # collide with author text, and equal raw markers share the same token.
-        prefix = "__MDFLOW_VARIABLE_"
-        while prefix in interaction_content:
-            prefix = "_" + prefix
+        base = "__MDFLOW_VARIABLE_"
+        used_nonces: set[str] = set()
+        collision = False
+        for match in re.finditer(re.escape(base) + r"(?:N([0-9]+)_)?", interaction_content):
+            collision = True
+            if match.group(1) is not None:
+                used_nonces.add(match.group(1))
+        prefix = base
+        if collision:
+            nonce = 0
+            while str(nonce) in used_nonces:
+                nonce += 1
+            prefix = f"{base}N{nonce}_"
         raw_markers = dict.fromkeys(interaction_content[start:end] for start, end in _translation_marker_spans(interaction_content))
         markers = {f"{prefix}{i}__": raw for i, raw in enumerate(raw_markers)}
         interaction_info["_translation_markers"] = markers
+        tokens_by_raw = {raw: token for token, raw in markers.items()}
         translatable: dict[str, str | list[str]] = {}
 
         # Extract button display text
         if interaction_info.get("buttons"):
-            button_texts = [_mask_translation_markers(btn["display"], markers) for btn in interaction_info["buttons"]]
+            button_texts = [_mask_translation_markers(btn["display"], tokens_by_raw) for btn in interaction_info["buttons"]]
             translatable["buttons"] = button_texts
 
         # Extract question text
         if interaction_info.get("question"):
-            translatable["question"] = _mask_translation_markers(interaction_info["question"], markers)
+            translatable["question"] = _mask_translation_markers(interaction_info["question"], tokens_by_raw)
 
         # Convert to JSON
 
@@ -1627,6 +1643,7 @@ class MarkdownFlow:
             return original_content
 
         markers = interaction_info.get("_translation_markers", {})
+        token_pattern = _translation_token_pattern(markers)
         prefix = ""
         reconstructed = original_content
         marker = COMPILED_LAYER2_VARIABLE_REGEX.match(original_content[2:-1]) if original_content.startswith("?[") else None
@@ -1640,7 +1657,7 @@ class MarkdownFlow:
                 if i < len(translated["buttons"]):
                     old_display = button["display"]
                     original_display = original.get("buttons", [])[i]
-                    new_display = _restore_translation_markers(original_display, translated["buttons"][i], markers)
+                    new_display = _restore_translation_markers(original_display, translated["buttons"][i], markers, token_pattern)
 
                     # Detect if translation happened
                     translation_happened = False
@@ -1680,7 +1697,7 @@ class MarkdownFlow:
         # Replace question text
         if "question" in translated and interaction_info.get("question"):
             old_question = interaction_info["question"]
-            new_question = _restore_translation_markers(original["question"], translated["question"], markers)
+            new_question = _restore_translation_markers(original["question"], translated["question"], markers, token_pattern)
             reconstructed = _replace_translation_text(reconstructed, f"...{old_question}", f"...{new_question}")
 
         return prefix + reconstructed
