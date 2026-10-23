@@ -87,8 +87,11 @@ def _protect_variable_names(content: str) -> tuple[str, dict[str, str], str]:
         return content, {}, prefix
     spans = [(marker.start, marker.end) for marker in find_document_variable_markers(content)]
     spans.extend((start, end) for start, end in find_document_protected_spans(content) if content.startswith("{{", start) and read_variable_marker(content, start) is None)
-    while prefix in content:
-        prefix += ":"
+    used_nonces = {match.group(1) for match in re.finditer(re.escape(prefix) + r"([0-9]+):", content)}
+    nonce = 0
+    while str(nonce) in used_nonces:
+        nonce += 1
+    prefix = f"{prefix}{nonce}:"
     markers: dict[str, str] = {}
     pieces: list[str] = []
     at = 0

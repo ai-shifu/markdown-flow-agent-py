@@ -67,3 +67,16 @@ def test_inline_output_around_a_reference_does_not_modify_its_key():
     user = MarkdownFlow(source).get_content_messages(0, {"a===b===c": "VALUE"})[-1]["content"]
     assert OUTPUT_INSTRUCTION_PREFIX + "VALUE" + OUTPUT_INSTRUCTION_SUFFIX in user
     assert "UNKNOWN" not in user
+
+
+@pytest.mark.parametrize(
+    "existing", ["\x00mdf-output-name:" + ":" * 50000, "".join("\x00mdf-output-name:" + str(nonce) + ":0\x00" for nonce in range(1024)), "\x00mdf-output-name:" + "9" * 5000 + ":0\x00"]
+)
+def test_dense_placeholder_collisions_keep_a_bounded_namespace_and_restore_exact_text(existing):
+    from markdown_flow.parser.output import _protect_variable_names
+
+    source = existing + " {{a===b===c}} ===OUT==="
+    _, _, prefix = _protect_variable_names(source)
+    assert len(prefix) < 40
+    assert prefix not in source
+    assert process_output_instructions(source) == (existing + " {{a===b===c}} " + OUTPUT_INSTRUCTION_PREFIX + "OUT" + OUTPUT_INSTRUCTION_SUFFIX, True)
