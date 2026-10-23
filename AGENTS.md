@@ -870,7 +870,7 @@ Supports two standard Markdown fence formats:
 
 - Fence Length: At least 3 characters (`` ``` `` or `~~~`), can be longer
 - Indentation: Maximum 3 spaces
-- Info String: Supports language identifiers (e.g., `` ```python ``、`~~~markdown`)
+- Info String: Supports language identifiers (e.g., `` ```python ``, `~~~markdown`)
 - Closing Fence: Must be same type, length ≥ opening fence
 
 ### How It Works
