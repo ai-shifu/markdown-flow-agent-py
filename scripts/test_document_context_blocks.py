@@ -282,3 +282,25 @@ def test_every_existing_html_block_uses_container_columns(newline, opening, clos
     assert extract_variables_from_text(source) == ["real"]
     assert MarkdownFlow(source).extract_variables() == ["real"]
     assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("tag", ["script", "style", "pre", "textarea"])
+@pytest.mark.parametrize(("first", "continued"), [("", ""), *CONTAINER_PREFIXES])
+def test_raw_html_prefix_admits_blocks_without_a_complete_opening_tag(newline, tag, first, continued):
+    prefix = newline.join([first + "<" + tag, continued.rstrip(), continued + "{{ unfinished", continued + "</" + tag + ">", "", ""])
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("opening", ["<!--", "<?x", "<![CDATA[", "<!DOCTYPE"])
+@pytest.mark.parametrize(("first", "continued"), CONTAINER_PREFIXES)
+def test_unterminated_container_html_ends_at_confirmed_parent_dedent(newline, opening, first, continued):
+    prefix = newline.join([first + opening, continued + "{{ unfinished", continued + "{{ still unfinished", "", ""])
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"

@@ -251,7 +251,7 @@ class DocumentBlocks:
         """Index once using the caller's existing native HTML grammar."""
         self.text = text
         self.html_pattern = html
-        self._html_token_ends: dict[int, int | None] = {}
+        self._html_token_ends: dict[tuple[int, bool], int | None] = {}
         self._html_last_ends: dict[str, int] | None = None
         self.lines = physical_lines(text)
         self.closed_fence_lines: set[int] = set()
@@ -284,17 +284,18 @@ class DocumentBlocks:
         at, width = indentation(self.text[line.start : line.content_end], self.content_starts[index] - line.start, self.virtual_padding[index])
         return line.start + at if width < 4 else None
 
-    def html_token_end(self, index: int, start: int) -> int | None:
+    def html_token_end(self, index: int, start: int, *, final: bool = True) -> int | None:
         """Read a native HTML token without changing original variable text."""
-        if start in self._html_token_ends:
-            return self._html_token_ends[start]
-        limit = self.container_end(index)
+        key = (start, final)
+        if key in self._html_token_ends:
+            return self._html_token_ends[key]
+        limit = self.container_end(index, final=final)
         token = self.html_pattern.match(self.text, start, limit)
         steps = self.container_steps[index]
         project = token is None and bool(steps)
         if token is not None and steps:
             line = self.line_at(token.end() - 1)
-            content = container_content_start(self.text[line.start : line.content_end], steps)
+            content = container_content_start(self.text[line.start : line.content_end], steps, partial=not final and line.end == line.content_end == len(self.text))
             project = content is not None and token.end() - 1 < line.start + content
         end = token.end() if token is not None else None
         if project:
@@ -305,12 +306,14 @@ class DocumentBlocks:
                 if line.start >= limit:
                     break
                 value = self.text[line.start : line.end]
-                content = self.content_starts[following] - line.start if following == index else container_content_start(value, steps)
+                content = (
+                    self.content_starts[following] - line.start if following == index else container_content_start(value, steps, partial=not final and line.end == line.content_end == len(self.text))
+                )
                 pieces.append(" " * content + value[content:] if content is not None else value)
             native = "".join(pieces)
             token = self.html_pattern.match(native, start - base)
             end = base + token.end() if token is not None else None
-        self._html_token_ends[start] = end
+        self._html_token_ends[key] = end
         return end
 
     def container_end(self, index: int, *, final: bool = True) -> int:
@@ -321,6 +324,8 @@ class DocumentBlocks:
         for line in self.lines[index + 1 :]:
             value = self.text[line.start : line.content_end]
             if container_content_start(value, steps) is None and value.strip(" \t"):
+                if container_content_start(value, steps, partial=True) == len(value):
+                    continue
                 if not final and line.end == line.content_end == len(self.text) and container_content_start(value, steps, partial=True) is not None:
                     continue
                 return line.start
@@ -345,7 +350,7 @@ class DocumentBlocks:
             if content is None:
                 if not final and line.end == line.content_end == len(self.text) and container_content_start(value, steps, partial=True) is not None:
                     return BlockSpan(len(self.text), first.end, len(self.text), marker, size, steps)
-                if not value.strip(" \t"):
+                if not value.strip(" \t") or container_content_start(value, steps, partial=True) == len(value):
                     continue
                 return BlockSpan(previous.content_end, first.end, previous.content_end, marker, size, steps)
             info = container_content_info(value, steps)
@@ -359,7 +364,7 @@ class DocumentBlocks:
             previous = line
         return BlockSpan(len(self.text), first.end, len(self.text), marker, size, steps)
 
-    def terminated_html(self, start: int) -> BlockSpan | None:
+    def terminated_html(self, start: int, *, final: bool = True) -> BlockSpan | None:
         """Keep complete native HTML blocks 2-5 through their closing physical line."""
         index = self.by_start.get(start)
         if index is None:
@@ -384,10 +389,13 @@ class DocumentBlocks:
             closing = ">"
         if self._html_last_ends is None:
             self._html_last_ends = {ending: self.text.rfind(ending) for ending in (">", "-->", "?>", "]]>")}
-        if self._html_last_ends[closing] < at:
-            return None
-        token_end = self.html_token_end(index, at)
+        limit = self.container_end(index, final=final)
+        token_end = self.html_token_end(index, at, final=final) if self._html_last_ends[closing] >= at else None
         if token_end is None:
+            # A confirmed parent-container dedent ends native HTML even without a terminator.
+            # Plain EOF retains the historical incomplete-token fallback.
+            if self.container_steps[index] and limit < len(self.text):
+                return BlockSpan(limit, at, limit, closed=True)
             return None
         end = self.line_at(token_end).content_end
         return BlockSpan(end, token_end, end, closed=True)
@@ -408,7 +416,7 @@ class DocumentBlocks:
         block_tag = opening.group(1).lower() in HTML_BLOCK_TAGS
         if not block_tag and index and not self.blank(index - 1):
             return None
-        token = self.html_token_end(index, tag_start)
+        token = self.html_token_end(index, tag_start, final=final)
         token_end = token if token is not None else start
         if not block_tag and (token is None or token_end > first.content_end or self.text[token_end : first.content_end].strip(" \t")):
             return None

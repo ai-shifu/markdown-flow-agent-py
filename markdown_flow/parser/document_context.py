@@ -13,7 +13,7 @@ from ..constants import (
     COMPILED_RAW_HTML_START_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
-from .document_blocks import DocumentBlocks, container_content_info, container_opening, fence_opening, indentation
+from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -48,7 +48,7 @@ def _indented_code_end(text: str, start: int, blocks: DocumentBlocks) -> int | N
         value = text[line.start : line.content_end]
         info = (blocks.content_starts[following] - line.start, blocks.virtual_padding[following]) if following == index else container_content_info(value, steps)
         if info is None:
-            if not value.strip(" \t"):
+            if not value.strip(" \t") or container_content_start(value, steps, partial=True) == len(value):
                 continue
             break
         content, virtual = info
@@ -70,10 +70,8 @@ def _raw_html_opening(text: str, start: int, last_html_ends: dict[str, int], blo
     if opening is None:
         return None
     tag_start = text.find("<", start, opening.end())
-    if not _html_can_close(text, tag_start, last_html_ends):
-        return None
     token_end = blocks.html_token_end(blocks.by_start[start], tag_start)
-    return (opening.group(1).lower(), token_end) if token_end is not None else None
+    return opening.group(1).lower(), token_end if token_end is not None else opening.end()
 
 
 def _raw_html_bounds(text: str, start: int, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> tuple[int, int] | None:
@@ -355,8 +353,7 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
     if text[start] == "<":
         if not _html_can_close(text, start, last_html_ends):
             return None
-        html = COMPILED_INLINE_HTML_REGEX.match(text, start)
-        return html.end() if html is not None else None
+        return blocks.html_token_end(blocks.by_start[blocks.line_at(start).start], start)
     if text[start] != "`":
         return None
     opening_end = start + 1
