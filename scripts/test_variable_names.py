@@ -428,3 +428,31 @@ def test_shared_document_context_preserves_collection_replacement_and_real_answe
     replaced = replace_variables_in_text(source, dict.fromkeys(case["names"], "answer"), add_quotes=False)
     expected = "Show `answer` then ?[A|B]" if case["id"] == "complete-inline-code-reference" else source
     assert replaced == expected
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("slash_count", [1, 2, 3, 4])
+def test_backslash_hard_breaks_do_not_hide_document_separators(newline, slash_count):
+    slashes = "\\" * slash_count
+    source = "A" + slashes + newline + "---" + newline + "B"
+    blocks = MarkdownFlow(source).get_all_blocks()
+    assert [block.block_type for block in blocks] == [BlockType.CONTENT, BlockType.CONTENT]
+    assert [block.content for block in blocks] == ["A" + slashes, "B"]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_multiple_hard_break_separators_keep_all_content_and_interaction_blocks(newline):
+    source = newline.join(["A\\", "---", "B\\\\", "---", "?[A|B]", "---", "C\\\\\\", "---", "D"])
+    flow = MarkdownFlow(source)
+    assert [block.content for block in flow.get_all_blocks()] == ["A\\", "B\\\\", "?[A|B]", "C\\\\\\", "D"]
+    assert [block.block_type for block in flow.get_all_blocks()] == [BlockType.CONTENT, BlockType.CONTENT, BlockType.INTERACTION, BlockType.CONTENT, BlockType.CONTENT]
+    assert flow.process(2, user_input={"input": ["B"]}).metadata["answer"] == ["B"]
+
+
+def test_document_escape_parity_still_distinguishes_literal_and_true_marker_openers():
+    literal = MarkdownFlow(r"\{{ example" + "\n---\n?[%{{ q }} A|B]")
+    assert literal.extract_variables() == ["q"]
+    assert [block.block_type for block in literal.get_all_blocks()] == [BlockType.CONTENT, BlockType.INTERACTION]
+    raw = MarkdownFlow(r"\\{{ outside" + "\n---\n?[A|B]")
+    assert raw.block_count == 1
+    assert raw.get_block(0).block_type == BlockType.CONTENT

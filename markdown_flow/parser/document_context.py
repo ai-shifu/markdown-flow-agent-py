@@ -1,6 +1,7 @@
 """Document-stage boundaries without changing the raw variable-marker grammar."""
 
 from collections.abc import Iterator
+from string import punctuation
 
 from ..constants import COMPILED_INLINE_HTML_REGEX
 from ..variable_names import VariableMarker, find_interaction_end, find_variable_markers, read_variable_marker
@@ -31,7 +32,8 @@ def read_document_literal_end(text: str, start: int) -> int | None:
     if fenced_end is not None:
         return fenced_end
     if text[start] == "\\":
-        return min(start + 2, len(text))
+        # Markdown escapes ASCII punctuation, never the following line ending.
+        return start + 2 if start + 1 < len(text) and text[start + 1] in punctuation else None
     if text[start] == "<":
         html = COMPILED_INLINE_HTML_REGEX.match(text, start)
         return html.end() if html is not None else None
