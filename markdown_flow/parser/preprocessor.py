@@ -8,7 +8,7 @@ Also extracts HTML comments to prevent them from being sent to LLM.
 from ..constants import COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX
 from ..variable_names import find_interaction_end, find_variable_markers, read_variable_marker
 from .code_fence_utils import is_code_fence_end, parse_code_fence_start
-from .document_context import read_document_literal_end
+from .document_context import document_html_ends, read_document_literal_end
 from .html_comment_utils import is_html_comment_end, is_html_comment_start, remove_inline_comment
 
 
@@ -76,6 +76,7 @@ class CodeBlockPreprocessor:
         scan = 0
         mask_fence = None
         interaction_until = -1
+        last_html_ends = document_html_ends(document)
 
         def protect_marker(start: int, end: int) -> None:
             nonlocal at
@@ -105,7 +106,7 @@ class CodeBlockPreprocessor:
                 scan = comment_end + 3 if comment_end >= 0 else len(document)
                 continue
             if scan > interaction_until:
-                literal_end = read_document_literal_end(document, scan)
+                literal_end = read_document_literal_end(document, scan, last_html_ends=last_html_ends)
                 if literal_end is not None:
                     for example in find_variable_markers(document[scan:literal_end]):
                         protect_marker(scan + example.start, scan + example.end)

@@ -2,13 +2,14 @@
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 from markdown_flow import InteractionParser, MarkdownFlow
 from markdown_flow.enums import BlockType
 from markdown_flow.llm import LLMProvider, ProcessMode
-from markdown_flow.parser import CodeBlockPreprocessor, extract_interaction_question, extract_variables_from_text, generate_smart_validation_template, replace_variables_in_text
+from markdown_flow.parser import CodeBlockPreprocessor, document_context, extract_interaction_question, extract_variables_from_text, generate_smart_validation_template, replace_variables_in_text
 from markdown_flow.parser.variable import is_inside_preserve_tag
 from markdown_flow.variable_names import find_variable_markers, format_variable_assignment, format_variable_reference, normalize_variable_name, read_variable_marker
 
@@ -456,3 +457,17 @@ def test_document_escape_parity_still_distinguishes_literal_and_true_marker_open
     raw = MarkdownFlow(r"\\{{ outside" + "\n---\n?[A|B]")
     assert raw.block_count == 1
     assert raw.get_block(0).block_type == BlockType.CONTENT
+
+
+@pytest.mark.parametrize("prefix", ["<!--", "<?", "<![CDATA[", "<!A"])
+@pytest.mark.parametrize("earlier_closer", ["", "<!-- earlier --> <?done?> <![CDATA[done]]>\n"])
+def test_impossible_html_tails_do_not_repeat_native_regex_work(prefix, earlier_closer):
+    source = earlier_closer + prefix * 4096 + " {{ q }}"
+    with patch.object(document_context, "COMPILED_INLINE_HTML_REGEX", wraps=document_context.COMPILED_INLINE_HTML_REGEX) as native:
+        assert extract_variables_from_text(source) == ["q"]
+    assert native.match.call_count <= 3
+
+
+def test_html_tail_preflight_keeps_complete_native_literals_and_local_names():
+    source = '<!-- {{ comment }} --> <?{{ instruction }}?> <![CDATA[{{ data }}]]> <span title="{{ attribute }}"> {{ q }}'
+    assert extract_variables_from_text(source) == ["attribute", "comment", "data", "instruction", "q"]

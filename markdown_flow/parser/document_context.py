@@ -8,6 +8,23 @@ from ..variable_names import VariableMarker, find_interaction_end, find_variable
 from .code_fence_utils import is_code_fence_end, parse_code_fence_start
 
 
+_HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
+
+
+def document_html_ends(text: str) -> dict[str, int]:
+    """Index possible native HTML closers once for a document scan."""
+    return {ending: text.rfind(ending) for ending in (">", *(closing for _, closing in _HTML_TERMINATORS))}
+
+
+def _html_can_close(text: str, start: int, last_ends: dict[str, int]) -> bool:
+    if last_ends[">"] < start:
+        return False
+    for opening, closing in _HTML_TERMINATORS:
+        if text.startswith(opening, start):
+            return last_ends[closing] >= start + len(opening)
+    return True
+
+
 def _fenced_code_end(text: str, start: int) -> int | None:
     if start and text[start - 1] != "\n":
         return None
@@ -26,7 +43,7 @@ def _fenced_code_end(text: str, start: int) -> int | None:
     return len(text)
 
 
-def read_document_literal_end(text: str, start: int) -> int | None:
+def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str, int] | None = None) -> int | None:
     """Read a Markdown literal region; unmatched inline tick runs stop locally."""
     fenced_end = _fenced_code_end(text, start)
     if fenced_end is not None:
@@ -35,6 +52,8 @@ def read_document_literal_end(text: str, start: int) -> int | None:
         # Markdown escapes ASCII punctuation, never the following line ending.
         return start + 2 if start + 1 < len(text) and text[start + 1] in punctuation else None
     if text[start] == "<":
+        if not _html_can_close(text, start, last_html_ends if last_html_ends is not None else document_html_ends(text)):
+            return None
         html = COMPILED_INLINE_HTML_REGEX.match(text, start)
         return html.end() if html is not None else None
     if text[start] != "`":
@@ -69,9 +88,10 @@ def _document_units(text: str) -> Iterator[tuple[int, int, bool]]:
     """Yield literal markup and raw-marker regions, keeping interaction bodies raw."""
     at = 0
     interaction_until = -1
+    last_html_ends = document_html_ends(text)
     while at < len(text):
         if at > interaction_until:
-            literal_end = read_document_literal_end(text, at)
+            literal_end = read_document_literal_end(text, at, last_html_ends=last_html_ends)
             if literal_end is not None:
                 yield at, literal_end, True
                 at = literal_end
@@ -111,8 +131,9 @@ def find_document_protected_spans(text: str) -> Iterator[tuple[int, int]]:
 def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
     """Find controls outside markup while retaining raw ownership inside controls."""
     at = 0
+    last_html_ends = document_html_ends(text)
     while at < len(text):
-        literal_end = read_document_literal_end(text, at)
+        literal_end = read_document_literal_end(text, at, last_html_ends=last_html_ends)
         if literal_end is not None:
             at = literal_end
         elif text.startswith("{{", at):
