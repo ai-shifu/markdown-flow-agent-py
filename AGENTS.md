@@ -1232,6 +1232,7 @@ class TestMarkdownFlow:
 
 - **Test data**: Test data can be in any language for internationalization testing
 - **Example content**: MarkdownFlow documents used as examples can contain non-English content
+- **Existing translated documentation**: `README_CN.md` may use Simplified Chinese as a translation of the canonical English `README.md`.
 
 ### File Naming Conventions
 
