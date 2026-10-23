@@ -410,7 +410,8 @@ def _document_units(text: str) -> Iterator[tuple[int, int, bool]]:
                 continue
             if text.startswith("?[", at):
                 limit, closed = reader.blocks.interaction_limit(at + 2, lambda position: marker.end if (marker := read_variable_marker(text, position)) is not None else None)
-                interaction_until = limit if closed else limit - 1
+                if not (closed and text[limit + 1 : limit + 2] == "("):
+                    interaction_until = limit if closed else limit - 1
         if text.startswith("{{", at):
             marker = read_variable_marker(text, at)
             end = marker.end if marker is not None else len(text)
@@ -459,8 +460,11 @@ def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
             if not closed:
                 at = end
                 continue
-            if text[end + 1 : end + 2] != "(":
-                yield at, end + 1
+            if text[end + 1 : end + 2] == "(":
+                # Replay the native label instead of losing its resource state.
+                at += 1
+                continue
+            yield at, end + 1
             at = end + 1
         else:
             at += 1
