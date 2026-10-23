@@ -4,6 +4,7 @@ Validation Parser Module
 Provides validation template generation and response parsing for user input validation.
 """
 
+import json
 from typing import Any
 
 from ..constants import (
@@ -38,7 +39,7 @@ def generate_smart_validation_template(
     """
     # For backward compatibility, return a simple template
     # This function is no longer used in the core validation flow
-    template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
+    template = VALIDATION_TASK_TEMPLATE.replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False))
     template += "\n\n# User Answer\n{sys_user_input}"
     return template.strip()
 

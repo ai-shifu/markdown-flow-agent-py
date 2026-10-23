@@ -669,6 +669,28 @@ builder.start_interaction()
 
 ### 变量系统深入了解
 
+#### 文本变量名
+
+变量名是原样保留的 Unicode 文本。按 Python `str.strip()` 去掉前后空白后，
+名字不能为空。内部空格、标点、emoji、单个花括号、方括号、`|`、`//` 和
+`...` 都保留原样；内部控制字符（U+0000–001F、U+007F–009F）及 U+2028/U+2029
+不可使用。大小写、连续空格和 Unicode 字符序列不做归一化，U+FEFF 也属于名字。
+
+第一个字面 `}}` 结束变量标记，因此名字不能包含该字符对。引号和反斜杠都是
+普通字符，不做解码；名字中的 `{{` 不会递归解析。先识别完整的 `{{ ... }}` 或
+`%{{ ... }}`，再处理交互分隔符，所以标记内部的 `]`、`|`、`//`、`...` 都保留原样。
+只有交互开头的赋值标记会设置该交互的变量名，正文其他位置的标记属于原样选项文本。
+未闭合的标记会占据剩余文本，不会从它内部的 `?[` 重新解析出交互。
+
+使用 `markdown_flow.variable_names` 的 `format_variable_reference(name)` 和
+`format_variable_assignment(name)` 生成带外围空格的标记，例如
+`{{ 你的性别是？ }}`、`%{{ a} }}`；这些空格使末尾单个花括号也能无损表示。
+变量提取和替换使用同一个去掉外围空白的键，不会自动重命名或迁移已有数据。
+
+共享兼容测试数据在 `scripts/variable-name-contract.json`，运行
+`python -m pytest scripts/test_variable_names.py -q` 可离线验证解析、文档分块、
+替换、翻译及答案保存回环。
+
 ```python
 from markdown_flow import extract_variables_from_text, replace_variables_in_text
 

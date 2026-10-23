@@ -5,6 +5,7 @@ Extracts code block content before parsing, implementing CommonMark-compliant fe
 Also extracts HTML comments to prevent them from being sent to LLM.
 """
 
+from ..variable_names import read_variable_marker
 from .code_fence_utils import is_code_fence_end, parse_code_fence_start
 from .html_comment_utils import is_html_comment_end, is_html_comment_start, remove_inline_comment
 
@@ -62,7 +63,47 @@ class CodeBlockPreprocessor:
             >>> "__MDFLOW_CODE_BLOCK_1__" in processed
             True
         """
-        lines = document.split("\n")
+        # Opaque names may contain comment or fence punctuation. Protect marker text
+        # before Markdown preprocessing, then restore its exact source afterward.
+        marker_prefix = "\x00mdf-name:"
+        while marker_prefix in document:
+            marker_prefix += ":"
+        markers: dict[str, str] = {}
+        pieces: list[str] = []
+        at = 0
+        scan = 0
+        mask_fence = None
+        while scan < len(document):
+            if scan == 0 or document[scan - 1] == "\n":
+                line_end = document.find("\n", scan)
+                if line_end < 0:
+                    line_end = len(document)
+                line = document[scan:line_end]
+                if mask_fence is not None:
+                    if is_code_fence_end(line, mask_fence):
+                        mask_fence = None
+                    scan = line_end + 1
+                    continue
+                opening = parse_code_fence_start(line)
+                if opening is not None:
+                    mask_fence = opening
+                    scan = line_end + 1
+                    continue
+            if document.startswith("<!--", scan):
+                comment_end = document.find("-->", scan + 4)
+                scan = comment_end + 3 if comment_end >= 0 else len(document)
+                continue
+            if document.startswith("{{", scan):
+                marker = read_variable_marker(document, scan)
+                end = marker.end if marker is not None else len(document)
+                placeholder = f"{marker_prefix}{len(markers)}\x00"
+                markers[placeholder] = document[scan:end]
+                pieces.extend((document[at:scan], placeholder))
+                at = scan = end
+            else:
+                scan += 1
+        pieces.append(document[at:])
+        lines = "".join(pieces).split("\n")
         result = []
 
         # State machine variables
@@ -149,7 +190,12 @@ class CodeBlockPreprocessor:
         if state == self.STATE_IN_HTML_COMMENT and comment_buffer:
             result.extend(comment_buffer)
 
-        return "\n".join(result)
+        processed = "\n".join(result)
+        for placeholder, original in markers.items():
+            processed = processed.replace(placeholder, original)
+            self.code_blocks = {key: value.replace(placeholder, original) for key, value in self.code_blocks.items()}
+            self.html_comments = {key: value.replace(placeholder, original) for key, value in self.html_comments.items()}
+        return processed
 
     def restore_code_blocks(self, processed: str) -> str:
         """

@@ -462,6 +462,16 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 
 ## Variable System
 
+The canonical text-name grammar is documented in
+[Text variable names](README.md#text-variable-names). Keep extraction,
+replacement, interaction parsing, document boundaries, and translation aligned
+with `markdown_flow.variable_names`. Names trim Python whitespace at their edges,
+retain exact internal text, and end at the first literal `}}`; quotes and
+backslashes have no decoding rule. Emit padded markers through the public format
+helpers, and never reinterpret or translate the name as interaction body text.
+Run the shared corpus with `python -m pytest scripts/test_variable_names.py -q`
+when changing any of these paths. Do not migrate historical keys implicitly.
+
 ### Two Variable Formats
 
 **Replaceable Variables: `{{variable}}`**

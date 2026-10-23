@@ -13,6 +13,7 @@ from typing import Any
 from .constants import (
     BLOCK_INDEX_OUT_OF_RANGE_ERROR,
     BLOCK_SEPARATOR,
+    COMPILED_LAYER2_VARIABLE_REGEX,
     CONTEXT_BUTTON_OPTIONS_TEMPLATE,
     CONTEXT_QUESTION_TEMPLATE,
     DEFAULT_INTERACTION_ERROR_PROMPT,
@@ -21,8 +22,6 @@ from .constants import (
     INPUT_EMPTY_ERROR,
     INTERACTION_ERROR_RENDER_INSTRUCTIONS,
     INTERACTION_PARSE_ERROR,
-    INTERACTION_PATTERN_NON_CAPTURING,
-    INTERACTION_PATTERN_SPLIT,
     INTERACTION_PROMPT_BASE,
     INTERACTION_PROMPT_WITH_TRANSLATION,
     LLM_PROVIDER_REQUIRED_ERROR,
@@ -63,6 +62,7 @@ from .parser import (
     replace_variables_in_text,
 )
 from .tag_filter import StreamTagFilter, strip_preserve_tags
+from .variable_names import find_interaction_spans, find_variable_markers
 
 
 class MarkdownFlow:
@@ -468,18 +468,36 @@ class MarkdownFlow:
 
         # Parse the preprocessed document (code blocks already replaced with placeholders)
         # The preprocessing was done once during initialization
-        segments = re.split(BLOCK_SEPARATOR, self._processed_document)
+        source = self._processed_document
+        protected = [(marker.start, marker.end) for marker in find_variable_markers(source)]
+        last_marker_end = protected[-1][1] if protected else 0
+        unclosed = source.find("{{", last_marker_end)
+        if unclosed >= 0:
+            protected.append((unclosed, len(source)))
+        segments = []
+        at = 0
+        protected_at = 0
+        for separator in re.finditer(BLOCK_SEPARATOR, source):
+            while protected_at < len(protected) and protected[protected_at][1] <= separator.start():
+                protected_at += 1
+            if protected_at < len(protected) and protected[protected_at][0] < separator.end():
+                continue
+            segments.append(source[at : separator.start()])
+            at = separator.end()
+        segments.append(source[at:])
         final_blocks: list[Block] = []
 
         for segment in segments:
-            # Use dedicated split pattern to avoid duplicate blocks from capturing groups
-            parts = re.split(INTERACTION_PATTERN_SPLIT, segment)
-
-            for part in parts:
+            at = 0
+            parts: list[tuple[str, bool]] = []
+            for start, end in find_interaction_spans(segment):
+                parts.extend(((segment[at:start], False), (segment[start:end], True)))
+                at = end
+            parts.append((segment[at:], False))
+            for part, interaction in parts:
                 part = part.strip()
                 if part:
-                    # Use non-capturing pattern for matching
-                    if re.match(INTERACTION_PATTERN_NON_CAPTURING, part):
+                    if interaction:
                         block = Block(
                             content=part,
                             block_type=BlockType.INTERACTION,
@@ -1536,7 +1554,12 @@ class MarkdownFlow:
         except (json.JSONDecodeError, ValueError):
             return original_content
 
+        prefix = ""
         reconstructed = original_content
+        marker = COMPILED_LAYER2_VARIABLE_REGEX.match(original_content[2:-1]) if original_content.startswith("?[") else None
+        if marker:
+            body_at = 2 + marker.start(2)
+            prefix, reconstructed = original_content[:body_at], original_content[body_at:]
 
         # Replace button display text (smart value handling)
         if "buttons" in translated and interaction_info.get("buttons"):
@@ -1586,7 +1609,7 @@ class MarkdownFlow:
             new_question = translated["question"]
             reconstructed = reconstructed.replace(f"...{old_question}", f"...{new_question}", 1)
 
-        return reconstructed
+        return prefix + reconstructed
 
     def _build_validation_messages(
         self,
@@ -1630,10 +1653,10 @@ class MarkdownFlow:
         # 2. Validation task template (choose based on language requirement)
         if has_language_requirement:
             # Has language requirement: use Base + WithLanguage
-            task_template = (VALIDATION_TASK_BASE + VALIDATION_TASK_WITH_LANGUAGE).replace("{target_variable}", target_variable)
+            task_template = (VALIDATION_TASK_BASE + VALIDATION_TASK_WITH_LANGUAGE).replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False))
         else:
             # No language requirement: use default (Base + NoLanguage)
-            task_template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
+            task_template = VALIDATION_TASK_TEMPLATE.replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False))
 
         system_parts.append(task_template)
 
@@ -1662,7 +1685,7 @@ class MarkdownFlow:
 
         # Add extraction requirements (using template)
         system_parts.append("")
-        system_parts.append(VALIDATION_REQUIREMENTS_TEMPLATE)
+        system_parts.append(VALIDATION_REQUIREMENTS_TEMPLATE.replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False)))
 
         # 3. Output language anchoring (bottom - if output language is set)
         if has_language_requirement:

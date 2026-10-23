@@ -75,6 +75,13 @@ from .parser import (
     generate_smart_validation_template,
     replace_variables_in_text,
 )
+from .variable_names import (
+    find_variable_markers,
+    format_variable_assignment,
+    format_variable_reference,
+    normalize_variable_name,
+    read_variable_marker,
+)
 
 
 # Public API
@@ -104,6 +111,11 @@ __all__ = [
     "extract_interaction_question",
     "extract_variables_from_text",
     "replace_variables_in_text",
+    "normalize_variable_name",
+    "read_variable_marker",
+    "find_variable_markers",
+    "format_variable_reference",
+    "format_variable_assignment",
 ]
 
-__version__ = "0.3.4"
+__version__ = "0.4.0"

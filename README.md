@@ -673,6 +673,33 @@ builder.start_interaction()
 
 ### Variable System Deep Dive
 
+#### Text variable names
+
+Names are opaque Unicode text. Python `str.strip()` removes surrounding whitespace;
+the remaining name must be nonempty. Internal spaces, punctuation, emoji, single
+braces, brackets, `|`, `//`, and `...` stay exactly as written. Internal control
+characters (U+0000–001F and U+007F–009F) and U+2028/U+2029 are invalid. Case,
+repeated spaces, and Unicode sequences are never normalized; U+FEFF remains part
+of the name.
+
+The first literal `}}` closes a marker. A name cannot contain that pair. Quotes
+and backslashes are literal characters with no decoding rule, and nested `{{`
+inside a name is not another marker. Every complete `{{ ... }}` or `%{{ ... }}`
+is read before interaction delimiters, so internal `]`, `|`, `//`, and `...` stay
+literal. Only a leading assignment marker sets the interaction's variable;
+markers elsewhere in its body remain literal option text. An unterminated
+marker keeps the remaining text opaque, without restarting at an inner `?[`.
+
+Use `format_variable_reference(name)` and `format_variable_assignment(name)` from
+`markdown_flow.variable_names` to emit padded markers such as
+`{{ What is your gender? }}` and `%{{ a} }}`. Padding lets a name end in a single
+brace. Extraction and replacement use the same trimmed key; existing stored keys
+are not renamed or migrated.
+
+The shared conformance corpus is `scripts/variable-name-contract.json`. Run its
+offline parser, document, replacement, translation, and answer round trips with
+`python -m pytest scripts/test_variable_names.py -q`.
+
 ```python
 from markdown_flow import extract_variables_from_text, replace_variables_in_text
 

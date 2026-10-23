@@ -6,11 +6,15 @@ Constants for document parsing, variable matching, validation, and other core fu
 
 import re
 
+from .variable_names import (
+    VARIABLE_ASSIGNMENT_SOURCE,
+    VARIABLE_REFERENCE_SOURCE,
+    VARIABLE_REFERENCE_UNIT_SOURCE,
+)
+
 
 # Pre-compiled regex patterns
-COMPILED_PERCENT_VARIABLE_REGEX = re.compile(
-    r"%\{\{([^}]+)\}\}"  # Match %{{variable}} format for preserved variables
-)
+COMPILED_PERCENT_VARIABLE_REGEX = re.compile(VARIABLE_ASSIGNMENT_SOURCE)
 
 # Interaction regex base patterns
 #
@@ -21,7 +25,7 @@ COMPILED_PERCENT_VARIABLE_REGEX = re.compile(
 # a left-to-right scanner disagree about `?[a\\]`, and two parsers of one grammar must not.
 # A backslash before anything else -- LaTeX such as `$\pi$`, or `\\` as a line break -- stays
 # ordinary text, exactly as it was before escapes existed. See markdown_flow.escaping.
-_INTERACTION_CONTENT = r"(?:\\[|/.\]]|\\(?![|/.\]])|[^\]\\])*"
+_INTERACTION_CONTENT = rf"(?:{VARIABLE_REFERENCE_UNIT_SOURCE}|\\[|/.\]]|\\(?![|/.\]])|(?!\{{\{{)[^\]\\])*"
 INTERACTION_PATTERN = rf"(?<!\\)\?\[({_INTERACTION_CONTENT})\](?!\()"  # Base pattern with capturing group for content extraction, excludes escaped \?[]
 INTERACTION_PATTERN_NON_CAPTURING = rf"(?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\()"  # Non-capturing version for block splitting, excludes escaped \?[]
 INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # Pattern for re.split() with outer capturing group, excludes escaped \?[]
@@ -29,12 +33,10 @@ INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # P
 # InteractionParser specific regex patterns
 COMPILED_INTERACTION_REGEX = re.compile(INTERACTION_PATTERN)  # Main interaction pattern matcher
 COMPILED_LAYER1_INTERACTION_REGEX = COMPILED_INTERACTION_REGEX  # Layer 1: Basic format validation (alias)
-COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^%\{\{([^}]+)\}\}(.*)$")  # Layer 2: Variable detection
+COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^\s*" + VARIABLE_ASSIGNMENT_SOURCE + r"(.*)$")
 COMPILED_LAYER3_ELLIPSIS_REGEX = re.compile(r"^(.*)\.\.\.(.*)")  # Layer 3: Split content around ellipsis
 COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Parse Button//value format
-COMPILED_BRACE_VARIABLE_REGEX = re.compile(
-    r"(?<!%)\{\{([^}]+)\}\}"  # Match {{variable}} format for replaceable variables
-)
+COMPILED_BRACE_VARIABLE_REGEX = re.compile(r"(?<!%)" + VARIABLE_REFERENCE_SOURCE)
 COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
 
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
