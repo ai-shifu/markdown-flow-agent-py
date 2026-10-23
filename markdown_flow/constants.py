@@ -137,6 +137,7 @@ INTERACTION_PROMPT_WITH_TRANSLATION = """
 
 - Translate the text in `buttons` and `question` into the target language
 - Translate only the display text (the Display part); do not change the JSON structure
+- Tokens such as `__MDFLOW_VARIABLE_0__` are opaque placeholders: copy every token occurrence exactly as given in its original order and translate only the surrounding text
 - If `display//value` separation exists (for example `Yes//1`), translate only the Display part before `//` and keep value unchanged
 - Use the target language 100%; language mixing is not allowed. Translate all non-target-language words before outputting
 - If a text segment's original language is already the same as the target language, return that text unchanged (for example, when the target language is English and the original text is also English, do not rewrite it)
