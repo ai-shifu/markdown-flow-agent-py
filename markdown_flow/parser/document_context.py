@@ -12,8 +12,8 @@ from ..constants import (
     COMPILED_RAW_HTML_END_REGEX,
     COMPILED_RAW_HTML_START_REGEX,
 )
-from ..variable_names import VariableMarker, find_interaction_end, find_variable_markers, read_variable_marker
-from .code_fence_utils import is_code_fence_end, parse_code_fence_start
+from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
+from .document_blocks import DocumentBlocks, fence_opening
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -33,45 +33,23 @@ def _html_can_close(text: str, start: int, last_ends: dict[str, int]) -> bool:
     return True
 
 
-def _fenced_code_end(text: str, start: int) -> int | None:
-    if start and text[start - 1] != "\n":
-        return None
-    line_end = text.find("\n", start)
-    line_end = line_end if line_end >= 0 else len(text)
-    fence = parse_code_fence_start(text[start:line_end])
-    if fence is None:
-        return None
-    at = line_end + 1
-    while at < len(text):
-        end = text.find("\n", at)
-        end = end if end >= 0 else len(text)
-        if is_code_fence_end(text[at:end], fence):
-            return end
-        at = end + 1
-    return len(text)
-
-
-def _indented_code_end(text: str, start: int) -> int | None:
-    if start and text[start - 1] != "\n":
-        return None
-    if start and text[text.rfind("\n", 0, start - 1) + 1 : start - 1].strip(" \t\r"):
+def _indented_code_end(text: str, start: int, blocks: DocumentBlocks) -> int | None:
+    index = blocks.by_start.get(start)
+    if index is None or not blocks.indented_may_start(index):
         return None
     if COMPILED_INDENTED_CODE_REGEX.match(text, start) is None:
         return None
-    at, last_content_end = start, start
-    while at < len(text):
-        end = text.find("\n", at)
-        end = end if end >= 0 else len(text)
-        if text[at:end].strip(" \t\r"):
-            if COMPILED_INDENTED_CODE_REGEX.match(text, at) is None:
+    last_content_end = start
+    for line in blocks.lines[index:]:
+        if text[line.start : line.content_end].strip(" \t"):
+            if COMPILED_INDENTED_CODE_REGEX.match(text, line.start) is None:
                 break
-            last_content_end = end
-        at = end + 1
+            last_content_end = line.content_end
     return last_content_end if last_content_end > start else None
 
 
-def _raw_html_opening(text: str, start: int, last_html_ends: dict[str, int]) -> tuple[str, int] | None:
-    if start and text[start - 1] != "\n":
+def _raw_html_opening(text: str, start: int, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> tuple[str, int] | None:
+    if start not in blocks.by_start:
         return None
     opening = COMPILED_RAW_HTML_START_REGEX.match(text, start)
     if opening is None:
@@ -83,25 +61,26 @@ def _raw_html_opening(text: str, start: int, last_html_ends: dict[str, int]) -> 
     return (opening.group(1).lower(), token.end()) if token is not None else None
 
 
-def _raw_html_bounds(text: str, start: int, last_html_ends: dict[str, int] | None = None) -> tuple[int, int] | None:
-    opening = _raw_html_opening(text, start, last_html_ends if last_html_ends is not None else document_html_ends(text))
+def _raw_html_bounds(text: str, start: int, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> tuple[int, int] | None:
+    opening = _raw_html_opening(text, start, last_html_ends, blocks)
     if opening is None:
         return None
     name, opening_end = opening
     closing = COMPILED_RAW_HTML_END_REGEX[name].search(text, opening_end)
-    if closing is None:
-        return opening_end, len(text)
-    line_end = text.find("\n", closing.end())
-    line_end = line_end if line_end >= 0 else len(text)
-    if line_end > closing.end() and text[line_end - 1] == "\r":
-        line_end -= 1
-    return opening_end, line_end
+    return opening_end, blocks.line_at(closing.end()).content_end if closing is not None else len(text)
 
 
 def literal_variable_markers(text: str, start: int, end: int) -> Iterator[VariableMarker]:
     """Keep opening attributes and raw HTML bodies as separate local examples."""
-    bounds = _raw_html_bounds(text, start)
-    boundaries = (start, bounds[0], end) if bounds is not None else (start, end)
+    tag_start = start
+    while tag_start < min(start + 3, end) and text[tag_start] == " ":
+        tag_start += 1
+    token = (
+        COMPILED_INLINE_HTML_REGEX.match(text, tag_start)
+        if tag_start + 1 < end and text[tag_start] == "<" and (text[tag_start + 1].isascii() and text[tag_start + 1].isalpha() or text[tag_start + 1] == "/")
+        else None
+    )
+    boundaries = (start, token.end(), end) if token is not None and token.end() <= end else (start, end)
     for left, right in zip(boundaries, boundaries[1:], strict=False):
         for marker in find_variable_markers(text[left:right]):
             yield VariableMarker(left + marker.start, left + marker.end, marker.raw_name, marker.name)
@@ -149,7 +128,7 @@ def read_link_resource_end(text: str, start: int) -> int | None:
                     return None
             elif character == ")":
                 depth -= 1
-            elif ord(character) < 32:
+            elif ord(character) < 32 or character == "\x7f":
                 return None
             at += 1
         if depth:
@@ -178,20 +157,88 @@ def read_link_resource_end(text: str, start: int) -> int | None:
     return None
 
 
-def _math_spans(text: str, last_html_ends: dict[str, int]) -> dict[int, int]:
+def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | None:
+    """Read a complete definition resource without claiming an unfinished title."""
+    at = start
+    while at < len(text) and text[at] in " \t\r\n":
+        at += 1
+    if at >= len(text) or COMPILED_BLANK_LINE_REGEX.search(text, start, at) is not None:
+        return None
+    destination_start = at
+    if text[at] == "<":
+        at += 1
+        while at < len(text):
+            if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+                at += 2
+            elif text[at] == ">":
+                at += 1
+                break
+            elif text[at] in "<\r\n":
+                return None
+            else:
+                at += 1
+        else:
+            return None
+    else:
+        depth = 0
+        while at < len(text) and text[at] not in " \t\r\n":
+            character = text[at]
+            if character == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+                at += 2
+                continue
+            if character == "(":
+                depth += 1
+                if depth > 32:
+                    return None
+            elif character == ")":
+                depth -= 1
+                if depth < 0:
+                    return None
+            elif ord(character) < 32 or character == "\x7f":
+                return None
+            at += 1
+        if depth:
+            return None
+    if at == destination_start:
+        return None
+    destination_end = at
+    destination_line = blocks.line_at(destination_end)
+    fallback = destination_line.content_end if not text[destination_end : destination_line.content_end].strip(" \t") else None
+    while at < len(text) and text[at] in " \t\r\n":
+        at += 1
+    if COMPILED_BLANK_LINE_REGEX.search(text, destination_end, at) is not None or at >= len(text) or text[at] not in "\"'(":
+        return fallback
+    title_next_line = at > destination_line.content_end
+    if at == destination_end:
+        return None
+    closing = ")" if text[at] == "(" else text[at]
+    at += 1
+    title_start = at
+    while at < len(text):
+        if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+            at += 2
+        elif text[at] == closing:
+            line_end = blocks.line_at(at).content_end
+            if COMPILED_BLANK_LINE_REGEX.search(text, title_start, at) is not None or text[at + 1 : line_end].strip(" \t"):
+                return fallback if title_next_line else None
+            return line_end
+        else:
+            at += 1
+    return fallback if title_next_line else None
+
+
+def _math_spans(text: str, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> dict[int, int]:
     """Index equal-width math delimiters once, bounded by paragraphs and blocks."""
     breaks: list[tuple[int, int]] = []
-    line_start = 0
-    for line in text.splitlines(keepends=True):
-        opening = _raw_html_opening(text, line_start, last_html_ends)
-        if not line.strip(" \t\r\n") or parse_code_fence_start(line.rstrip("\r\n")) is not None or opening is not None:
-            boundary_end = opening[1] if opening is not None else line_start + len(line.rstrip("\r\n"))
-            breaks.append((line_start, boundary_end))
-        line_start += len(line)
-    for heading in COMPILED_ATX_START_REGEX.finditer(text):
-        line_end = text.find("\n", heading.start())
-        line_end = line_end if line_end >= 0 else len(text)
-        breaks.extend(((heading.start(), heading.start()), (line_end, line_end)))
+    for index, line in enumerate(blocks.lines):
+        value = text[line.start : line.content_end]
+        opening = _raw_html_opening(text, line.start, last_html_ends, blocks)
+        if not value.strip(" \t") or fence_opening(value) is not None or opening is not None or blocks.inline_block_interrupts(index):
+            breaks.append((line.start, opening[1] if opening is not None else line.content_end))
+        if blocks.paragraph_interrupts(index):
+            breaks.append((line.start, line.start))
+        if COMPILED_ATX_START_REGEX.match(value) is not None:
+            breaks.extend(((line.start, line.start), (line.content_end, line.content_end)))
     breaks.sort()
     spans: dict[int, int] = {}
     next_run: dict[int, tuple[int, int]] = {}
@@ -222,14 +269,24 @@ class DocumentLiteralReader:
     def __init__(self, text: str):
         self.text = text
         self.last_html_ends = document_html_ends(text)
-        self.math_spans = _math_spans(text, self.last_html_ends)
+        self.blocks = DocumentBlocks(text, COMPILED_INLINE_HTML_REGEX)
+        self.math_spans = _math_spans(text, self.last_html_ends, self.blocks)
         self.labels: list[tuple[bool, bool]] = []
         self.active_links: set[int] = set()
         self.resource_start = -1
         self.resource_image = False
 
     def read(self, start: int) -> int | None:
-        end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends)
+        index = self.blocks.by_start.get(start)
+        if index is not None and (index == 0 or self.blocks.blank(index - 1)):
+            self.labels.clear()
+            self.active_links.clear()
+        reference_start = self.blocks.reference_prefix(start)
+        if reference_start is not None:
+            reference_end = read_reference_end(self.text, reference_start, self.blocks)
+            if reference_end is not None:
+                return reference_end
+        end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends, blocks=self.blocks)
         if end is not None:
             return end
         if self.text[start] == "$" and start in self.math_spans:
@@ -254,55 +311,60 @@ class DocumentLiteralReader:
             self.active_links.discard(len(self.labels) - 1)
             self.resource_image, active = self.labels.pop()
             self.resource_start = start + 1 if active else -1
-        elif self.text[start] == "\n":
-            following = self.text.find("\n", start + 1)
-            if not self.text[start + 1 : following if following >= 0 else len(self.text)].strip(" \t\r"):
-                self.labels.clear()
-                self.active_links.clear()
         return None
 
 
-def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str, int] | None = None) -> int | None:
-    """Read a Markdown literal region; unmatched inline tick runs stop locally."""
-    fenced_end = _fenced_code_end(text, start)
-    if fenced_end is not None:
-        return fenced_end
-    indented_end = _indented_code_end(text, start)
+def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str, int] | None = None, blocks: DocumentBlocks | None = None) -> int | None:
+    """Read a literal region using physical line offsets without rewriting names."""
+    blocks = blocks if blocks is not None else DocumentBlocks(text, COMPILED_INLINE_HTML_REGEX)
+    last_html_ends = last_html_ends if last_html_ends is not None else document_html_ends(text)
+    fenced = blocks.fence(start)
+    if fenced is not None:
+        return fenced.end
+    indented_end = _indented_code_end(text, start, blocks)
     if indented_end is not None:
         return indented_end
-    raw_html = _raw_html_bounds(text, start, last_html_ends)
+    raw_html = _raw_html_bounds(text, start, last_html_ends, blocks)
     if raw_html is not None:
         return raw_html[1]
+    ordinary = blocks.ordinary_html(start)
+    if ordinary is not None:
+        return ordinary.end
     if text[start] == "\\":
-        # Markdown escapes ASCII punctuation, never the following line ending.
         return start + 2 if start + 1 < len(text) and text[start + 1] in punctuation else None
     if text[start] == "<":
-        if not _html_can_close(text, start, last_html_ends if last_html_ends is not None else document_html_ends(text)):
+        if not _html_can_close(text, start, last_html_ends):
             return None
         html = COMPILED_INLINE_HTML_REGEX.match(text, start)
         return html.end() if html is not None else None
     if text[start] != "`":
         return None
-
     opening_end = start + 1
     while opening_end < len(text) and text[opening_end] == "`":
         opening_end += 1
     size = opening_end - start
-    opening_heading = COMPILED_ATX_START_REGEX.match(text, text.rfind("\n", 0, start) + 1) is not None
+    opening_line = blocks.line_at(start)
+    opening_heading = COMPILED_ATX_START_REGEX.match(text[opening_line.start : opening_line.content_end]) is not None
     at = opening_end
     while at < len(text):
-        if text[at] == "\n":
-            line_end = text.find("\n", at + 1)
-            line = text[at + 1 : line_end if line_end >= 0 else len(text)]
-            # Inline code cannot absorb a later fenced block or a new paragraph.
-            if (
-                opening_heading
-                or COMPILED_ATX_START_REGEX.match(text, at + 1) is not None
-                or not line.strip()
-                or parse_code_fence_start(line) is not None
-                or _raw_html_bounds(text, at + 1) is not None
-            ):
-                break
+        if text[at] in "\r\n":
+            line = blocks.line_at(at)
+            following = blocks.by_start.get(line.end)
+            if following is not None:
+                next_line = blocks.lines[following]
+                value = text[next_line.start : next_line.content_end]
+                if (
+                    opening_heading
+                    or COMPILED_ATX_START_REGEX.match(value) is not None
+                    or not value.strip(" \t")
+                    or fence_opening(value) is not None
+                    or blocks.paragraph_interrupts(following)
+                    or blocks.inline_block_interrupts(following)
+                    or _raw_html_opening(text, next_line.start, last_html_ends, blocks) is not None
+                ):
+                    break
+            at = line.end
+            continue
         if text[at] == "`":
             end = at + 1
             while end < len(text) and text[end] == "`":
@@ -312,7 +374,6 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
             at = end
         else:
             at += 1
-    # An unmatched run is literal punctuation; its following braces stay active.
     return opening_end
 
 
@@ -329,8 +390,8 @@ def _document_units(text: str) -> Iterator[tuple[int, int, bool]]:
                 at = literal_end
                 continue
             if text.startswith("?[", at):
-                end = find_interaction_end(text, at + 2)
-                interaction_until = end if end >= 0 else len(text)
+                limit, closed = reader.blocks.interaction_limit(at + 2, lambda position: marker.end if (marker := read_variable_marker(text, position)) is not None else None)
+                interaction_until = limit if closed else limit - 1
         if text.startswith("{{", at):
             marker = read_variable_marker(text, at)
             end = marker.end if marker is not None else len(text)
@@ -342,6 +403,8 @@ def _document_units(text: str) -> Iterator[tuple[int, int, bool]]:
 
 def find_document_variable_markers(text: str) -> Iterator[VariableMarker]:
     """Collect complete examples inside markup, without letting them cross its edge."""
+    if "{{" not in text:
+        return
     for start, end, literal in _document_units(text):
         if literal:
             if text[start] == "\\":
@@ -373,9 +436,10 @@ def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
                 return
             at = marker.end
         elif text.startswith("?[", at):
-            end = find_interaction_end(text, at + 2)
-            if end < 0:
-                return
+            end, closed = reader.blocks.interaction_limit(at + 2, lambda position: marker.end if (marker := read_variable_marker(text, position)) is not None else None)
+            if not closed:
+                at = end
+                continue
             if text[end + 1 : end + 2] != "(":
                 yield at, end + 1
             at = end + 1

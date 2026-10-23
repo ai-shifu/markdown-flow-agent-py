@@ -5,9 +5,10 @@ Extracts code block content before parsing, implementing CommonMark-compliant fe
 Also extracts HTML comments to prevent them from being sent to LLM.
 """
 
-from ..constants import COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX
+from ..constants import COMPILED_PHYSICAL_LINE_END_REGEX, COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX
 from ..variable_names import find_interaction_end, read_variable_marker
 from .code_fence_utils import is_code_fence_end, parse_code_fence_start
+from .document_blocks import physical_lines
 from .document_context import DocumentLiteralReader, literal_variable_markers
 from .html_comment_utils import is_html_comment_end, is_html_comment_start, remove_inline_comment
 
@@ -86,20 +87,20 @@ class CodeBlockPreprocessor:
             at = end
 
         while scan < len(document):
-            if scan == 0 or document[scan - 1] == "\n":
-                line_end = document.find("\n", scan)
-                if line_end < 0:
-                    line_end = len(document)
+            if scan == 0 or (document[scan - 1] in "\r\n" and not (document[scan - 1] == "\r" and document[scan] == "\n")):
+                line_break = COMPILED_PHYSICAL_LINE_END_REGEX.search(document, scan)
+                line_end = line_break.start() if line_break else len(document)
+                next_line = line_break.end() if line_break else len(document)
                 line = document[scan:line_end]
                 if mask_fence is not None:
                     if is_code_fence_end(line, mask_fence):
                         mask_fence = None
-                    scan = line_end + 1
+                    scan = next_line
                     continue
                 opening = parse_code_fence_start(line)
                 if opening is not None:
                     mask_fence = opening
-                    scan = line_end + 1
+                    scan = next_line
                     continue
             if document.startswith("<!--", scan):
                 comment_end = document.find("-->", scan + 4)
@@ -123,7 +124,8 @@ class CodeBlockPreprocessor:
             else:
                 scan += 1
         pieces.append(document[at:])
-        lines = "".join(pieces).split("\n")
+        masked_document = "".join(pieces)
+        lines = physical_lines(masked_document)
         result = []
 
         # State machine variables
@@ -132,7 +134,9 @@ class CodeBlockPreprocessor:
         code_buffer = []
         comment_buffer = []
 
-        for line in lines:
+        for physical_line in lines:
+            line = masked_document[physical_line.start : physical_line.content_end]
+            ending = masked_document[physical_line.content_end : physical_line.end]
             if state == self.STATE_NORMAL:
                 # Priority: Check code blocks first (code block priority principle)
                 fence_info = parse_code_fence_start(line)
@@ -140,7 +144,7 @@ class CodeBlockPreprocessor:
                     # Enter code block state
                     state = self.STATE_IN_CODE_BLOCK
                     current_fence = fence_info
-                    code_buffer = [line]
+                    code_buffer = [line + ending]
                 else:
                     # Check HTML comments (both single-line and multi-line need processing)
                     comment_info, is_single_line = is_html_comment_start(line)
@@ -150,56 +154,56 @@ class CodeBlockPreprocessor:
                             cleaned_line = remove_inline_comment(line)
                             # Only add if cleaned content is non-empty
                             if cleaned_line.strip():
-                                result.append(cleaned_line)
+                                result.append(cleaned_line + ending)
                             # Don't store single-line comments, already processed
                         else:
                             # Multi-line comment: enter comment state
                             state = self.STATE_IN_HTML_COMMENT
-                            comment_buffer = [line]
+                            comment_buffer = [line + ending]
                     else:
                         # Normal line, keep as-is
-                        result.append(line)
+                        result.append(line + ending)
 
             elif state == self.STATE_IN_CODE_BLOCK:
                 # Don't check HTML comments inside code blocks
-                code_buffer.append(line)
-
                 # Detect fence closing
                 if is_code_fence_end(line, current_fence):
                     # Generate code block placeholder
                     placeholder = self._generate_code_block_placeholder()
 
                     # Store code block
-                    code_content = "\n".join(code_buffer)
+                    code_content = "".join(code_buffer) + line
                     self.code_blocks[placeholder] = code_content
 
                     # Output placeholder (as a separate line)
-                    result.append(placeholder)
+                    result.append(placeholder + ending)
 
                     # Reset state
                     state = self.STATE_NORMAL
                     current_fence = None
                     code_buffer = []
+                else:
+                    code_buffer.append(line + ending)
 
             elif state == self.STATE_IN_HTML_COMMENT:
                 # Accumulate comment lines
-                comment_buffer.append(line)
-
                 # Detect comment end
                 if is_html_comment_end(line):
                     # Generate HTML comment placeholder
                     placeholder = self._generate_html_comment_placeholder()
 
                     # Store comment
-                    comment_content = "\n".join(comment_buffer)
+                    comment_content = "".join(comment_buffer) + line
                     self.html_comments[placeholder] = comment_content
 
                     # Output placeholder
-                    result.append(placeholder)
+                    result.append(placeholder + ending)
 
                     # Reset state
                     state = self.STATE_NORMAL
                     comment_buffer = []
+                else:
+                    comment_buffer.append(line + ending)
 
         # Handle unclosed code blocks (keep as-is)
         if state == self.STATE_IN_CODE_BLOCK and code_buffer:
@@ -210,7 +214,7 @@ class CodeBlockPreprocessor:
         if state == self.STATE_IN_HTML_COMMENT and comment_buffer:
             result.extend(comment_buffer)
 
-        processed = "\n".join(result)
+        processed = "".join(result)
         if markers:
 
             def restore_markers(text: str) -> str:
@@ -285,17 +289,19 @@ class CodeBlockPreprocessor:
         Returns:
             Document with comment placeholders removed
         """
-        lines = processed.split("\n")
+        lines = physical_lines(processed)
         filtered_lines = []
 
-        for line in lines:
+        for physical_line in lines:
+            line = processed[physical_line.start : physical_line.content_end]
+            ending = processed[physical_line.content_end : physical_line.end]
             # Skip lines that only contain comment placeholders
             trimmed = line.strip()
             if not (trimmed.startswith("__MDFLOW_HTML_COMMENT_") and trimmed.endswith("__")):
                 # Keep non-placeholder lines, or lines where placeholder has other content
-                filtered_lines.append(line)
+                filtered_lines.append(line + ending)
 
-        return "\n".join(filtered_lines)
+        return "".join(filtered_lines)
 
     def _generate_code_block_placeholder(self) -> str:
         """

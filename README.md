@@ -692,7 +692,10 @@ marker keeps the remaining text opaque, without restarting at an inner `?[`.
 
 At document level, complete inline code, inline math, link resources, indented
 code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
-variable examples. Complete variable examples there still support collection and replacement,
+variable examples. Quote/list-contained fences and ordinary HTML blocks also keep
+unfinished examples local. Reference-definition destinations and titles retain
+their complete variable examples. Physical CRLF, LF and CR boundaries preserve
+original offsets and marker text. Complete variable examples there still support collection and replacement,
 but an unclosed example cannot consume text beyond that markup span. Escaped
 document openers stay literal. A true raw marker owns its entire name before any
 code or HTML inside that name is considered; interaction bodies keep the raw

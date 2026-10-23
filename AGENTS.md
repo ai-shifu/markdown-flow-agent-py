@@ -473,7 +473,7 @@ At document level, complete inline code, math, link resources, indented code,
 and raw-text HTML bodies bound local variable examples;
 complete declarations there retain collection/replacement, while escaped openers
 stay literal. Keep these document-stage rules out of the raw marker helper APIs.
-Run the shared corpus with `python -m pytest scripts/test_variable_names.py -q`
+Run the shared corpus and document regressions with `python -m pytest scripts -q`
 when changing any of these paths. Do not migrate historical keys implicitly.
 
 ### Two Variable Formats

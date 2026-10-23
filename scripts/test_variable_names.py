@@ -320,7 +320,7 @@ def test_replacement_preserves_per_key_snapshot_quoting_and_mapping_order(source
     ["`{{`", "``{{`inside``", r"\{{", r"\\`{{`", '<span title="{{">', "<span title='{{'>", "<span data-x={{>", "<?example {{ ?>", "<![CDATA[{{]]>"],
 )
 def test_literal_marker_examples_do_not_hide_external_fences_or_actual_interactions(example):
-    source = example + "\n```js\ncode\n```\n?[A|B]"
+    source = ("Text " if example.startswith("<span") else "") + example + "\n```js\ncode\n```\n?[A|B]"
     processor = CodeBlockPreprocessor()
     processed = processor.extract_code_blocks(source)
     assert len(processor.code_blocks) == 1

@@ -52,8 +52,15 @@ COMPILED_INDENTED_CODE_REGEX = re.compile(r"(?: {4}| {0,3}\t)")
 COMPILED_RAW_HTML_START_REGEX = re.compile(r" {0,3}<(script|style|pre|textarea)(?=[ \t\r\n\f>])", re.IGNORECASE)
 COMPILED_RAW_HTML_END_REGEX = {name: re.compile(r"</" + name + r"[ \t\r\n]*>", re.IGNORECASE) for name in ("script", "style", "pre", "textarea")}
 COMPILED_DOLLAR_RUN_REGEX = re.compile(r"\$+")
-COMPILED_BLANK_LINE_REGEX = re.compile(r"\n[ \t\r]*\n")
+COMPILED_BLANK_LINE_REGEX = re.compile(r"(?:\r\n|\r(?!\n)|(?<!\r)\n)[ \t]*(?:\r\n|\r(?!\n)|(?<!\r)\n)")
 COMPILED_ATX_START_REGEX = re.compile(r"^ {0,3}#{1,6}(?=[ \t\r\n]|$)", re.MULTILINE)
+COMPILED_PHYSICAL_LINE_END_REGEX = re.compile(r"\r\n|\r|\n")
+COMPILED_CONTAINER_LIST_REGEX = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?=[ \t])")
+COMPILED_DOCUMENT_FENCE_REGEX = re.compile(r"(`{3,})([^`]*$)|(~{3,})(.*$)")
+COMPILED_DOCUMENT_TAG_REGEX = re.compile(r" {0,3}</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t/>]|$)")
+COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\]\\\r\n])+)]\:[ \t]*")
+COMPILED_DOCUMENT_BREAK_REGEX = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})$")
+COMPILED_SETEXT_REGEX = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
 
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
 # variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};
