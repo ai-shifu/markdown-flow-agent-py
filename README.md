@@ -690,8 +690,9 @@ literal. Only a leading assignment marker sets the interaction's variable;
 markers elsewhere in its body remain literal option text. An unterminated
 marker keeps the remaining text opaque, without restarting at an inner `?[`.
 
-At document level, complete inline code and HTML are read before markers inside
-them. Complete variable examples there still support collection and replacement,
+At document level, complete inline code, inline math, link resources, indented
+code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
+variable examples. Complete variable examples there still support collection and replacement,
 but an unclosed example cannot consume text beyond that markup span. Escaped
 document openers stay literal. A true raw marker owns its entire name before any
 code or HTML inside that name is considered; interaction bodies keep the raw

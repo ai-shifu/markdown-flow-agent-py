@@ -471,3 +471,150 @@ def test_impossible_html_tails_do_not_repeat_native_regex_work(prefix, earlier_c
 def test_html_tail_preflight_keeps_complete_native_literals_and_local_names():
     source = '<!-- {{ comment }} --> <?{{ instruction }}?> <![CDATA[{{ data }}]]> <span title="{{ attribute }}"> {{ q }}'
     assert extract_variables_from_text(source) == ["attribute", "comment", "data", "instruction", "q"]
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    [
+        "    {{ unfinished\n\n",
+        "\t{{ unfinished\n\n",
+        " \t{{ unfinished\n\n",
+        "Text\n\n    {{ unfinished\n\n",
+        *[f"<{tag}>\n{{{{ unfinished\n</{tag.upper()}>\n" for tag in ("script", "style", "pre", "textarea")],
+    ],
+)
+def test_block_literal_examples_cannot_hide_external_questions_or_references(prefix):
+    question = "?[%{{ real }} A|B]"
+    source = prefix + question
+    assert extract_variables_from_text(source) == ["real"]
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == ["real"]
+    interactions = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
+    assert len(interactions) == 1
+    parsed = InteractionParser().parse(interactions[0].content)
+    assert parsed["variable"] == "real"
+    assert [button["value"] for button in parsed["buttons"]] == ["A", "B"]
+    assert flow.process(interactions[0].index, user_input={"real": ["B"]}).variables == {"real": ["B"]}
+    reference = prefix + "{{ real }}"
+    assert extract_variables_from_text(reference) == ["real"]
+    assert replace_variables_in_text(reference, {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+@pytest.mark.parametrize(
+    "source", ["    {{ example }}\n\n{{ real }}", '<script title="{{">\n{{ example }}\n</script>\n{{ real }}', '<textarea title="{{ attribute }}">\n{{ example }}\n</textarea>\n{{ real }}']
+)
+def test_complete_block_examples_keep_local_collection_and_replacement(source):
+    expected = ["attribute", "example", "real"] if "attribute" in source else ["example", "real"]
+    assert extract_variables_from_text(source) == expected
+    assert MarkdownFlow(source).extract_variables() == expected
+    result = replace_variables_in_text(source, dict.fromkeys(expected, "VALUE"), add_quotes=False)
+    for name in expected:
+        assert "{{ " + name + " }}" not in result
+    assert result.count("VALUE") == len(expected)
+
+
+@pytest.mark.parametrize("width", [2, 3, 4])
+def test_escaped_first_tick_still_allows_its_suffix_to_bound_a_local_example(width):
+    prefix = "\\" + "`" * width + "{{" + "`" * (width - 1) + "\n"
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    assert MarkdownFlow(source).get_block(1).block_type == BlockType.INTERACTION
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+def test_literal_block_ends_leave_separator_newlines_outside_and_preserve_fence_scope():
+    for prefix in ["    {{ unfinished", "<script>\n{{ unfinished\n</script>"]:
+        source = prefix + "\n\n---\n\n?[%{{ real }} A|B]"
+        assert [block.block_type for block in MarkdownFlow(source).get_all_blocks()] == [BlockType.CONTENT, BlockType.INTERACTION]
+    fenced = "```{{language}}\nx\n```"
+    assert extract_variables_from_text(fenced) == ["language"]
+    assert replace_variables_in_text(fenced, {"language": "python"}, add_quotes=False) == "```python\nx\n```"
+    assert MarkdownFlow(fenced).extract_variables() == []
+
+
+@pytest.mark.parametrize(
+    "prefix", ["$x {{ y$", "$$x {{ y$$", r"\$$x {{ y$", '[x](url "{{")', "[x](url '{{')", "[x](url ({{))", '[x](u(n) "{{")', '[x](<url> "{{")', '![x](url "{{")', '[x](url\n "{{")']
+)
+def test_complete_math_and_link_resources_bound_unfinished_variable_examples(prefix):
+    source = prefix + "\n\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == ["real"]
+    interaction = flow.get_all_blocks()[-1]
+    assert interaction.block_type == BlockType.INTERACTION
+    assert flow.process(interaction.index, user_input={"real": ["A"]}).variables == {"real": ["A"]}
+    assert replace_variables_in_text(prefix + "\n\n{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "\n\nVALUE"
+
+
+@pytest.mark.parametrize("prefix", ["$x {{ example }}$", "$$x {{ example }}$$", '[x](url "{{ example }}")', '[x {{ label }}](url "{{ example }}")'])
+def test_complete_variables_inside_math_and_link_resources_keep_historical_behavior(prefix):
+    expected = ["example", "label"] if "label" in prefix else ["example"]
+    assert extract_variables_from_text(prefix) == expected
+    assert MarkdownFlow(prefix).extract_variables() == expected
+    replaced = replace_variables_in_text(prefix, dict.fromkeys(expected, "VALUE"), add_quotes=False)
+    assert replaced.count("VALUE") == len(expected)
+
+
+@pytest.mark.parametrize("prefix", ["$x {{ unfinished", '[x](url "{{ unfinished', '[outer [inner](u)](u "{{")'])
+def test_unconfirmed_math_or_inactive_outer_links_do_not_invent_literal_boundaries(prefix):
+    source = prefix + "\n\n?[%{{ real }} A|B]"
+    assert MarkdownFlow(source).extract_variables() == []
+    assert all(block.block_type == BlockType.CONTENT for block in MarkdownFlow(source).get_all_blocks())
+
+
+@pytest.mark.parametrize("delimiter", ["`", "$"])
+def test_heading_line_boundaries_stop_inline_delimiters_without_changing_same_line_examples(delimiter):
+    source = "# Heading " + delimiter + "{{\nq" + delimiter + " then ?[%{{ real }} A|B]"
+    name = "q" + delimiter + " then ?[%{{ real"
+    assert extract_variables_from_text(source) == [name]
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == [name]
+    assert all(block.block_type == BlockType.CONTENT for block in flow.get_all_blocks())
+    same_line = "# Heading " + delimiter + "{{" + delimiter + "\n\n?[%{{ real }} A|B]"
+    assert MarkdownFlow(same_line).extract_variables() == ["real"]
+    assert MarkdownFlow(same_line).get_all_blocks()[-1].block_type == BlockType.INTERACTION
+    next_heading = "Text " + delimiter + "{{\n# Heading q" + delimiter + " then ?[%{{ real }} A|B]"
+    assert "real" not in MarkdownFlow(next_heading).extract_variables()
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_raw_html_closing_line_keeps_unfinished_examples_local_and_complete_examples_live(newline):
+    prefix = newline.join(["<script>", "code", "</script> {{ unfinished", ""])
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    assert MarkdownFlow(source).get_all_blocks()[-1].block_type == BlockType.INTERACTION
+    complete = newline.join(["<script>", "code", "</script> {{ example }}", "{{ real }}"])
+    assert extract_variables_from_text(complete) == ["example", "real"]
+    assert replace_variables_in_text(complete, {"example": "local", "real": "outside"}, add_quotes=False).endswith("local" + newline + "outside")
+
+
+@pytest.mark.parametrize("width", [2, 3, 4])
+def test_escaped_first_dollar_suffix_matches_native_math_boundaries(width):
+    prefix = "\\" + "$" * width + "{{" + "$" * (width - 1)
+    source = prefix + "\n\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).get_all_blocks()[-1].block_type == BlockType.INTERACTION
+
+
+@pytest.mark.parametrize(("depth", "names"), [(32, ["real"]), (33, [])])
+def test_link_destination_nesting_matches_the_native_limit(depth, names):
+    source = "[x](" + "(" * depth + "u" + ")" * depth + ' "{{ unfinished")\n\n?[%{{ real }} A|B]'
+    assert extract_variables_from_text(source) == names
+
+
+@pytest.mark.parametrize("prefix", ['[x](u<r "{{")', "[x](url (a({{))"])
+def test_native_link_destination_and_title_characters_do_not_hide_external_questions(prefix):
+    source = prefix + "\n\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).get_all_blocks()[-1].block_type == BlockType.INTERACTION
+
+
+def test_interaction_bodies_keep_raw_markers_before_document_math():
+    source = "?[%{{ q }} A ${{ y$ | B]\n\n?[%{{ real }} C|D]"
+    assert extract_variables_from_text(source) == ["q"]
+    blocks = MarkdownFlow(source).get_all_blocks()
+    assert len(blocks) == 1
+    assert blocks[0].block_type == BlockType.INTERACTION
+    assert blocks[0].content == source
