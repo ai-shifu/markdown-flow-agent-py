@@ -7,13 +7,13 @@ from ..constants import (
     COMPILED_ATX_START_REGEX,
     COMPILED_BLANK_LINE_REGEX,
     COMPILED_DOLLAR_RUN_REGEX,
-    COMPILED_INDENTED_CODE_REGEX,
     COMPILED_INLINE_HTML_REGEX,
+    COMPILED_PHYSICAL_LINE_END_REGEX,
     COMPILED_RAW_HTML_END_REGEX,
     COMPILED_RAW_HTML_START_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
-from .document_blocks import DocumentBlocks, fence_opening
+from .document_blocks import DocumentBlocks, container_content_info, container_opening, fence_opening, indentation
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -35,14 +35,26 @@ def _html_can_close(text: str, start: int, last_ends: dict[str, int]) -> bool:
 
 def _indented_code_end(text: str, start: int, blocks: DocumentBlocks) -> int | None:
     index = blocks.by_start.get(start)
-    if index is None or not blocks.indented_may_start(index):
+    if index is None or not (blocks.indented_may_start(index) or blocks.container_steps[index] and blocks.paragraph_interrupts(index)):
         return None
-    if COMPILED_INDENTED_CODE_REGEX.match(text, start) is None:
+    first = blocks.lines[index]
+    first_value = text[first.start : first.content_end]
+    if indentation(first_value, blocks.content_starts[index] - first.start, blocks.virtual_padding[index])[1] < 4:
         return None
     last_content_end = start
-    for line in blocks.lines[index:]:
-        if text[line.start : line.content_end].strip(" \t"):
-            if COMPILED_INDENTED_CODE_REGEX.match(text, line.start) is None:
+    steps = blocks.container_steps[index]
+    for following in range(index, len(blocks.lines)):
+        line = blocks.lines[following]
+        value = text[line.start : line.content_end]
+        info = (blocks.content_starts[following] - line.start, blocks.virtual_padding[following]) if following == index else container_content_info(value, steps)
+        if info is None:
+            if not value.strip(" \t"):
+                continue
+            break
+        content, virtual = info
+        body = value[content:]
+        if body.strip(" \t"):
+            if indentation(value, content, virtual)[1] < 4:
                 break
             last_content_end = line.content_end
     return last_content_end if last_content_end > start else None
@@ -51,14 +63,17 @@ def _indented_code_end(text: str, start: int, blocks: DocumentBlocks) -> int | N
 def _raw_html_opening(text: str, start: int, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> tuple[str, int] | None:
     if start not in blocks.by_start:
         return None
-    opening = COMPILED_RAW_HTML_START_REGEX.match(text, start)
+    content = blocks.block_content_start(blocks.by_start[start])
+    if content is None:
+        return None
+    opening = COMPILED_RAW_HTML_START_REGEX.match(text, content)
     if opening is None:
         return None
     tag_start = text.find("<", start, opening.end())
     if not _html_can_close(text, tag_start, last_html_ends):
         return None
-    token = COMPILED_INLINE_HTML_REGEX.match(text, tag_start)
-    return (opening.group(1).lower(), token.end()) if token is not None else None
+    token_end = blocks.html_token_end(blocks.by_start[start], tag_start)
+    return (opening.group(1).lower(), token_end) if token_end is not None else None
 
 
 def _raw_html_bounds(text: str, start: int, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> tuple[int, int] | None:
@@ -66,19 +81,26 @@ def _raw_html_bounds(text: str, start: int, last_html_ends: dict[str, int], bloc
     if opening is None:
         return None
     name, opening_end = opening
-    closing = COMPILED_RAW_HTML_END_REGEX[name].search(text, opening_end)
+    limit = blocks.container_end(blocks.by_start[start])
+    closing = COMPILED_RAW_HTML_END_REGEX[name].search(text, opening_end, limit)
     if closing is not None:
         blocks.closed_html_lines.add(blocks.line_at(closing.end()).start)
-    return opening_end, blocks.line_at(closing.end()).content_end if closing is not None else len(text)
+    return opening_end, blocks.line_at(closing.end()).content_end if closing is not None else limit
 
 
 def literal_variable_markers(text: str, start: int, end: int) -> Iterator[VariableMarker]:
     """Keep opening attributes and raw HTML bodies as separate local examples."""
-    tag_start = start
-    while tag_start < min(start + 3, end) and text[tag_start] == " ":
+    ending = COMPILED_PHYSICAL_LINE_END_REGEX.search(text, start, end)
+    opening_line = text[start : ending.start() if ending is not None else end]
+    content, _ = container_opening(opening_line)
+    tag_start = start + content
+    while tag_start < end and text[tag_start] == " ":
         tag_start += 1
-    token = COMPILED_INLINE_HTML_REGEX.match(text, tag_start) if tag_start < end and text[tag_start] == "<" else None
-    boundaries = (start, token.end(), end) if token is not None and token.end() <= end else (start, end)
+    token_end = None
+    if tag_start < end and text[tag_start] == "<":
+        local = DocumentBlocks(text[start:end], COMPILED_INLINE_HTML_REGEX)
+        token_end = local.html_token_end(0, tag_start - start)
+    boundaries = (start, start + token_end, end) if token_end is not None and start + token_end <= end else (start, end)
     for left, right in zip(boundaries, boundaries[1:], strict=False):
         for marker in find_variable_markers(text[left:right]):
             yield VariableMarker(left + marker.start, left + marker.end, marker.raw_name, marker.name)

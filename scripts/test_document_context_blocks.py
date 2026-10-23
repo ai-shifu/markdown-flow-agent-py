@@ -217,3 +217,68 @@ def test_complete_container_examples_keep_exact_keys_and_source_offsets(prefix):
     assert replace_variables_in_text(source, {"other": "VALUE"}, add_quotes=False) == prefix + "VALUE"
     for marker in find_document_variable_markers(source):
         assert marker.raw_name == source[marker.start + 2 : marker.end - 2]
+
+
+@pytest.mark.parametrize("source", ["> <div>x\n", "- <div>x\n ", "> - <div>x\n>", "> - <div>x\n> "])
+def test_incomplete_container_continuations_keep_html_pending(source):
+    from markdown_flow.constants import COMPILED_INLINE_HTML_REGEX
+    from markdown_flow.parser.document_blocks import DocumentBlocks
+
+    block = DocumentBlocks(source, COMPILED_INLINE_HTML_REGEX).ordinary_html(0, final=False)
+    assert block is not None
+    assert not block.closed
+
+
+def test_confirmed_container_dedent_closes_html_even_without_final_newline():
+    from markdown_flow.constants import COMPILED_INLINE_HTML_REGEX
+    from markdown_flow.parser.document_blocks import DocumentBlocks
+
+    block = DocumentBlocks("> <div>x\nq", COMPILED_INLINE_HTML_REGEX).ordinary_html(0, final=False)
+    assert block is not None
+    assert block.closed
+
+
+CONTAINER_COLUMN_CASES = [
+    (">     {{ unfinished", True),
+    ("> >     {{ unfinished", True),
+    (">\t  {{ unfinished", True),
+    ("> \t  {{ unfinished", True),
+    ("-     {{ unfinished", True),
+    ("- Intro\n\n      {{ unfinished", True),
+    ("2. Intro\n\n       {{ unfinished", True),
+    (">     {{ unfinished\n>\n>     still code", True),
+    ("- Intro\n\n    ```\n  {{ unfinished\n    ```", True),
+    ("2. Intro\n\n    ~~~\n   {{ unfinished\n    ~~~", True),
+    ("- Intro\n\n\t  {{ unfinished", True),
+    ("> \t~~~\n> {{ unfinished\n> \t~~~", True),
+    ("> \t{{ unfinished", False),
+    ("> Intro\n>     {{ unfinished", False),
+    ("Paragraph\n    {{ unfinished", False),
+    ("> - Intro\n>\n> \t  {{ unfinished", False),
+]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(("prefix", "real"), CONTAINER_COLUMN_CASES)
+def test_container_columns_preserve_native_code_and_fence_boundaries(newline, prefix, real):
+    prefix = prefix.replace("\n", newline) + newline * 2
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == (["real"] if real else [])
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == (["real"] if real else [])
+    assert sum(block.block_type == BlockType.INTERACTION for block in flow.get_all_blocks()) == int(real)
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == (prefix + "VALUE" if real else prefix + "{{ real }}")
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(
+    ("opening", "closing"),
+    [("<script>", "</script>"), ("<style>", "</style>"), ("<pre>", "</pre>"), ("<textarea>", "</textarea>"), ("<!--", "-->"), ("<?x", "?>"), ("<![CDATA[", "]]>"), ("<!DOCTYPE", ">")],
+)
+@pytest.mark.parametrize(("first", "continued"), CONTAINER_PREFIXES + [("> \t", "> ")])
+def test_every_existing_html_block_uses_container_columns(newline, opening, closing, first, continued):
+    prefix = newline.join([first + opening, continued + "{{ unfinished", continued + closing, "", ""])
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    assert MarkdownFlow(source).extract_variables() == ["real"]
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
