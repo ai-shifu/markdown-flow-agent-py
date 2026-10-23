@@ -13,6 +13,7 @@ from typing import Any
 from .constants import (
     BLOCK_INDEX_OUT_OF_RANGE_ERROR,
     BLOCK_SEPARATOR,
+    COMPILED_LAYER2_VARIABLE_REGEX,
     CONTEXT_BUTTON_OPTIONS_TEMPLATE,
     CONTEXT_QUESTION_TEMPLATE,
     DEFAULT_INTERACTION_ERROR_PROMPT,
@@ -21,8 +22,6 @@ from .constants import (
     INPUT_EMPTY_ERROR,
     INTERACTION_ERROR_RENDER_INSTRUCTIONS,
     INTERACTION_PARSE_ERROR,
-    INTERACTION_PATTERN_NON_CAPTURING,
-    INTERACTION_PATTERN_SPLIT,
     INTERACTION_PROMPT_BASE,
     INTERACTION_PROMPT_WITH_TRANSLATION,
     LLM_PROVIDER_REQUIRED_ERROR,
@@ -62,7 +61,81 @@ from .parser import (
     process_output_instructions,
     replace_variables_in_text,
 )
+from .parser.document_context import find_document_interaction_spans, find_document_protected_spans
 from .tag_filter import StreamTagFilter, strip_preserve_tags
+from .variable_names import find_variable_markers
+
+
+def _translation_marker_spans(text: str) -> list[tuple[int, int]]:
+    """Include the preserved-variable prefix in each complete marker's source span."""
+    return [(marker.start - (marker.start > 0 and text[marker.start - 1] == "%"), marker.end) for marker in find_variable_markers(text)]
+
+
+def _mask_translation_markers(text: str, tokens: dict[str, str]) -> str:
+    """Replace whole markers using the interaction's shared raw-to-token index."""
+    parts: list[str] = []
+    at = 0
+    for start, end in _translation_marker_spans(text):
+        parts.extend((text[at:start], tokens[text[start:end]]))
+        at = end
+    parts.append(text[at:])
+    return "".join(parts)
+
+
+def _translation_token_pattern(markers: dict[str, str]) -> re.Pattern[str] | None:
+    """Match only the generated token namespace, without enumerating every token."""
+    if not markers:
+        return None
+    prefix = next(iter(markers)).rsplit("_", 3)[0] + "_"
+    return re.compile(re.escape(prefix) + r"[0-9]+__")
+
+
+def _restore_translation_markers(original: str, translated: Any, markers: dict[str, str], token_pattern: re.Pattern[str] | None = None) -> str:
+    """Accept a translated field only when its known marker tokens survive in order."""
+    if not isinstance(translated, str):
+        translated = original
+    if not markers:
+        return translated
+    token_pattern = token_pattern if token_pattern is not None else _translation_token_pattern(markers)
+    assert token_pattern is not None
+
+    def token_sequence(text: str) -> list[str]:
+        return [match.group() for match in token_pattern.finditer(text) if match.group() in markers]
+
+    if token_sequence(original) != token_sequence(translated):
+        translated = original
+    return token_pattern.sub(lambda match: markers.get(match.group(), match.group()), translated)
+
+
+def _find_translation_text(text: str, old: str) -> int:
+    """Locate a display span without matching a substring inside an opaque marker."""
+    if not old:
+        return -1
+    spans = _translation_marker_spans(text)
+    at = 0
+    while (at := text.find(old, at)) >= 0:
+        end = at + len(old)
+        if not any(at < marker_end and end > marker_start and (at > marker_start or end < marker_end) for marker_start, marker_end in spans):
+            return at
+        at += 1
+    return -1
+
+
+def _replace_translation_text(text: str, old: str, new: str) -> str:
+    """Replace only a complete display span, leaving marker internals untouched."""
+    at = _find_translation_text(text, old)
+    return text[:at] + new + text[at + len(old) :] if at >= 0 else text
+
+
+def _strip_translation_tags(text: str) -> str:
+    """Filter generated tags while retaining literal tag text inside variable names."""
+    parts: list[str] = []
+    at = 0
+    for marker in find_variable_markers(text):
+        parts.extend((strip_preserve_tags(text[at : marker.start]), text[marker.start : marker.end]))
+        at = marker.end
+    parts.append(strip_preserve_tags(text[at:]))
+    return "".join(parts)
 
 
 class MarkdownFlow:
@@ -468,18 +541,32 @@ class MarkdownFlow:
 
         # Parse the preprocessed document (code blocks already replaced with placeholders)
         # The preprocessing was done once during initialization
-        segments = re.split(BLOCK_SEPARATOR, self._processed_document)
+        source = self._processed_document
+        protected = list(find_document_protected_spans(source))
+        segments = []
+        at = 0
+        protected_at = 0
+        for separator in re.finditer(BLOCK_SEPARATOR, source):
+            while protected_at < len(protected) and protected[protected_at][1] <= separator.start():
+                protected_at += 1
+            if protected_at < len(protected) and protected[protected_at][0] < separator.end():
+                continue
+            segments.append(source[at : separator.start()])
+            at = separator.end()
+        segments.append(source[at:])
         final_blocks: list[Block] = []
 
         for segment in segments:
-            # Use dedicated split pattern to avoid duplicate blocks from capturing groups
-            parts = re.split(INTERACTION_PATTERN_SPLIT, segment)
-
-            for part in parts:
+            at = 0
+            parts: list[tuple[str, bool]] = []
+            for start, end in find_document_interaction_spans(segment):
+                parts.extend(((segment[at:start], False), (segment[start:end], True)))
+                at = end
+            parts.append((segment[at:], False))
+            for part, interaction in parts:
                 part = part.strip()
                 if part:
-                    # Use non-capturing pattern for matching
-                    if re.match(INTERACTION_PATTERN_NON_CAPTURING, part):
+                    if interaction:
                         block = Block(
                             content=part,
                             block_type=BlockType.INTERACTION,
@@ -763,7 +850,7 @@ class MarkdownFlow:
             translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, translated_json, interaction_info)
 
             # 过滤 LLM 输出中可能泄露的 原样输出 标签
-            translated_content = strip_preserve_tags(translated_content)
+            translated_content = _strip_translation_tags(translated_content)
 
             return LLMResult(
                 content=translated_content,
@@ -805,7 +892,7 @@ class MarkdownFlow:
                 translated_content = self._reconstruct_with_translation(processed_block.content, translatable_json, full_response, interaction_info)
 
                 # 过滤 LLM 输出中可能泄露的 原样输出 标签
-                translated_content = strip_preserve_tags(translated_content)
+                translated_content = _strip_translation_tags(translated_content)
 
                 # Return complete content once (not incremental)
                 yield LLMResult(
@@ -1453,16 +1540,35 @@ class MarkdownFlow:
         if not interaction_info:
             return "{}", None
 
-        translatable = {}
+        # Keep marker source out of the translation request. The prefix cannot
+        # collide with author text, and equal raw markers share the same token.
+        base = "__MDFLOW_VARIABLE_"
+        used_nonces: set[str] = set()
+        collision = False
+        for match in re.finditer(re.escape(base) + r"(?:N([0-9]+)_)?", interaction_content):
+            collision = True
+            if match.group(1) is not None:
+                used_nonces.add(match.group(1))
+        prefix = base
+        if collision:
+            nonce = 0
+            while str(nonce) in used_nonces:
+                nonce += 1
+            prefix = f"{base}N{nonce}_"
+        raw_markers = dict.fromkeys(interaction_content[start:end] for start, end in _translation_marker_spans(interaction_content))
+        markers = {f"{prefix}{i}__": raw for i, raw in enumerate(raw_markers)}
+        interaction_info["_translation_markers"] = markers
+        tokens_by_raw = {raw: token for token, raw in markers.items()}
+        translatable: dict[str, str | list[str]] = {}
 
         # Extract button display text
         if interaction_info.get("buttons"):
-            button_texts = [btn["display"] for btn in interaction_info["buttons"]]
+            button_texts = [_mask_translation_markers(btn["display"], tokens_by_raw) for btn in interaction_info["buttons"]]
             translatable["buttons"] = button_texts
 
         # Extract question text
         if interaction_info.get("question"):
-            translatable["question"] = interaction_info["question"]
+            translatable["question"] = _mask_translation_markers(interaction_info["question"], tokens_by_raw)
 
         # Convert to JSON
 
@@ -1536,19 +1642,27 @@ class MarkdownFlow:
         except (json.JSONDecodeError, ValueError):
             return original_content
 
+        markers = interaction_info.get("_translation_markers", {})
+        token_pattern = _translation_token_pattern(markers)
+        prefix = ""
         reconstructed = original_content
+        marker = COMPILED_LAYER2_VARIABLE_REGEX.match(original_content[2:-1]) if original_content.startswith("?[") else None
+        if marker:
+            body_at = 2 + marker.start(2)
+            prefix, reconstructed = original_content[:body_at], original_content[body_at:]
 
         # Replace button display text (smart value handling)
         if "buttons" in translated and interaction_info.get("buttons"):
             for i, button in enumerate(interaction_info["buttons"]):
                 if i < len(translated["buttons"]):
                     old_display = button["display"]
-                    new_display = translated["buttons"][i]
+                    original_display = original.get("buttons", [])[i]
+                    new_display = _restore_translation_markers(original_display, translated["buttons"][i], markers, token_pattern)
 
                     # Detect if translation happened
                     translation_happened = False
                     if "buttons" in original and i < len(original["buttons"]):
-                        if original["buttons"][i] != new_display:
+                        if old_display != new_display:
                             translation_happened = True
 
                     # If value separation exists (display//value format), preserve value
@@ -1557,36 +1671,36 @@ class MarkdownFlow:
                         # Replace format: oldDisplay//value -> newDisplay//value
                         old_pattern = f"{old_display}//{button['value']}"
                         new_pattern = f"{new_display}//{button['value']}"
-                        reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
+                        reconstructed = _replace_translation_text(reconstructed, old_pattern, new_pattern)
                     elif translation_happened:
                         # Display == Value, but need to check if display//value format exists in original text
                         # In this case, original text is like "小兔子//小兔子", both Display and Value are "小兔子"
                         old_pattern_with_separator = f"{old_display}//"
-                        if old_pattern_with_separator in reconstructed:
+                        if _find_translation_text(reconstructed, old_pattern_with_separator) >= 0:
                             # Original text has display//value format (e.g., "小兔子//小兔子")
                             # Only replace display part, preserve original value
                             # Example: 小兔子//小兔子 -> 토끼//小兔子
                             old_pattern = f"{old_display}//{button['value']}"
                             new_pattern = f"{new_display}//{button['value']}"
-                            reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
+                            reconstructed = _replace_translation_text(reconstructed, old_pattern, new_pattern)
                         else:
                             # Original text has no // separator (e.g., "小兔子")
                             # Auto-add value: translated//original
                             # Example: 小兔子 -> 토끼//小兔子
                             old_pattern = old_display
                             new_pattern = f"{new_display}//{old_display}"
-                            reconstructed = reconstructed.replace(old_pattern, new_pattern, 1)
+                            reconstructed = _replace_translation_text(reconstructed, old_pattern, new_pattern)
                     else:
                         # No translation, keep as is
-                        reconstructed = reconstructed.replace(old_display, new_display, 1)
+                        reconstructed = _replace_translation_text(reconstructed, old_display, new_display)
 
         # Replace question text
         if "question" in translated and interaction_info.get("question"):
             old_question = interaction_info["question"]
-            new_question = translated["question"]
-            reconstructed = reconstructed.replace(f"...{old_question}", f"...{new_question}", 1)
+            new_question = _restore_translation_markers(original["question"], translated["question"], markers, token_pattern)
+            reconstructed = _replace_translation_text(reconstructed, f"...{old_question}", f"...{new_question}")
 
-        return reconstructed
+        return prefix + reconstructed
 
     def _build_validation_messages(
         self,
@@ -1630,10 +1744,10 @@ class MarkdownFlow:
         # 2. Validation task template (choose based on language requirement)
         if has_language_requirement:
             # Has language requirement: use Base + WithLanguage
-            task_template = (VALIDATION_TASK_BASE + VALIDATION_TASK_WITH_LANGUAGE).replace("{target_variable}", target_variable)
+            task_template = (VALIDATION_TASK_BASE + VALIDATION_TASK_WITH_LANGUAGE).replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False))
         else:
             # No language requirement: use default (Base + NoLanguage)
-            task_template = VALIDATION_TASK_TEMPLATE.replace("{target_variable}", target_variable)
+            task_template = VALIDATION_TASK_TEMPLATE.replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False))
 
         system_parts.append(task_template)
 
@@ -1662,7 +1776,7 @@ class MarkdownFlow:
 
         # Add extraction requirements (using template)
         system_parts.append("")
-        system_parts.append(VALIDATION_REQUIREMENTS_TEMPLATE)
+        system_parts.append(VALIDATION_REQUIREMENTS_TEMPLATE.replace('"{target_variable}"', json.dumps(target_variable, ensure_ascii=False)))
 
         # 3. Output language anchoring (bottom - if output language is set)
         if has_language_requirement:

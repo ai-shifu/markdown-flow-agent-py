@@ -4,6 +4,8 @@ Output Parser Module
 Handles output instructions and preserved content processing for MarkdownFlow documents.
 """
 
+import re
+
 from ..constants import (
     COMPILED_INLINE_EXCLAMATION_PRESERVE_REGEX,
     COMPILED_INLINE_PRESERVE_REGEX,
@@ -12,6 +14,8 @@ from ..constants import (
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
 )
+from ..variable_names import read_variable_marker
+from .document_context import find_document_protected_spans, find_document_variable_markers
 
 
 def is_preserved_content_block(content: str) -> bool:
@@ -27,6 +31,7 @@ def is_preserved_content_block(content: str) -> bool:
     Returns:
         True if content is fully wrapped by preserved markers
     """
+    content, _, _ = _protect_variable_names(content)
     content = content.strip()
     if not content:
         return False
@@ -76,6 +81,38 @@ def is_preserved_content_block(content: str) -> bool:
     return has_preserve_content and state == "OUTSIDE"
 
 
+def _protect_variable_names(content: str) -> tuple[str, dict[str, str], str]:
+    """Keep opaque marker text outside the output-instruction operator grammar."""
+    prefix = "\x00mdf-output-name:"
+    if "{{" not in content:
+        return content, {}, prefix
+    spans = [(marker.start, marker.end) for marker in find_document_variable_markers(content)]
+    spans.extend((start, end) for start, end in find_document_protected_spans(content) if content.startswith("{{", start) and read_variable_marker(content, start) is None)
+    used_nonces = {match.group(1) for match in re.finditer(re.escape(prefix) + r"([0-9]+):", content)}
+    nonce = 0
+    while str(nonce) in used_nonces:
+        nonce += 1
+    prefix = f"{prefix}{nonce}:"
+    markers: dict[str, str] = {}
+    pieces: list[str] = []
+    at = 0
+    for start, end in spans:
+        token = f"{prefix}{len(markers)}\x00"
+        markers[token] = content[start:end]
+        pieces.extend((content[at:start], token))
+        at = end
+    pieces.append(content[at:])
+    return "".join(pieces), markers, prefix
+
+
+def _restore_variable_names(content: str, markers: dict[str, str], prefix: str) -> str:
+    """Restore protected marker source once after output syntax processing."""
+    if not markers:
+        return content
+    token_pattern = re.compile(re.escape(prefix) + r"[0-9]+\x00")
+    return token_pattern.sub(lambda match: markers[match.group()], content)
+
+
 def process_output_instructions(content: str) -> tuple[str, bool]:
     """
     Process output instruction markers, converting === and !=== formats to XML format.
@@ -93,6 +130,7 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
         - processed_content: Content with === and !=== markers converted to XML format
         - has_preserved_content: True if content contained preserved markers
     """
+    content, variable_markers, variable_prefix = _protect_variable_names(content)
     lines = content.split("\n")
     result_lines = []
     i = 0
@@ -202,6 +240,7 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
 
     # Assemble final content
     processed_content = "\n".join(result_lines)
+    processed_content = _restore_variable_names(processed_content, variable_markers, variable_prefix)
 
     # Return both processed content and whether it contains preserved content
     return processed_content, has_output_instruction
@@ -219,6 +258,7 @@ def extract_preserved_content(content: str) -> str:
     Returns:
         Actual content with === and !=== markers removed
     """
+    content, variable_markers, variable_prefix = _protect_variable_names(content)
     content = content.strip()
     if not content:
         return ""
@@ -243,4 +283,4 @@ def extract_preserved_content(content: str) -> str:
             # Normal content line, keep
             result_lines.append(line)
 
-    return "\n".join(result_lines)
+    return _restore_variable_names("\n".join(result_lines), variable_markers, variable_prefix)

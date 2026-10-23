@@ -6,11 +6,15 @@ Constants for document parsing, variable matching, validation, and other core fu
 
 import re
 
+from .variable_names import (
+    VARIABLE_ASSIGNMENT_SOURCE,
+    VARIABLE_REFERENCE_SOURCE,
+    VARIABLE_REFERENCE_UNIT_SOURCE,
+)
+
 
 # Pre-compiled regex patterns
-COMPILED_PERCENT_VARIABLE_REGEX = re.compile(
-    r"%\{\{([^}]+)\}\}"  # Match %{{variable}} format for preserved variables
-)
+COMPILED_PERCENT_VARIABLE_REGEX = re.compile(VARIABLE_ASSIGNMENT_SOURCE)
 
 # Interaction regex base patterns
 #
@@ -21,7 +25,7 @@ COMPILED_PERCENT_VARIABLE_REGEX = re.compile(
 # a left-to-right scanner disagree about `?[a\\]`, and two parsers of one grammar must not.
 # A backslash before anything else -- LaTeX such as `$\pi$`, or `\\` as a line break -- stays
 # ordinary text, exactly as it was before escapes existed. See markdown_flow.escaping.
-_INTERACTION_CONTENT = r"(?:\\[|/.\]]|\\(?![|/.\]])|[^\]\\])*"
+_INTERACTION_CONTENT = rf"(?:{VARIABLE_REFERENCE_UNIT_SOURCE}|\\[|/.\]]|\\(?![|/.\]])|(?!\{{\{{)[^\]\\])*"
 INTERACTION_PATTERN = rf"(?<!\\)\?\[({_INTERACTION_CONTENT})\](?!\()"  # Base pattern with capturing group for content extraction, excludes escaped \?[]
 INTERACTION_PATTERN_NON_CAPTURING = rf"(?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\()"  # Non-capturing version for block splitting, excludes escaped \?[]
 INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # Pattern for re.split() with outer capturing group, excludes escaped \?[]
@@ -29,13 +33,34 @@ INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # P
 # InteractionParser specific regex patterns
 COMPILED_INTERACTION_REGEX = re.compile(INTERACTION_PATTERN)  # Main interaction pattern matcher
 COMPILED_LAYER1_INTERACTION_REGEX = COMPILED_INTERACTION_REGEX  # Layer 1: Basic format validation (alias)
-COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^%\{\{([^}]+)\}\}(.*)$")  # Layer 2: Variable detection
+COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^\s*" + VARIABLE_ASSIGNMENT_SOURCE + r"(.*)$")
 COMPILED_LAYER3_ELLIPSIS_REGEX = re.compile(r"^(.*)\.\.\.(.*)")  # Layer 3: Split content around ellipsis
 COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Parse Button//value format
-COMPILED_BRACE_VARIABLE_REGEX = re.compile(
-    r"(?<!%)\{\{([^}]+)\}\}"  # Match {{variable}} format for replaceable variables
-)
+COMPILED_BRACE_VARIABLE_REGEX = re.compile(r"(?<!%)" + VARIABLE_REFERENCE_SOURCE)
 COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
+COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX = re.compile(r"\x00mdf-name:+[0-9]+\x00")
+
+# Inline HTML owns braces in its tag source before document-level MDF scanning.
+_HTML_SPACE = r"[ \t\r\n]"
+_HTML_ATTRIBUTE = r"[A-Za-z_:][A-Za-z0-9_.:-]*(?:" + _HTML_SPACE + r"*=" + _HTML_SPACE + r"*(?:[^ \t\r\n\"'=<>`]+|'[^']*'|\"[^\"]*\"))?"
+COMPILED_INLINE_HTML_REGEX = re.compile(
+    r"(?:<[A-Za-z][A-Za-z0-9-]*(?:" + _HTML_SPACE + r"+" + _HTML_ATTRIBUTE + r")*" + _HTML_SPACE + r"*/?>"
+    r"|</[A-Za-z][A-Za-z0-9-]*" + _HTML_SPACE + r"*>"
+    r"|<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<![A-Z]+" + _HTML_SPACE + r"+[^>]*>|<!\[CDATA\[[\s\S]*?\]\]>)"
+)
+COMPILED_INDENTED_CODE_REGEX = re.compile(r"(?: {4}| {0,3}\t)")
+COMPILED_RAW_HTML_START_REGEX = re.compile(r" {0,3}<(script|style|pre|textarea)(?=[ \t\r\n\f>])", re.IGNORECASE)
+COMPILED_RAW_HTML_END_REGEX = {name: re.compile(r"</" + name + r"[ \t\r\n]*>", re.IGNORECASE) for name in ("script", "style", "pre", "textarea")}
+COMPILED_DOLLAR_RUN_REGEX = re.compile(r"\$+")
+COMPILED_BLANK_LINE_REGEX = re.compile(r"(?:\r\n|\r(?!\n)|(?<!\r)\n)[ \t]*(?:\r\n|\r(?!\n)|(?<!\r)\n)")
+COMPILED_ATX_START_REGEX = re.compile(r"^ {0,3}#{1,6}(?=[ \t\r\n]|$)", re.MULTILINE)
+COMPILED_PHYSICAL_LINE_END_REGEX = re.compile(r"\r\n|\r|\n")
+COMPILED_CONTAINER_LIST_REGEX = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?=[ \t])")
+COMPILED_DOCUMENT_FENCE_REGEX = re.compile(r"(`{3,})([^`]*$)|(~{3,})(.*$)")
+COMPILED_DOCUMENT_TAG_REGEX = re.compile(r" {0,3}</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t/>]|$)")
+COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\]\\\r\n])+)]\:[ \t]*")
+COMPILED_DOCUMENT_BREAK_REGEX = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})$")
+COMPILED_SETEXT_REGEX = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
 
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
 # variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};
@@ -135,6 +160,7 @@ INTERACTION_PROMPT_WITH_TRANSLATION = """
 
 - Translate the text in `buttons` and `question` into the target language
 - Translate only the display text (the Display part); do not change the JSON structure
+- Tokens such as `__MDFLOW_VARIABLE_0__` are opaque placeholders: copy every token occurrence exactly as given in its original order and translate only the surrounding text
 - If `display//value` separation exists (for example `Yes//1`), translate only the Display part before `//` and keep value unchanged
 - Use the target language 100%; language mixing is not allowed. Translate all non-target-language words before outputting
 - If a text segment's original language is already the same as the target language, return that text unchanged (for example, when the target language is English and the original text is also English, do not rewrite it)

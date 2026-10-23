@@ -4,16 +4,44 @@ Variable Parser Module
 Provides variable extraction and replacement functionality for MarkdownFlow documents.
 """
 
-import re
 from collections.abc import Mapping
+from dataclasses import dataclass
 
 from ..constants import (
-    COMPILED_BRACE_VARIABLE_REGEX,
-    COMPILED_PERCENT_VARIABLE_REGEX,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
     VARIABLE_DEFAULT_VALUE,
 )
+from .document_context import find_document_variable_markers
+
+
+class _PreserveTagState:
+    """Track real output tags without interpreting the contents of opaque markers."""
+
+    def __init__(self):
+        self.inside = False
+        self._tail = ""
+
+    def feed(self, text: str) -> None:
+        combined = self._tail + text
+        opening = combined.rfind(OUTPUT_INSTRUCTION_PREFIX)
+        closing = combined.rfind(OUTPUT_INSTRUCTION_SUFFIX)
+        if opening >= 0 or closing >= 0:
+            self.inside = opening > closing
+        # Retain incomplete tags that may continue across replacement boundaries.
+        self._tail = combined[-(max(len(OUTPUT_INSTRUCTION_PREFIX), len(OUTPUT_INSTRUCTION_SUFFIX)) - 1) :]
+
+    def skip_marker(self) -> None:
+        self._tail = ""
+
+
+@dataclass
+class _ReplacementSegment:
+    """Keep original markers distinct from literal text and already rendered values."""
+
+    text: str
+    variable_name: str | None = None
+    opaque: bool = False
 
 
 def extract_variables_from_text(text: str) -> list[str]:
@@ -30,53 +58,23 @@ def extract_variables_from_text(text: str) -> list[str]:
     Returns:
         Sorted list of unique variable names
     """
-    variables = set()
-
-    # Match %{{...}} format variables using pre-compiled regex
-    matches = COMPILED_PERCENT_VARIABLE_REGEX.findall(text)
-    for match in matches:
-        variables.add(match.strip())
-
-    # Match {{...}} format variables (excluding %) using pre-compiled regex
-    matches = COMPILED_BRACE_VARIABLE_REGEX.findall(text)
-    for match in matches:
-        variables.add(match.strip())
-
-    return sorted(list(variables))
+    return sorted({marker.name for marker in find_document_variable_markers(text) if marker.name is not None})
 
 
 def is_inside_preserve_tag(text: str, pos: int) -> bool:
-    """
-    Check if the given position is inside a <原样输出> tag.
-
-    Detection logic:
-    1. Find the most recent opening tag before pos
-    2. Check if there's a closing tag between the opening tag and pos
-    3. If closing tag exists between them, pos is NOT inside
-    4. If no closing tag between them, pos IS inside
-
-    Args:
-        text: Full text content
-        pos: Position to check (variable start position)
-
-    Returns:
-        True if position is inside preserve tag, False otherwise
-    """
-    # Find the most recent opening tag before pos
-    last_open_index = text.rfind(OUTPUT_INSTRUCTION_PREFIX, 0, pos)
-
-    # If no opening tag found, definitely not inside
-    if last_open_index == -1:
-        return False
-
-    # Find closing tag between the opening tag and pos
-    # Search from position after the opening tag to pos
-    close_between = text.find(OUTPUT_INSTRUCTION_SUFFIX, last_open_index + len(OUTPUT_INSTRUCTION_PREFIX), pos)
-
-    # If there's a closing tag between opening tag and pos,
-    # it means the opening tag is already closed, so pos is NOT inside
-    # Otherwise, pos IS inside (whether or not there's a closing tag after pos doesn't matter)
-    return close_between == -1
+    """Read structural preserve state before pos, excluding all complete markers."""
+    state = _PreserveTagState()
+    at = 0
+    for marker in find_document_variable_markers(text):
+        if marker.start >= pos:
+            break
+        state.feed(text[at : marker.start])
+        if marker.end > pos:
+            return state.inside
+        state.skip_marker()
+        at = marker.end
+    state.feed(text[at:pos])
+    return state.inside
 
 
 def replace_variables_in_text(
@@ -99,59 +97,36 @@ def replace_variables_in_text(
     if not text or not isinstance(text, str):
         return text or ""
 
-    # Convert Mapping to dict for modification, or initialize as empty dict
-    if variables:
-        # Create a mutable copy
-        variables_dict = dict(variables)
-        # Check each variable for null or empty values, assign "UNKNOWN" if so
-        for key, value in variables_dict.items():
-            if value is None or value == "" or (isinstance(value, list) and not value):
-                variables_dict[key] = VARIABLE_DEFAULT_VALUE
-    else:
-        variables_dict = {}
+    values = dict(variables or {})
+    segments: list[_ReplacementSegment] = []
+    at = 0
+    for marker in find_document_variable_markers(text):
+        segments.append(_ReplacementSegment(text[at : marker.start]))
+        name = marker.name if not (marker.start and text[marker.start - 1] == "%") else None
+        segments.append(_ReplacementSegment(text[marker.start : marker.end], name, opaque=True))
+        if name is not None:
+            values.setdefault(name, VARIABLE_DEFAULT_VALUE)
+        at = marker.end
+    segments.append(_ReplacementSegment(text[at:]))
 
-    # Find all {{variable}} format variable references
-    variable_pattern = r"\{\{([^{}]+)\}\}"
-    matches = re.findall(variable_pattern, text)
-
-    # Assign "UNKNOWN" to undefined variables
-    for var_name in matches:
-        var_name = var_name.strip()
-        if var_name not in variables_dict:
-            variables_dict[var_name] = "UNKNOWN"
-
-    # Use updated replacement logic, preserve %{{var_name}} format variables
-    result = text
-    for var_name, var_value in variables_dict.items():
-        # Convert value to string based on type
+    # As in the historical per-variable replacement, every occurrence of one
+    # key sees the same pre-batch state. Only the next key sees emitted values.
+    for name, var_value in values.items():
         if isinstance(var_value, list):
-            # Multiple values - join with comma
             value_str = ", ".join(str(v) for v in var_value if v is not None and str(v).strip())
             if not value_str:
                 value_str = VARIABLE_DEFAULT_VALUE
         else:
-            value_str = str(var_value) if var_value is not None else VARIABLE_DEFAULT_VALUE
-
-        # Find all matches of {{var_name}} (not %{{var_name}})
-        # Use negative lookbehind assertion to exclude %{{var_name}} format
-        pattern = f"(?<!%){{{{{re.escape(var_name)}}}}}"
-
-        # Replace each match individually, checking if it's inside a preserve tag
-        # Use default parameters to capture loop variables (fixes B023)
-        def replace_match(match, _value_str=value_str, _result=result, _add_quotes=add_quotes):
-            start = match.start()
-
-            # If add_quotes is False, never add quotes (for preserved content blocks)
-            if not _add_quotes:
-                return _value_str
-
-            # Check if this match is inside a preserve tag
-            if is_inside_preserve_tag(_result, start):
-                # Inside preserve tag - no triple quotes
-                return _value_str
-            # Normal variable - add triple quotes
-            return f'"""{_value_str}"""'
-
-        result = re.sub(pattern, replace_match, result)
-
-    return result
+            value_str = str(var_value) if var_value not in (None, "") else VARIABLE_DEFAULT_VALUE
+        preserve = _PreserveTagState()
+        for segment in segments:
+            if not segment.opaque:
+                preserve.feed(segment.text)
+                continue
+            if segment.variable_name == name:
+                segment.text = f'"""{value_str}"""' if add_quotes and not preserve.inside else value_str
+                segment.variable_name = None
+                segment.opaque = False
+            # Read the original marker in this batch, never its new value.
+            preserve.skip_marker()
+    return "".join(segment.text for segment in segments)

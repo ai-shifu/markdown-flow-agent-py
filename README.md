@@ -11,7 +11,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![Type Hints](https://img.shields.io/badge/Type_Hints-Enabled-green.svg)](https://docs.python.org/3/library/typing.html)
 
-English | [简体中文](README_CN.md)
+English | [Simplified Chinese](README_CN.md)
 
 </div>
 
@@ -672,6 +672,44 @@ builder.start_interaction()
 ```
 
 ### Variable System Deep Dive
+
+#### Text variable names
+
+Names are opaque Unicode text. Python `str.strip()` removes surrounding whitespace;
+the remaining name must be nonempty. Internal spaces, punctuation, emoji, single
+braces, brackets, `|`, `//`, and `...` stay exactly as written. Internal control
+characters (U+0000–001F and U+007F–009F) and U+2028/U+2029 are invalid. Case,
+repeated spaces, and Unicode sequences are never normalized; U+FEFF remains part
+of the name.
+
+The first literal `}}` closes a marker. A name cannot contain that pair. Quotes
+and backslashes are literal characters with no decoding rule, and nested `{{`
+inside a name is not another marker. Every complete `{{ ... }}` or `%{{ ... }}`
+is read before interaction delimiters, so internal `]`, `|`, `//`, and `...` stay
+literal. Only a leading assignment marker sets the interaction's variable;
+markers elsewhere in its body remain literal option text. An unterminated
+marker keeps the remaining text opaque, without restarting at an inner `?[`.
+
+At document level, complete inline code, inline math, link resources, URI/email
+angle autolinks, indented code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
+variable examples. Quote/list-contained fences and ordinary HTML blocks also keep
+unfinished examples local. Reference-definition destinations and titles retain
+their complete variable examples. Physical CRLF, LF and CR boundaries preserve
+original offsets and marker text. Complete variable examples there still support collection and replacement,
+but an unclosed example cannot consume text beyond that markup span. Escaped
+document openers stay literal. A true raw marker owns its entire name before any
+code or HTML inside that name is considered; interaction bodies keep the raw
+marker grammar.
+
+Use `format_variable_reference(name)` and `format_variable_assignment(name)` from
+`markdown_flow.variable_names` to emit padded markers such as
+`{{ What is your gender? }}` and `%{{ a} }}`. Padding lets a name end in a single
+brace. Extraction and replacement use the same trimmed key; existing stored keys
+are not renamed or migrated.
+
+The shared conformance corpus is `scripts/variable-name-contract.json`. Run its
+offline parser, document, replacement, translation, and answer round trips with
+`python -m pytest scripts/test_variable_names.py -q`.
 
 ```python
 from markdown_flow import extract_variables_from_text, replace_variables_in_text
