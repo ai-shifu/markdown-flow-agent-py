@@ -38,6 +38,7 @@ COMPILED_LAYER3_ELLIPSIS_REGEX = re.compile(r"^(.*)\.\.\.(.*)")  # Layer 3: Spli
 COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Parse Button//value format
 COMPILED_BRACE_VARIABLE_REGEX = re.compile(r"(?<!%)" + VARIABLE_REFERENCE_SOURCE)
 COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
+COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX = re.compile(r"\x00mdf-name:+[0-9]+\x00")
 
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
 # variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};

@@ -8,7 +8,7 @@ import pytest
 from markdown_flow import InteractionParser, MarkdownFlow
 from markdown_flow.enums import BlockType
 from markdown_flow.llm import LLMProvider, ProcessMode
-from markdown_flow.parser import extract_interaction_question, extract_variables_from_text, generate_smart_validation_template, replace_variables_in_text
+from markdown_flow.parser import CodeBlockPreprocessor, extract_interaction_question, extract_variables_from_text, generate_smart_validation_template, replace_variables_in_text
 from markdown_flow.parser.variable import is_inside_preserve_tag
 from markdown_flow.variable_names import find_variable_markers, format_variable_assignment, format_variable_reference, normalize_variable_name, read_variable_marker
 
@@ -272,3 +272,22 @@ def test_marker_contents_never_change_external_preserve_tag_state(tag, kind, ins
 )
 def test_real_tags_and_tags_emitted_by_values_keep_historical_quote_behavior(source, values, expected):
     assert replace_variables_in_text(source, values) == expected
+
+
+def test_many_opaque_markers_restore_exactly_alongside_code_comments_and_placeholder_collisions():
+    count = 3000
+    authored_placeholder = "\x00mdf-name:0\x00"
+    chunks = [authored_placeholder]
+    expected = [authored_placeholder]
+    processor = CodeBlockPreprocessor()
+    for i in range(count):
+        marker = "{{ question " + str(i) + ' <!--literal--> "quoted"\\path }}'
+        code = "```text\n{{ code " + str(i) + " }}\n```"
+        comment = "<!--\n{{ comment " + str(i) + " }}\n-->"
+        chunks.extend((marker, code, comment))
+        expected.extend((marker, f"__MDFLOW_CODE_BLOCK_{2 * i + 1}__", f"__MDFLOW_HTML_COMMENT_{2 * i + 2}__"))
+    assert processor.extract_code_blocks("\n".join(chunks)) == "\n".join(expected)
+    assert len(processor.code_blocks) == len(processor.html_comments) == count
+    for i in range(count):
+        assert processor.code_blocks[f"__MDFLOW_CODE_BLOCK_{2 * i + 1}__"] == "```text\n{{ code " + str(i) + " }}\n```"
+        assert processor.html_comments[f"__MDFLOW_HTML_COMMENT_{2 * i + 2}__"] == "<!--\n{{ comment " + str(i) + " }}\n-->"

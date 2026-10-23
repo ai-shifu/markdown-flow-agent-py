@@ -5,6 +5,7 @@ Extracts code block content before parsing, implementing CommonMark-compliant fe
 Also extracts HTML comments to prevent them from being sent to LLM.
 """
 
+from ..constants import COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX
 from ..variable_names import read_variable_marker
 from .code_fence_utils import is_code_fence_end, parse_code_fence_start
 from .html_comment_utils import is_html_comment_end, is_html_comment_start, remove_inline_comment
@@ -191,10 +192,14 @@ class CodeBlockPreprocessor:
             result.extend(comment_buffer)
 
         processed = "\n".join(result)
-        for placeholder, original in markers.items():
-            processed = processed.replace(placeholder, original)
-            self.code_blocks = {key: value.replace(placeholder, original) for key, value in self.code_blocks.items()}
-            self.html_comments = {key: value.replace(placeholder, original) for key, value in self.html_comments.items()}
+        if markers:
+
+            def restore_markers(text: str) -> str:
+                return COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX.sub(lambda match: markers.get(match.group(0), match.group(0)), text)
+
+            processed = restore_markers(processed)
+            self.code_blocks = {key: restore_markers(value) for key, value in self.code_blocks.items()}
+            self.html_comments = {key: restore_markers(value) for key, value in self.html_comments.items()}
         return processed
 
     def restore_code_blocks(self, processed: str) -> str:
