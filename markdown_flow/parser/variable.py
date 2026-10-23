@@ -5,6 +5,7 @@ Provides variable extraction and replacement functionality for MarkdownFlow docu
 """
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 
 from ..constants import (
     OUTPUT_INSTRUCTION_PREFIX,
@@ -32,6 +33,15 @@ class _PreserveTagState:
 
     def skip_marker(self) -> None:
         self._tail = ""
+
+
+@dataclass
+class _ReplacementSegment:
+    """Keep original markers distinct from literal text and already rendered values."""
+
+    text: str
+    variable_name: str | None = None
+    opaque: bool = False
 
 
 def extract_variables_from_text(text: str) -> list[str]:
@@ -87,30 +97,36 @@ def replace_variables_in_text(
     if not text or not isinstance(text, str):
         return text or ""
 
-    values = variables or {}
-    out: list[str] = []
-    preserve = _PreserveTagState()
+    values = dict(variables or {})
+    segments: list[_ReplacementSegment] = []
     at = 0
     for marker in find_variable_markers(text):
-        literal = text[at : marker.start]
-        out.append(literal)
-        preserve.feed(literal)
+        segments.append(_ReplacementSegment(text[at : marker.start]))
+        name = marker.name if not (marker.start and text[marker.start - 1] == "%") else None
+        segments.append(_ReplacementSegment(text[marker.start : marker.end], name, opaque=True))
+        if name is not None:
+            values.setdefault(name, VARIABLE_DEFAULT_VALUE)
         at = marker.end
-        if marker.name is None or (marker.start and text[marker.start - 1] == "%"):
-            out.append(text[marker.start : marker.end])
-            preserve.skip_marker()
-            continue
-        var_value = values.get(marker.name, VARIABLE_DEFAULT_VALUE)
+    segments.append(_ReplacementSegment(text[at:]))
+
+    # As in the historical per-variable replacement, every occurrence of one
+    # key sees the same pre-batch state. Only the next key sees emitted values.
+    for name, var_value in values.items():
         if isinstance(var_value, list):
             value_str = ", ".join(str(v) for v in var_value if v is not None and str(v).strip())
             if not value_str:
                 value_str = VARIABLE_DEFAULT_VALUE
         else:
             value_str = str(var_value) if var_value not in (None, "") else VARIABLE_DEFAULT_VALUE
-        rendered = f'"""{value_str}"""' if add_quotes and not preserve.inside else value_str
-        out.append(rendered)
-        # Values remain literal and are never substituted recursively; real tags
-        # they emit still affect later references, as in the historical renderer.
-        preserve.feed(rendered)
-    out.append(text[at:])
-    return "".join(out)
+        preserve = _PreserveTagState()
+        for segment in segments:
+            if not segment.opaque:
+                preserve.feed(segment.text)
+                continue
+            if segment.variable_name == name:
+                segment.text = f'"""{value_str}"""' if add_quotes and not preserve.inside else value_str
+                segment.variable_name = None
+                segment.opaque = False
+            # Read the original marker in this batch, never its new value.
+            preserve.skip_marker()
+    return "".join(segment.text for segment in segments)

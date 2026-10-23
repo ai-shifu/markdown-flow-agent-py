@@ -291,3 +291,24 @@ def test_many_opaque_markers_restore_exactly_alongside_code_comments_and_placeho
     for i in range(count):
         assert processor.code_blocks[f"__MDFLOW_CODE_BLOCK_{2 * i + 1}__"] == "```text\n{{ code " + str(i) + " }}\n```"
         assert processor.html_comments[f"__MDFLOW_HTML_COMMENT_{2 * i + 2}__"] == "<!--\n{{ comment " + str(i) + " }}\n-->"
+
+
+@pytest.mark.parametrize(
+    ("source", "values", "expected"),
+    [
+        ("{{x}} {{x}}", {"x": "<原样输出>"}, '"""<原样输出>""" """<原样输出>"""'),
+        ("<原样输出>{{x}} {{x}}", {"x": "</原样输出>"}, "<原样输出></原样输出> </原样输出>"),
+        ("{{x}} <原样输出>{{x}}</原样输出> {{x}}", {"x": "<原样输出>"}, '"""<原样输出>""" <原样输出><原样输出></原样输出> """<原样输出>"""'),
+        ("{{x}} <原样输出>{{x}}</原样输出> {{x}}", {"x": "</原样输出>"}, '"""</原样输出>""" <原样输出></原样输出></原样输出> """</原样输出>"""'),
+        ("{{x}} {{y}}", {"x": "<原样输出>", "y": "second"}, '"""<原样输出>""" second'),
+        ("{{x}} {{y}}", {"y": "second", "x": "<原样输出>"}, '"""<原样输出>""" """second"""'),
+        ("<原样输出>{{x}} {{y}}", {"x": "</原样输出>", "y": "second"}, '<原样输出></原样输出> """second"""'),
+        ("<原样输出>{{x}} {{y}}", {"y": "second", "x": "</原样输出>"}, "<原样输出></原样输出> second"),
+        ("<原样输出>{{a}}样输出>{{x}}", {"a": "</原", "x": "second"}, '<原样输出></原样输出>"""second"""'),
+        ("<原样输出>{{a}}样输出>{{x}}", {"x": "second", "a": "</原"}, "<原样输出></原样输出>second"),
+        ("{{x}} {{y}}", {"x": "{{y}}", "y": "second"}, '"""{{y}}""" """second"""'),
+        ("{{x}} {{y}}", {"y": "second", "x": "{{y}}"}, '"""{{y}}""" """second"""'),
+    ],
+)
+def test_replacement_preserves_per_key_snapshot_quoting_and_mapping_order(source, values, expected):
+    assert replace_variables_in_text(source, values) == expected
