@@ -31,6 +31,7 @@ def is_preserved_content_block(content: str) -> bool:
     Returns:
         True if content is fully wrapped by preserved markers
     """
+    content, _, _ = _protect_variable_names(content)
     content = content.strip()
     if not content:
         return False
@@ -102,6 +103,14 @@ def _protect_variable_names(content: str) -> tuple[str, dict[str, str], str]:
         at = end
     pieces.append(content[at:])
     return "".join(pieces), markers, prefix
+
+
+def _restore_variable_names(content: str, markers: dict[str, str], prefix: str) -> str:
+    """Restore protected marker source once after output syntax processing."""
+    if not markers:
+        return content
+    token_pattern = re.compile(re.escape(prefix) + r"[0-9]+\x00")
+    return token_pattern.sub(lambda match: markers[match.group()], content)
 
 
 def process_output_instructions(content: str) -> tuple[str, bool]:
@@ -231,9 +240,7 @@ def process_output_instructions(content: str) -> tuple[str, bool]:
 
     # Assemble final content
     processed_content = "\n".join(result_lines)
-    if variable_markers:
-        token_pattern = re.compile(re.escape(variable_prefix) + r"[0-9]+\x00")
-        processed_content = token_pattern.sub(lambda match: variable_markers[match.group()], processed_content)
+    processed_content = _restore_variable_names(processed_content, variable_markers, variable_prefix)
 
     # Return both processed content and whether it contains preserved content
     return processed_content, has_output_instruction
@@ -251,6 +258,7 @@ def extract_preserved_content(content: str) -> str:
     Returns:
         Actual content with === and !=== markers removed
     """
+    content, variable_markers, variable_prefix = _protect_variable_names(content)
     content = content.strip()
     if not content:
         return ""
@@ -275,4 +283,4 @@ def extract_preserved_content(content: str) -> str:
             # Normal content line, keep
             result_lines.append(line)
 
-    return "\n".join(result_lines)
+    return _restore_variable_names("\n".join(result_lines), variable_markers, variable_prefix)
