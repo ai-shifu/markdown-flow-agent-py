@@ -9,6 +9,7 @@ from markdown_flow import InteractionParser, MarkdownFlow
 from markdown_flow.enums import BlockType
 from markdown_flow.llm import LLMProvider, ProcessMode
 from markdown_flow.parser import extract_interaction_question, extract_variables_from_text, generate_smart_validation_template, replace_variables_in_text
+from markdown_flow.parser.variable import is_inside_preserve_tag
 from markdown_flow.variable_names import find_variable_markers, format_variable_assignment, format_variable_reference, normalize_variable_name, read_variable_marker
 
 
@@ -242,3 +243,32 @@ def test_multiline_padding_is_trimmed_before_name_validation():
     assert flow.block_count == 1
     assert flow.extract_variables() == ["name"]
     assert InteractionParser().parse(flow.get_block(0).content)["variable"] == "name"
+
+
+@pytest.mark.parametrize("tag", ["<原样输出>", "</原样输出>"])
+@pytest.mark.parametrize("kind", ["reference", "assignment", "invalid", "invalid_assignment"])
+@pytest.mark.parametrize("inside", [False, True])
+def test_marker_contents_never_change_external_preserve_tag_state(tag, kind, inside):
+    key = tag + ("\ninvalid" if kind.startswith("invalid") else "")
+    marker = "{{" + key + "}}"
+    if "assignment" in kind:
+        marker = "%" + marker
+    prefix = "<原样输出>" if inside else ""
+    source = prefix + marker + " {{x}}"
+    expected_first = marker if kind != "reference" else ("first" if inside else '"""first"""')
+    expected_second = "second" if inside else '"""second"""'
+    assert is_inside_preserve_tag(source, source.index("{{x}}")) == inside
+    assert replace_variables_in_text(source, {key: "first", "x": "second"}) == prefix + expected_first + " " + expected_second
+
+
+@pytest.mark.parametrize(
+    ("source", "values", "expected"),
+    [
+        ("<原样输出>{{x}}</原样输出> {{y}}", {"x": "first", "y": "second"}, '<原样输出>first</原样输出> """second"""'),
+        ("{{a}} {{x}}", {"a": "<原样输出>", "x": "second"}, '"""<原样输出>""" second'),
+        ("<原样输出>{{a}} {{x}}", {"a": "</原样输出>", "x": "second"}, '<原样输出></原样输出> """second"""'),
+        ("<原样输出>{{a}}样输出>{{x}}", {"a": "<原", "x": "second"}, "<原样输出><原样输出>second"),
+    ],
+)
+def test_real_tags_and_tags_emitted_by_values_keep_historical_quote_behavior(source, values, expected):
+    assert replace_variables_in_text(source, values) == expected
