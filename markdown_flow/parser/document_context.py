@@ -75,11 +75,7 @@ def literal_variable_markers(text: str, start: int, end: int) -> Iterator[Variab
     tag_start = start
     while tag_start < min(start + 3, end) and text[tag_start] == " ":
         tag_start += 1
-    token = (
-        COMPILED_INLINE_HTML_REGEX.match(text, tag_start)
-        if tag_start + 1 < end and text[tag_start] == "<" and (text[tag_start + 1].isascii() and text[tag_start + 1].isalpha() or text[tag_start + 1] == "/")
-        else None
-    )
+    token = COMPILED_INLINE_HTML_REGEX.match(text, tag_start) if tag_start < end and text[tag_start] == "<" else None
     boundaries = (start, token.end(), end) if token is not None and token.end() <= end else (start, end)
     for left, right in zip(boundaries, boundaries[1:], strict=False):
         for marker in find_variable_markers(text[left:right]):
@@ -327,6 +323,9 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
     raw_html = _raw_html_bounds(text, start, last_html_ends, blocks)
     if raw_html is not None:
         return raw_html[1]
+    special_html = blocks.terminated_html(start)
+    if special_html is not None:
+        return special_html.end
     ordinary = blocks.ordinary_html(start)
     if ordinary is not None:
         return ordinary.end

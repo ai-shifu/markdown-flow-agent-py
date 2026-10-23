@@ -103,6 +103,10 @@ class CodeBlockPreprocessor:
                     scan = next_line
                     continue
             if document.startswith("<!--", scan):
+                block = literal_reader.blocks.terminated_html(scan)
+                if block is not None:
+                    scan = block.end
+                    continue
                 comment_end = document.find("-->", scan + 4)
                 scan = comment_end + 3 if comment_end >= 0 else len(document)
                 continue

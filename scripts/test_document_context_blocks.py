@@ -104,3 +104,36 @@ def test_complete_inline_examples_in_setext_headings_keep_their_names(delimiter,
 def test_lines_that_are_not_setext_underlines_keep_the_inline_span(delimiter, line):
     source = "Text " + delimiter + "{{ unfinished\n" + line + "\n" + delimiter + " end\n\n?[%{{ real }} A|B]"
     assert extract_variables_from_text(source) == ["real"]
+
+
+HTML_CLOSING_LINE_CASES = [("<!--", "-->"), ("<?x", "?>"), ("<![CDATA[", "]]>"), ("<!DOCTYPE", ">")]
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize(("opening", "closing"), HTML_CLOSING_LINE_CASES)
+def test_complete_html_blocks_bound_unclosed_examples_on_the_closing_line(newline, opening, closing):
+    prefix = newline.join([opening, "{{ unfinished", closing + " {{ still literal", ""])
+    source = prefix + "?[%{{ real }} A|B]"
+    assert extract_variables_from_text(source) == ["real"]
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == ["real"]
+    controls = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
+    assert len(controls) == 1
+    assert InteractionParser().parse(controls[0].content)["variable"] == "real"
+    assert replace_variables_in_text(prefix + "{{ real }}", {"real": "VALUE"}, add_quotes=False) == prefix + "VALUE"
+
+
+@pytest.mark.parametrize(("opening", "closing"), HTML_CLOSING_LINE_CASES)
+def test_html_token_and_closing_line_keep_separate_complete_variable_examples(opening, closing):
+    prefix = opening + "\n{{ unfinished\n" + closing + " {{ tail }}\n"
+    source = prefix + "?[%{{ real }} A|B]"
+    assert set(extract_variables_from_text(source)) == {"tail", "real"}
+    assert replace_variables_in_text(source, {"tail": "VALUE"}, add_quotes=False) == source.replace("{{ tail }}", "VALUE")
+
+
+@pytest.mark.parametrize(("opening", "closing"), HTML_CLOSING_LINE_CASES)
+def test_inline_html_and_unclosed_tokens_keep_their_existing_boundaries(opening, closing):
+    inline = "Text " + opening + "\n" + closing + " {{ still literal\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(inline) == []
+    unclosed = opening + "\n{{ example }}\n?[%{{ real }} A|B]"
+    assert extract_variables_from_text(unclosed) == ["example", "real"]
