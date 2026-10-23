@@ -40,6 +40,15 @@ COMPILED_BRACE_VARIABLE_REGEX = re.compile(r"(?<!%)" + VARIABLE_REFERENCE_SOURCE
 COMPILED_SINGLE_PIPE_SPLIT_REGEX = re.compile(r"(?<!\|)\|(?!\|)")  # Split on single | but not ||
 COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX = re.compile(r"\x00mdf-name:+[0-9]+\x00")
 
+# Inline HTML owns braces in its tag source before document-level MDF scanning.
+_HTML_SPACE = r"[ \t\r\n]"
+_HTML_ATTRIBUTE = r"[A-Za-z_:][A-Za-z0-9_.:-]*(?:" + _HTML_SPACE + r"*=" + _HTML_SPACE + r"*(?:[^ \t\r\n\"'=<>`]+|'[^']*'|\"[^\"]*\"))?"
+COMPILED_INLINE_HTML_REGEX = re.compile(
+    r"(?:<[A-Za-z][A-Za-z0-9-]*(?:" + _HTML_SPACE + r"+" + _HTML_ATTRIBUTE + r")*" + _HTML_SPACE + r"*/?>"
+    r"|</[A-Za-z][A-Za-z0-9-]*" + _HTML_SPACE + r"*>"
+    r"|<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<![A-Z]+" + _HTML_SPACE + r"+[^>]*>|<!\[CDATA\[[\s\S]*?\]\]>)"
+)
+
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
 # variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};
 # the library also tolerantly merges values from any other key.

@@ -12,7 +12,7 @@ from ..constants import (
     OUTPUT_INSTRUCTION_SUFFIX,
     VARIABLE_DEFAULT_VALUE,
 )
-from ..variable_names import find_variable_markers
+from .document_context import find_document_variable_markers
 
 
 class _PreserveTagState:
@@ -58,14 +58,14 @@ def extract_variables_from_text(text: str) -> list[str]:
     Returns:
         Sorted list of unique variable names
     """
-    return sorted({marker.name for marker in find_variable_markers(text) if marker.name is not None})
+    return sorted({marker.name for marker in find_document_variable_markers(text) if marker.name is not None})
 
 
 def is_inside_preserve_tag(text: str, pos: int) -> bool:
     """Read structural preserve state before pos, excluding all complete markers."""
     state = _PreserveTagState()
     at = 0
-    for marker in find_variable_markers(text):
+    for marker in find_document_variable_markers(text):
         if marker.start >= pos:
             break
         state.feed(text[at : marker.start])
@@ -100,7 +100,7 @@ def replace_variables_in_text(
     values = dict(variables or {})
     segments: list[_ReplacementSegment] = []
     at = 0
-    for marker in find_variable_markers(text):
+    for marker in find_document_variable_markers(text):
         segments.append(_ReplacementSegment(text[at : marker.start]))
         name = marker.name if not (marker.start and text[marker.start - 1] == "%") else None
         segments.append(_ReplacementSegment(text[marker.start : marker.end], name, opaque=True))

@@ -6,8 +6,9 @@ Also extracts HTML comments to prevent them from being sent to LLM.
 """
 
 from ..constants import COMPILED_VARIABLE_NAME_PLACEHOLDER_REGEX
-from ..variable_names import read_variable_marker
+from ..variable_names import find_interaction_end, find_variable_markers, read_variable_marker
 from .code_fence_utils import is_code_fence_end, parse_code_fence_start
+from .document_context import read_document_literal_end
 from .html_comment_utils import is_html_comment_end, is_html_comment_start, remove_inline_comment
 
 
@@ -74,6 +75,15 @@ class CodeBlockPreprocessor:
         at = 0
         scan = 0
         mask_fence = None
+        interaction_until = -1
+
+        def protect_marker(start: int, end: int) -> None:
+            nonlocal at
+            placeholder = f"{marker_prefix}{len(markers)}\x00"
+            markers[placeholder] = document[start:end]
+            pieces.extend((document[at:start], placeholder))
+            at = end
+
         while scan < len(document):
             if scan == 0 or document[scan - 1] == "\n":
                 line_end = document.find("\n", scan)
@@ -94,13 +104,21 @@ class CodeBlockPreprocessor:
                 comment_end = document.find("-->", scan + 4)
                 scan = comment_end + 3 if comment_end >= 0 else len(document)
                 continue
+            if scan > interaction_until:
+                literal_end = read_document_literal_end(document, scan)
+                if literal_end is not None:
+                    for example in find_variable_markers(document[scan:literal_end]):
+                        protect_marker(scan + example.start, scan + example.end)
+                    scan = literal_end
+                    continue
+                if document.startswith("?[", scan):
+                    interaction_end = find_interaction_end(document, scan + 2)
+                    interaction_until = interaction_end if interaction_end >= 0 else len(document)
             if document.startswith("{{", scan):
                 marker = read_variable_marker(document, scan)
                 end = marker.end if marker is not None else len(document)
-                placeholder = f"{marker_prefix}{len(markers)}\x00"
-                markers[placeholder] = document[scan:end]
-                pieces.extend((document[at:scan], placeholder))
-                at = scan = end
+                protect_marker(scan, end)
+                scan = end
             else:
                 scan += 1
         pieces.append(document[at:])

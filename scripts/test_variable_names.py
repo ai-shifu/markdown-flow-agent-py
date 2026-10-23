@@ -312,3 +312,119 @@ def test_many_opaque_markers_restore_exactly_alongside_code_comments_and_placeho
 )
 def test_replacement_preserves_per_key_snapshot_quoting_and_mapping_order(source, values, expected):
     assert replace_variables_in_text(source, values) == expected
+
+
+@pytest.mark.parametrize(
+    "example",
+    ["`{{`", "``{{`inside``", r"\{{", r"\\`{{`", '<span title="{{">', "<span title='{{'>", "<span data-x={{>", "<?example {{ ?>", "<![CDATA[{{]]>"],
+)
+def test_literal_marker_examples_do_not_hide_external_fences_or_actual_interactions(example):
+    source = example + "\n```js\ncode\n```\n?[A|B]"
+    processor = CodeBlockPreprocessor()
+    processed = processor.extract_code_blocks(source)
+    assert len(processor.code_blocks) == 1
+    assert "__MDFLOW_CODE_BLOCK_1__" in processed
+    flow = MarkdownFlow(source)
+    assert [block.block_type for block in flow.get_all_blocks()] == [BlockType.CONTENT, BlockType.INTERACTION]
+    interaction = flow.get_block(1)
+    assert [button["value"] for button in InteractionParser().parse(interaction.content)["buttons"]] == ["A", "B"]
+    assert flow.process(1).content == "?[A|B]"
+    result = flow.process(1, user_input={"input": ["A"]})
+    assert result.variables == {}
+    assert result.metadata["answer"] == ["A"]
+
+
+@pytest.mark.parametrize("example", ["`{{`", "``{{`inside``", '<span title="{{">', "<span data-x={{>"])
+@pytest.mark.parametrize("separator", [" then ", "\n"])
+def test_document_extraction_and_replacement_never_cross_a_literal_markup_boundary(example, separator):
+    source = "Show " + example + separator + "?[%{{ q }} A|B]"
+    assert extract_variables_from_text(source) == ["q"]
+    assert MarkdownFlow(source).extract_variables() == ["q"]
+    reference = "Show " + example + separator + "{{ q }}"
+    expected = "Show " + example + separator + '"""answer"""'
+    assert replace_variables_in_text(reference, {"q": "answer"}) == expected
+    messages = MarkdownFlow(reference).get_content_messages(0, {"q": "answer"})
+    assert any(expected in message["content"] for message in messages)
+
+
+def test_complete_variable_examples_inside_markup_keep_existing_collection_and_replacement():
+    source = '`%{{ memory question? }}` <span title="{{ html key }}"> {{ q }}'
+    assert MarkdownFlow(source).extract_variables() == ["html key", "memory question?", "q"]
+    assert replace_variables_in_text(source, {"html key": "attribute", "q": "answer"}, add_quotes=False) == '`%{{ memory question? }}` <span title="attribute"> answer'
+    assert replace_variables_in_text("`{{ q }}`", {"q": "answer"}) == '`"""answer"""`'
+
+
+@pytest.mark.parametrize("source", ["`%{{ a<!-- literal -->b }}`", '<span title="%{{ a<!-- literal -->b }}">'])
+def test_complete_variable_examples_keep_opaque_name_punctuation_during_preprocessing(source):
+    flow = MarkdownFlow(source)
+    assert flow.get_processed_document() == source
+    assert flow.extract_variables() == ["a<!-- literal -->b"]
+
+
+def test_document_escaped_openers_stay_literal_without_changing_raw_marker_apis():
+    source = r"\{{ escaped }} {{ q }}"
+    assert [marker.name for marker in find_variable_markers(source)] == ["escaped", "q"]
+    assert extract_variables_from_text(source) == ["q"]
+    assert replace_variables_in_text(source, {"escaped": "wrong", "q": "answer"}, add_quotes=False) == r"\{{ escaped }} answer"
+    assert extract_variables_from_text(r"\\{{ q }}") == ["q"]
+    assert replace_variables_in_text(r"\\{{ q }}", {"q": "answer"}, add_quotes=False) == r"\\answer"
+    flow = MarkdownFlow(r"\{{ example ?[%{{ q }} A|B]")
+    assert flow.extract_variables() == ["q"]
+    assert flow.get_block(1).block_type == BlockType.INTERACTION
+
+
+@pytest.mark.parametrize(("opening", "closing"), [("```js", "`````"), ("~~~text", "~~~~"), ("   ```", "  ````")])
+def test_fenced_example_boundaries_use_real_fence_lengths_and_keep_legacy_collection_scope(opening, closing):
+    example = opening + "\n{{\n" + closing
+    source = example + "\n?[%{{ q }} A|B]"
+    assert extract_variables_from_text(source) == ["q"]
+    assert MarkdownFlow(source).extract_variables() == ["q"]
+    assert replace_variables_in_text(example + "\n{{ q }}", {"q": "answer"}, add_quotes=False) == example + "\nanswer"
+    complete = opening + "\n{{ example }}\n" + closing + "\n{{ q }}"
+    assert extract_variables_from_text(complete) == ["example", "q"]
+    assert MarkdownFlow(complete).extract_variables() == ["q"]
+    assert replace_variables_in_text(complete, {"example": "literal", "q": "answer"}, add_quotes=False) == opening + "\nliteral\n" + closing + "\nanswer"
+
+
+@pytest.mark.parametrize("prefix", ["{{outside", "`unclosed {{outside", r"\\{{outside", r"\`{{outside", '<span title="{{outside'])
+def test_true_outside_unclosed_markers_still_own_the_remaining_document(prefix):
+    source = prefix + "\n```js\ncode\n```\n?[A|B]"
+    flow = MarkdownFlow(source)
+    assert flow._preprocessor.code_blocks == {}
+    assert flow.block_count == 1
+    assert flow.get_block(0).block_type == BlockType.CONTENT
+    assert flow.get_block(0).content == source
+
+
+def test_true_raw_marker_names_own_markup_punctuation_before_document_lexing():
+    key = 'question `{{` <span title="{{">?'
+    source = "?[" + format_variable_assignment(key) + " A|B]"
+    flow = MarkdownFlow(source)
+    assert flow.extract_variables() == [key]
+    assert flow.block_count == 1
+    assert InteractionParser().parse(flow.get_block(0).content)["variable"] == key
+    assert flow.process(0, user_input={key: ["A"]}).variables == {key: ["A"]}
+
+
+@pytest.mark.parametrize("case", CONTRACT["document_context_cases"], ids=lambda case: case["id"])
+def test_shared_document_context_preserves_collection_replacement_and_real_answers(case):
+    source = case["source"]
+    flow = MarkdownFlow(source)
+    assert extract_variables_from_text(source) == sorted(case["names"])
+    assert flow.extract_variables() == sorted(case["names"])
+    interactions = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
+    assert len(interactions) == case["interaction_count"]
+    for block in interactions:
+        parsed = InteractionParser().parse(block.content)
+        assert parsed.get("variable") == case["name"]
+        assert [button["display"] for button in parsed["buttons"]] == case["buttons"]
+        assert [button["value"] for button in parsed["buttons"]] == case["values"]
+        key = case["name"] or "input"
+        result = flow.process(block.index, user_input={key: [case["values"][0]]})
+        if case["name"] is not None:
+            assert result.variables == {key: [case["values"][0]]}
+        else:
+            assert result.metadata["answer"] == [case["values"][0]]
+    replaced = replace_variables_in_text(source, dict.fromkeys(case["names"], "answer"), add_quotes=False)
+    expected = "Show `answer` then ?[A|B]" if case["id"] == "complete-inline-code-reference" else source
+    assert replaced == expected

@@ -61,8 +61,9 @@ from .parser import (
     process_output_instructions,
     replace_variables_in_text,
 )
+from .parser.document_context import find_document_interaction_spans, find_document_protected_spans
 from .tag_filter import StreamTagFilter, strip_preserve_tags
-from .variable_names import find_interaction_spans, find_variable_markers
+from .variable_names import find_variable_markers
 
 
 def _translation_marker_spans(text: str) -> list[tuple[int, int]]:
@@ -536,11 +537,7 @@ class MarkdownFlow:
         # Parse the preprocessed document (code blocks already replaced with placeholders)
         # The preprocessing was done once during initialization
         source = self._processed_document
-        protected = [(marker.start, marker.end) for marker in find_variable_markers(source)]
-        last_marker_end = protected[-1][1] if protected else 0
-        unclosed = source.find("{{", last_marker_end)
-        if unclosed >= 0:
-            protected.append((unclosed, len(source)))
+        protected = list(find_document_protected_spans(source))
         segments = []
         at = 0
         protected_at = 0
@@ -557,7 +554,7 @@ class MarkdownFlow:
         for segment in segments:
             at = 0
             parts: list[tuple[str, bool]] = []
-            for start, end in find_interaction_spans(segment):
+            for start, end in find_document_interaction_spans(segment):
                 parts.extend(((segment[at:start], False), (segment[start:end], True)))
                 at = end
             parts.append((segment[at:], False))
