@@ -11,6 +11,7 @@ from ..constants import (
     COMPILED_PHYSICAL_LINE_END_REGEX,
     COMPILED_RAW_HTML_END_REGEX,
     COMPILED_RAW_HTML_START_REGEX,
+    COMPILED_REFERENCE_PREFIX_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
 from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink
@@ -287,6 +288,9 @@ class DocumentLiteralReader:
         self.blocks = DocumentBlocks(text, COMPILED_INLINE_HTML_REGEX)
         self.math_spans = _math_spans(text, self.last_html_ends, self.blocks)
         self.labels: list[tuple[bool, bool]] = []
+        self.label_starts: list[int] = []
+        self.image_labels: list[tuple[int, int]] = []
+        self.reference_labels: set[str] = set()
         self.active_links: set[int] = set()
         self.resource_start = -1
         self.resource_image = False
@@ -295,11 +299,17 @@ class DocumentLiteralReader:
         index = self.blocks.by_start.get(start)
         if index is not None and (index == 0 or self.blocks.blank(index - 1)):
             self.labels.clear()
+            self.label_starts.clear()
             self.active_links.clear()
         reference_start = self.blocks.reference_prefix(start)
         if reference_start is not None:
             reference_end = read_reference_end(self.text, reference_start, self.blocks)
             if reference_end is not None:
+                content_start = self.blocks.block_content_start(self.blocks.by_start[start])
+                if content_start is not None:
+                    label = COMPILED_REFERENCE_PREFIX_REGEX.match(self.text, content_start)
+                    if label is not None:
+                        self.reference_labels.add(" ".join(label.group(1).split()).lower().upper())
                 return reference_end
         end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends, blocks=self.blocks)
         if end is not None:
@@ -320,11 +330,15 @@ class DocumentLiteralReader:
                 before -= 1
             image = image and (start - 1 - before) % 2 == 0
             self.labels.append((image, True))
+            self.label_starts.append(start)
             if not image:
                 self.active_links.add(len(self.labels) - 1)
         elif self.text[start] == "]" and self.labels:
             self.active_links.discard(len(self.labels) - 1)
             self.resource_image, active = self.labels.pop()
+            label_start = self.label_starts.pop()
+            if self.resource_image and active:
+                self.image_labels.append((label_start, start + 1))
             self.resource_start = start + 1 if active else -1
         return None
 
@@ -436,6 +450,40 @@ def find_document_variable_markers(text: str) -> Iterator[VariableMarker]:
                 yield marker
 
 
+def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
+    """Find confirmed image labels without mistaking incomplete notation for alt text."""
+    reader = DocumentLiteralReader(text)
+    at = 0
+    while at < len(text):
+        literal_end = reader.read(at)
+        if literal_end is not None:
+            at = literal_end
+        elif text.startswith("{{", at):
+            marker = read_variable_marker(text, at)
+            at = marker.end if marker is not None else len(text)
+        else:
+            at += 1
+    for start, end in reader.image_labels:
+        if text[end : end + 1] == "(" and read_link_resource_end(text, end) is not None:
+            yield start, end
+        elif text[end : end + 1] == "[":
+            # A full reference image may use brackets in its alt text, but the
+            # explicit reference label cannot contain an unescaped bracket.
+            at = end + 1
+            while at < len(text) and at - end <= 999:
+                if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+                    at += 2
+                elif text[at] == "[" or COMPILED_BLANK_LINE_REGEX.match(text, at) is not None:
+                    break
+                elif text[at] == "]":
+                    label = " ".join(text[end + 1 : at].split()).lower().upper()
+                    if label and label in reader.reference_labels:
+                        yield start, end
+                    break
+                else:
+                    at += 1
+
+
 def find_document_protected_spans(text: str) -> Iterator[tuple[int, int]]:
     """Keep document separators outside marker names and already-owned markup."""
     for start, end, _ in _document_units(text):
@@ -446,6 +494,8 @@ def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
     """Find controls outside markup while retaining raw ownership inside controls."""
     at = 0
     reader = DocumentLiteralReader(text)
+    image_labels = sorted(find_document_image_labels(text)) if "![" in text else []
+    image_index = 0
     while at < len(text):
         literal_end = reader.read(at)
         if literal_end is not None:
@@ -456,6 +506,13 @@ def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
                 return
             at = marker.end
         elif text.startswith("?[", at):
+            while image_index < len(image_labels) and image_labels[image_index][1] <= at:
+                image_index += 1
+            if image_index < len(image_labels) and image_labels[image_index][0] <= at:
+                # Replay the native label so its brackets and resource retain
+                # their existing document state; alt text cannot host controls.
+                at += 1
+                continue
             end, closed = reader.blocks.interaction_limit(at + 2, lambda position: marker.end if (marker := read_variable_marker(text, position)) is not None else None)
             if not closed:
                 at = end

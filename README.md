@@ -686,9 +686,13 @@ The first literal `}}` closes a marker. A name cannot contain that pair. Quotes
 and backslashes are literal characters with no decoding rule, and nested `{{`
 inside a name is not another marker. Every complete `{{ ... }}` or `%{{ ... }}`
 is read before interaction delimiters, so internal `]`, `|`, `//`, and `...` stay
-literal. Only a leading assignment marker sets the interaction's variable;
+literal. Both `?[%{{answer}} A | B]` and `?[{{answer}} A | B]` assign the selected
+answer to `answer`. Only a leading marker (after optional whitespace) sets the interaction's variable;
 markers elsewhere in its body remain literal option text. An unterminated
 marker keeps the remaining text opaque, without restarting at an inner `?[`.
+The leading binding is preserved during variable replacement, even if memory
+already has a value for that key. Outside interactions, `{{answer}}` remains a
+replaceable reference and `%{{answer}}` remains preserved.
 
 At document level, complete inline code, inline math, link resources, URI/email
 angle autolinks, indented code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local

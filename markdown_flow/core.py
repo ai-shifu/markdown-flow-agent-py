@@ -939,9 +939,8 @@ class MarkdownFlow:
 
         interaction_type = parse_result.get("type")
 
-        # Derive the target variable from the parsed interaction, not from
-        # block.variables: text interpolation (e.g. ?[{{userName}} Continue])
-        # must not be mistaken for the assignment target.
+        # Derive the target from the leading binding, rather than references
+        # elsewhere in the block. Both %{{name}} and {{name}} can bind an answer.
         target_variable = parse_result.get("variable") or DEFAULT_NON_ASSIGNMENT_INPUT_KEY
 
         # Get the target variable value from user_input

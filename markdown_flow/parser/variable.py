@@ -8,11 +8,12 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from ..constants import (
+    COMPILED_LAYER2_VARIABLE_REGEX,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
     VARIABLE_DEFAULT_VALUE,
 )
-from .document_context import find_document_variable_markers
+from .document_context import find_document_interaction_spans, find_document_variable_markers
 
 
 class _PreserveTagState:
@@ -96,13 +97,26 @@ def replace_variables_in_text(
     """
     if not text or not isinstance(text, str):
         return text or ""
+    if "{{" not in text:
+        return text
+
+    # A leading marker binds the answer in either spelling. Preserve only that
+    # occurrence; references in the question body or outside controls still read
+    # memory. The document scanner excludes literal examples and escaped controls.
+    bindings = set()
+    for start, end in find_document_interaction_spans(text):
+        body_start = start + 2
+        binding = COMPILED_LAYER2_VARIABLE_REGEX.match(text[body_start : end - 1])
+        if binding is not None:
+            bindings.add(body_start + binding.start(1) - len("{{"))
 
     values = dict(variables or {})
     segments: list[_ReplacementSegment] = []
     at = 0
     for marker in find_document_variable_markers(text):
         segments.append(_ReplacementSegment(text[at : marker.start]))
-        name = marker.name if not (marker.start and text[marker.start - 1] == "%") else None
+        assignment = marker.start in bindings or (marker.start and text[marker.start - 1] == "%")
+        name = marker.name if not assignment else None
         segments.append(_ReplacementSegment(text[marker.start : marker.end], name, opaque=True))
         if name is not None:
             values.setdefault(name, VARIABLE_DEFAULT_VALUE)
