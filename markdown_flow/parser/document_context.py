@@ -11,7 +11,6 @@ from ..constants import (
     COMPILED_PHYSICAL_LINE_END_REGEX,
     COMPILED_RAW_HTML_END_REGEX,
     COMPILED_RAW_HTML_START_REGEX,
-    COMPILED_REFERENCE_PREFIX_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
 from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink
@@ -301,15 +300,12 @@ class DocumentLiteralReader:
             self.labels.clear()
             self.label_starts.clear()
             self.active_links.clear()
-        reference_start = self.blocks.reference_prefix(start)
-        if reference_start is not None:
+        reference_prefix = self.blocks.reference_label_prefix(start)
+        if reference_prefix is not None:
+            reference_start, label = reference_prefix
             reference_end = read_reference_end(self.text, reference_start, self.blocks)
             if reference_end is not None:
-                content_start = self.blocks.block_content_start(self.blocks.by_start[start])
-                if content_start is not None:
-                    label = COMPILED_REFERENCE_PREFIX_REGEX.match(self.text, content_start)
-                    if label is not None:
-                        self.reference_labels.add(" ".join(label.group(1).split()).lower().upper())
+                self.reference_labels.add(" ".join(label.split()).lower().upper())
                 return reference_end
         end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends, blocks=self.blocks)
         if end is not None:
@@ -470,7 +466,7 @@ def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
             # A full reference image may use brackets in its alt text, but the
             # explicit reference label cannot contain an unescaped bracket.
             at = end + 1
-            while at < len(text) and at - end <= 999:
+            while at < len(text) and at - end <= 1000:
                 if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
                     at += 2
                 elif text[at] == "[" or COMPILED_BLANK_LINE_REGEX.match(text, at) is not None:
