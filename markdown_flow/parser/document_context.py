@@ -305,6 +305,7 @@ class DocumentLiteralReader:
             reference_start, label = reference_prefix
             reference_end = read_reference_end(self.text, reference_start, self.blocks)
             if reference_end is not None:
+                self.blocks.closed_reference_lines.add(self.blocks.line_at(reference_end).start)
                 self.reference_labels.add(" ".join(label.split()).lower().upper())
                 return reference_end
         end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends, blocks=self.blocks)
@@ -348,6 +349,7 @@ def read_document_literal_end(text: str, start: int, *, last_html_ends: dict[str
         return fenced.end
     indented_end = _indented_code_end(text, start, blocks)
     if indented_end is not None:
+        blocks.closed_indented_lines.add(blocks.line_at(indented_end).start)
         return indented_end
     raw_html = _raw_html_bounds(text, start, last_html_ends, blocks)
     if raw_html is not None:

@@ -22,7 +22,7 @@ MarkdownFlow（也称为 MDFlow 或 markdown-flow）通过 AI 扩展了标准 Ma
 ```bash
 pip install markdown-flow
 # 或
-pip install -e .  # 用于开发
+pip install -e ".[test]"  # 用于开发和离线测试
 ```
 
 ### 基础用法

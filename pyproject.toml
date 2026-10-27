@@ -19,6 +19,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.optional-dependencies]
+test = ["pytest>=8.0", "markdown-it-py==4.0.0"]
+
 [project.urls]
 "Homepage" = "https://github.com/ai-shifu/markdown-flow-agent-py"
 "Bug Tracker" = "https://github.com/ai-shifu/markdown-flow-agent-py/issues"

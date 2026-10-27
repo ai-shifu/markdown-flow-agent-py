@@ -22,7 +22,7 @@ English | [Simplified Chinese](README_CN.md)
 ```bash
 pip install markdown-flow
 # or
-pip install -e .  # For development
+pip install -e ".[test]"  # For development and offline tests
 ```
 
 ### Basic Usage
