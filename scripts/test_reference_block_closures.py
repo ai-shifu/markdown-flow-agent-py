@@ -1,15 +1,15 @@
 """Validated reference resources, rather than prefixes, close a paragraph."""
 
+from unittest.mock import patch
+
 import pytest
 from markdown_it import MarkdownIt
-from markdown_it.common.normalize_url import normalizeLink, validateLink
-from markdown_it.common.utils import unescapeAll
 
 from markdown_flow import MarkdownFlow, replace_variables_in_text
 from markdown_flow.constants import COMPILED_INLINE_HTML_REGEX
 from markdown_flow.enums import BlockType
 from markdown_flow.parser import document_blocks
-from markdown_flow.parser.document_blocks import DocumentBlocks, is_rendered_link_destination
+from markdown_flow.parser.document_blocks import DocumentBlocks
 from markdown_flow.parser.document_context import find_document_image_labels, find_document_interaction_spans
 
 
@@ -65,7 +65,10 @@ CONTAINER_CONTEXTS = [("", ""), ("> ", "> "), ("- ", "  "), ("1. ", "   "), ("> 
 
 def _assert_contract(source: str, spelling: str) -> bool:
     control = "?[" + spelling + " A | B]"
-    image = "<img " in MarkdownIt().render(source)
+    renderer = MarkdownIt()
+    # Reference definitions remain definitions when the browser sanitizes URLs.
+    with patch.object(renderer, "validateLink", return_value=True):
+        image = "<img " in renderer.render(source)
     assert bool(list(find_document_image_labels(source))) is image
     assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([] if image else [control])
     replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
@@ -162,6 +165,7 @@ def test_reference_closure_lookahead_has_bounded_work(monkeypatch: pytest.Monkey
         r"java\script:alert",
     ],
 )
-def test_stdlib_destination_policy_matches_the_renderer(destination: str) -> None:
-    """Entity and escape eligibility matches the test renderer without a runtime dependency."""
-    assert is_rendered_link_destination(destination) is validateLink(normalizeLink(unescapeAll(destination)))
+def test_destination_schemes_do_not_change_reference_block_closure(destination: str) -> None:
+    """Sanitized URLs still close definitions before a fresh ordered-list item."""
+    source = "![?[{{goal}} A | B]][image]\n\n[one]: <" + destination + ">\n2. [image]: /x"
+    assert _assert_contract(source, "{{goal}}")

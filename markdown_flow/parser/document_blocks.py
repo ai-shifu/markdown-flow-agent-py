@@ -3,8 +3,7 @@
 from bisect import bisect_right
 from collections.abc import Callable
 from dataclasses import dataclass
-from html.entities import html5
-from re import Match, Pattern
+from re import Pattern
 from string import punctuation
 
 from ..constants import (
@@ -13,9 +12,6 @@ from ..constants import (
     COMPILED_DOCUMENT_BREAK_REGEX,
     COMPILED_DOCUMENT_FENCE_REGEX,
     COMPILED_DOCUMENT_TAG_REGEX,
-    COMPILED_LINK_BAD_PROTOCOL_REGEX,
-    COMPILED_LINK_IMAGE_DATA_REGEX,
-    COMPILED_LINK_UNESCAPE_REGEX,
     COMPILED_PHYSICAL_LINE_END_REGEX,
     COMPILED_RAW_HTML_END_REGEX,
     COMPILED_RAW_HTML_START_REGEX,
@@ -908,44 +904,8 @@ class DocumentBlocks:
         return COMPILED_DOCUMENT_BREAK_REGEX.fullmatch(value) is not None or COMPILED_SETEXT_REGEX.fullmatch(value) is not None or (tag is not None and tag.group(1).lower() in HTML_BLOCK_TAGS)
 
 
-def is_rendered_link_destination(destination: str) -> bool:
-    """Match the renderer's default destination eligibility without a runtime dependency."""
-
-    def unescape(match: Match[str]) -> str:
-        escaped = match.group(1)
-        if escaped:
-            return escaped
-        entity = match.group(2)
-        if not entity.startswith("#"):
-            return html5.get(entity + ";", match.group())
-        hexadecimal = entity.startswith(("#x", "#X"))
-        digits = entity[2:] if hexadecimal else entity[1:]
-        if not 1 <= len(digits) <= 8:
-            return match.group()
-        try:
-            code = int(digits, 16 if hexadecimal else 10)
-        except ValueError:
-            return match.group()
-        if (
-            code > 0x10FFFF
-            or 0xD800 <= code <= 0xDFFF
-            or 0xFDD0 <= code <= 0xFDEF
-            or (code & 0xFFFF) in (0xFFFE, 0xFFFF)
-            or 0 <= code <= 8
-            or code == 0x0B
-            or 0x0E <= code <= 0x1F
-            or 0x7F <= code <= 0x9F
-        ):
-            return match.group()
-        return chr(code)
-
-    value = COMPILED_LINK_UNESCAPE_REGEX.sub(unescape, destination) if "\\" in destination or "&" in destination else destination
-    value = value.strip().lower()
-    return COMPILED_LINK_BAD_PROTOCOL_REGEX.match(value) is None or COMPILED_LINK_IMAGE_DATA_REGEX.match(value) is not None
-
-
 def read_reference_resource_end(text: str, start: int, blocks: DocumentBlocks, *, origin: int | None = None) -> int | None:
-    """Read a complete definition resource without claiming an unfinished title."""
+    """Read definition syntax; renderer URL sanitization does not remove its image node."""
     origin = start if origin is None else origin
     at = blocks.reference_space(start, origin)
     if at is None or at >= len(text):
@@ -988,11 +948,6 @@ def read_reference_resource_end(text: str, start: int, blocks: DocumentBlocks, *
     if at == destination_start:
         return None
     destination_end = at
-    destination = text[destination_start:destination_end]
-    if destination.startswith("<"):
-        destination = destination[1:-1]
-    if not is_rendered_link_destination(destination):
-        return None
     destination_line = blocks.line_at(destination_end)
     fallback = destination_line.content_end if not text[destination_end : destination_line.content_end].strip(" \t") else None
     at = blocks.reference_space(at, origin)

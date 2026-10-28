@@ -23,7 +23,6 @@ from .document_blocks import (
     container_opening,
     fence_opening,
     indentation,
-    is_rendered_link_destination,
     read_angle_autolink,
     read_reference_resource_end,
 )
@@ -118,7 +117,7 @@ def literal_variable_markers(text: str, start: int, end: int) -> Iterator[Variab
 
 
 def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit: int, *, image: bool = False) -> int | None:
-    """Read a complete inline-link resource, without claiming an unfinished one."""
+    """Read resource syntax independently of the renderer's later URL sanitization."""
     at = start + 1
 
     def projected(cursor: int) -> int:
@@ -137,7 +136,6 @@ def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit:
     at = skip_space(at)
     if at is None or at >= limit:
         return None
-    destination_start = at
     if text[at] == "<":
         at += 1
         while at < limit:
@@ -173,12 +171,6 @@ def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit:
         if depth:
             return None
     destination_end = at
-    if image:
-        destination = text[destination_start:destination_end]
-        if destination.startswith("<"):
-            destination = destination[1:-1]
-        if not is_rendered_link_destination(destination):
-            return None
     at = skip_space(at)
     if at is None or at >= limit:
         return None
