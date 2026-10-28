@@ -188,6 +188,41 @@ def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit:
     return None
 
 
+def read_image_reference_label(text: str, start: int, blocks: DocumentBlocks, limit: int) -> str | None:
+    """Read a bounded explicit label after projecting its physical prefixes."""
+    if text[start : start + 1] != "[":
+        return None
+    at = start + 1
+    parts: list[str] = []
+    size = 0
+    while at < limit and size <= 999:
+        index = blocks.by_start.get(at)
+        if index is not None and at > start:
+            at = blocks.content_starts[index]
+        if at >= limit:
+            return None
+        character = text[at]
+        if character == "]":
+            return "".join(parts)
+        if character == "[":
+            return None
+        if character == "\\":
+            if at + 1 >= limit or text[at + 1] in "\r\n":
+                return None
+            parts.append(text[at : at + 2])
+            at += 2
+            size += 2
+            continue
+        if character in "\r\n":
+            parts.append("\n")
+            at = blocks.line_at(at).end
+        else:
+            parts.append(character)
+            at += 1
+        size += 1
+    return None
+
+
 def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | None:
     """Read a complete definition resource without claiming an unfinished title."""
     at = blocks.reference_space(start, start)
@@ -317,8 +352,8 @@ class DocumentLiteralReader:
         self.resource_start = -1
         self.resource_image = False
 
-    def link_resource_end(self, start: int) -> int | None:
-        """Bound a resource by its owning paragraph without rescanning lazy suffixes."""
+    def inline_limit(self, start: int) -> int:
+        """Bound a resource or label by its owning paragraph without repeated scans."""
         following = bisect_right(self.resource_breaks, start)
         origin = self.blocks.paragraph_steps[self.blocks.by_start[self.blocks.line_at(start).start]]
         skipped: list[tuple[int, int]] = []
@@ -345,7 +380,11 @@ class DocumentLiteralReader:
             break
         for key in skipped:
             self.resource_limits[key] = limit
-        return read_link_resource_end(self.text, start, self.blocks, limit)
+        return limit
+
+    def link_resource_end(self, start: int) -> int | None:
+        """Read a complete inline resource within the owning paragraph."""
+        return read_link_resource_end(self.text, start, self.blocks, self.inline_limit(start))
 
     def read(self, start: int) -> int | None:
         index = self.blocks.by_start.get(start)
@@ -521,21 +560,9 @@ def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
         if text[end : end + 1] == "(" and reader.link_resource_end(end) is not None:
             yield start, end
         elif text[end : end + 1] == "[":
-            # A full reference image may use brackets in its alt text, but the
-            # explicit reference label cannot contain an unescaped bracket.
-            at = end + 1
-            while at < len(text) and at - end <= 1000:
-                if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
-                    at += 2
-                elif text[at] == "[" or COMPILED_BLANK_LINE_REGEX.match(text, at) is not None:
-                    break
-                elif text[at] == "]":
-                    label = " ".join(text[end + 1 : at].split()).lower().upper()
-                    if label and label in reader.reference_labels:
-                        yield start, end
-                    break
-                else:
-                    at += 1
+            label = read_image_reference_label(text, end, reader.blocks, reader.inline_limit(end))
+            if label and " ".join(label.split()).lower().upper() in reader.reference_labels:
+                yield start, end
 
 
 def find_document_protected_spans(text: str) -> Iterator[tuple[int, int]]:
