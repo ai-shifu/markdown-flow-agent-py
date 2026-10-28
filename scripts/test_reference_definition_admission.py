@@ -8,6 +8,87 @@ from markdown_flow.enums import BlockType
 from markdown_flow.parser.document_context import find_document_image_labels, find_document_interaction_spans
 
 
+@pytest.mark.parametrize("spelling", ["{{goal}}", "%{{goal}}"])
+@pytest.mark.parametrize("marker", ["", "1. ", "2. ", "9. ", "- ", "* ", "2) "])
+@pytest.mark.parametrize("outer", ["", "> ", "  ", "   ", "    "])
+@pytest.mark.parametrize("prefix", ["text", "1. text", "8. text", "- text", "> text", "> 1. text", "- 1. text", "1.\n   text"])
+def test_container_transitions_follow_the_renderer_reference_boundary(prefix: str, outer: str, marker: str, spelling: str) -> None:
+    """Later siblings start blocks, while root and nested lazy paragraphs do not."""
+    control = "?[" + spelling + " A | B]"
+    source = "![" + control + "][image]\n\n" + prefix + "\n" + outer + marker + "[image]: /x"
+    image = "<img " in MarkdownIt().render(source)
+    assert bool(list(find_document_image_labels(source))) is image
+    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([] if image else [control])
+    replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
+    assert replace_variables_in_text(source, {"goal": "old"}, add_quotes=False) == replacement
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("spelling", ["{{goal}}", "%{{goal}}"])
+@pytest.mark.parametrize("multiline", [False, True])
+@pytest.mark.parametrize(
+    ("prefix", "opening", "continuation"),
+    [
+        pytest.param("1. text", "2. ", "   ", id="ordered-sibling"),
+        pytest.param("8. text", "9. ", "   ", id="later-ordered-sibling"),
+        pytest.param("- text", "2. ", "   ", id="bullet-to-ordered"),
+        pytest.param("1. text", "2) ", "   ", id="ordered-delimiter-change"),
+        pytest.param("> text", "2. ", "   ", id="quote-exit"),
+        pytest.param("> 1. text", "> 2. ", ">    ", id="quoted-ordered-sibling"),
+        pytest.param("- 1. text", "  2. ", "     ", id="nested-ordered-sibling"),
+        pytest.param("1.\n   text", "2. ", "   ", id="empty-first-item"),
+        pytest.param("1.   \n   text", "2. ", "   ", id="padded-empty-first-item"),
+        pytest.param("prose", "2. ", "   ", id="root-lazy-paragraph"),
+        pytest.param("1. text\n   prose", "   2. ", "      ", id="nested-lazy-paragraph"),
+        pytest.param("> 1. text", "> ", "> ", id="quote-list-lazy-paragraph"),
+    ],
+)
+def test_container_reference_boundaries_keep_real_flow_answers(prefix: str, opening: str, continuation: str, multiline: bool, spelling: str, newline: str) -> None:
+    """Block splitting and named answers agree with single and multiline image references."""
+    control = "?[" + spelling + " A | B]"
+    definition = opening + ("[course\n" + continuation + "image]: /x" if multiline else "[course image]: /x")
+    source = ("![" + control + "][course image]\n\n" + prefix + "\n" + definition).replace("\n", newline)
+    image = "<img " in MarkdownIt().render(source)
+    assert bool(list(find_document_image_labels(source))) is image
+    flow = MarkdownFlow(source)
+    questions = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
+    assert [block.content for block in questions] == ([] if image else [control])
+    replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
+    assert replace_variables_in_text(source, {"goal": "old"}, add_quotes=False) == replacement
+    if questions:
+        assert flow.process(questions[0].index, variables={"goal": "old"}, user_input={"goal": ["A"]}).variables == {"goal": ["A"]}
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+@pytest.mark.parametrize("spelling", ["{{goal}}", "%{{goal}}"])
+@pytest.mark.parametrize(
+    ("definition", "image"),
+    [
+        ("1. text\n2. [course\nimage]: /x", True),
+        ("> 1. text\n> 2. [course\n> image]: /x", True),
+        ("- > 1. text\n  > 2. [course\n  > image]: /x", True),
+        ("1. text\n   1. nested\n   2. [course\n   image]: /x", True),
+        ("> 1. text\n> 2. [course image]:\n> /x", True),
+        ("> 1. text\n> [course\n> image]: /x", False),
+        ("1. text\n   paragraph\n   2. [course\n   image]: /x", False),
+        ("paragraph\n2. [course\nimage]: /x", False),
+        ("1.\n   text\n2. [course image]: /x", True),
+        ("1.   \n   text\n2. [course image]: /x", True),
+        ("1.\n\n   text\n2. [course image]: /x", False),
+        ("> 1.\n>\n> text\n> 2. [course image]: /x", False),
+    ],
+)
+def test_partial_container_references_and_empty_items_preserve_visible_controls(definition: str, image: bool, spelling: str, newline: str) -> None:
+    """Lazy reference continuations retain outer quotes and empty items close on blanks."""
+    control = "?[" + spelling + " A | B]"
+    source = ("![" + control + "][course image]\n\n" + definition).replace("\n", newline)
+    assert ("<img " in MarkdownIt().render(source)) is image
+    assert bool(list(find_document_image_labels(source))) is image
+    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([] if image else [control])
+    replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
+    assert replace_variables_in_text(source, {"goal": "old"}, add_quotes=False) == replacement
+
+
 @pytest.mark.parametrize("multiline", [False, True])
 @pytest.mark.parametrize(
     ("prefix", "container"),

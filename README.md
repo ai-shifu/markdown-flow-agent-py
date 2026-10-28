@@ -694,6 +694,10 @@ The leading binding is preserved during variable replacement, even if memory
 already has a value for that key. Outside interactions, `{{answer}}` remains a
 replaceable reference and `%{{answer}}` remains preserved.
 
+Confirmed image alt text stays content. Its reference definition may span lines,
+but must start a Markdown block. Later numbered list items start new blocks;
+ordinary and lazy paragraph continuations do not.
+
 At document level, complete inline code, inline math, link resources, URI/email
 angle autolinks, indented code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
 variable examples. Quote/list-contained fences and ordinary HTML blocks also keep
