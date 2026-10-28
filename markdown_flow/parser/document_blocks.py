@@ -220,6 +220,23 @@ def container_opening_info(line: str, *, column: int = 0, virtual: int = 0) -> t
     """Read explicit containers without consuming their following code indentation."""
     at = 0
     steps: list[int] = []
+    # Index the eligible suffix once instead of rescanning it at every list level.
+    thematic_start = thematic_limit = -1
+    thematic_marker = ""
+    thematic_size = 0
+    for offset in range(len(line) - 1, -1, -1):
+        character = line[offset]
+        if character in " \t":
+            continue
+        if not thematic_marker and character in "*-_":
+            thematic_marker = character
+        if character != thematic_marker:
+            break
+        thematic_size += 1
+        if thematic_size == 3:
+            thematic_limit = offset
+        if thematic_size >= 3:
+            thematic_start = offset
     while at < len(line):
         before, before_column, before_virtual = at, column, virtual
         spaces = virtual
@@ -241,6 +258,8 @@ def container_opening_info(line: str, *, column: int = 0, virtual: int = 0) -> t
                 virtual = width - 1
                 at += 1
             continue
+        if thematic_start >= 0 and thematic_start <= at <= thematic_limit:
+            return before, tuple(steps), before_virtual
         marker = COMPILED_CONTAINER_LIST_REGEX.match(line, at)
         if marker is None or spaces > 3:
             return before, tuple(steps), before_virtual
@@ -717,11 +736,9 @@ class DocumentBlocks:
                     paragraph = False
                     continue
             empty_list_base = None
-            if info is None and not paragraph:
-                active = ()
             base = active if info is not None else ()
             exited = False
-            if info is None and paragraph:
+            if info is None:
                 # A sibling item can start at any matched ancestor. Plain text
                 # instead continues lazily without restarting that paragraph.
                 matched, unmatched = 0, len(active)
@@ -735,6 +752,8 @@ class DocumentBlocks:
                         matched, info = depth, candidate
                 base = active[:matched]
                 exited = base != active
+                if not paragraph:
+                    active = base
             content, virtual = info if info is not None else (0, 0)
             remaining = value[content:]
             after, steps, opening_virtual = container_opening_info(remaining, column=column_at(value, content), virtual=virtual)
@@ -756,6 +775,8 @@ class DocumentBlocks:
                 paragraph = True
             if fence_opening(remaining) is not None or COMPILED_ATX_START_REGEX.match(remaining) is not None or COMPILED_DOCUMENT_BREAK_REGEX.fullmatch(remaining) is not None:
                 paragraph = False
+            if COMPILED_DOCUMENT_BREAK_REGEX.fullmatch(remaining) is not None:
+                active = self.container_steps[index]
         return boundaries
 
     @staticmethod
