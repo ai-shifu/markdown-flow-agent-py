@@ -708,11 +708,12 @@ class DocumentBlocks:
                 if index >= len(self.lines):
                     return None
                 line = self.lines[index]
-                content, value, interrupt = self.reference_projection(index, steps)
+                content, value, interrupt, virtual = self.reference_projection(index, steps)
                 if not value.strip(" \t"):
                     return None
                 if interrupt or self.reference_block_interrupts(value):
                     return None
+                size += virtual
                 at = content
                 while at < line.content_end and self.text[at] in " \t":
                     size += self.label_character_size(at)
@@ -731,7 +732,7 @@ class DocumentBlocks:
         while at < len(self.text):
             index = self.by_start.get(at)
             if index is not None and at > origin:
-                content, value, interrupt = self.reference_projection(index, steps)
+                content, value, interrupt, _ = self.reference_projection(index, steps)
                 if not value.strip(" \t"):
                     return None
                 if interrupt or self.reference_block_interrupts(value):
@@ -750,7 +751,7 @@ class DocumentBlocks:
         steps = self.container_steps[self.by_start[origin_line.start]]
         return any(not self.reference_projection(index, steps)[1].strip(" \t") for index in range(first + 1, last))
 
-    def reference_projection(self, index: int, steps: tuple[int, ...]) -> tuple[int, str, bool]:
+    def reference_projection(self, index: int, steps: tuple[int, ...]) -> tuple[int, str, bool, int]:
         """Project reference lookahead independently of future paragraph indexing."""
         line = self.lines[index]
         value = self.text[line.start : line.content_end]
@@ -763,7 +764,7 @@ class DocumentBlocks:
         _, opening, _ = container_opening_info(remaining, column=column_at(value, content), virtual=virtual)
         interrupt = bool(opening)
         at, width = indentation(value, content, virtual)
-        return line.start + content, " " * min(width, 4) + value[at:], interrupt
+        return line.start + content, " " * min(width, 4) + value[at:], interrupt, virtual
 
     @staticmethod
     def reference_block_interrupts(value: str) -> bool:
@@ -986,7 +987,7 @@ def read_reference_resource_end(text: str, start: int, blocks: DocumentBlocks, *
         index = blocks.by_start.get(at)
         if index is not None:
             steps = blocks.container_steps[blocks.by_start[blocks.line_at(origin).start]]
-            content, value, interrupt = blocks.reference_projection(index, steps)
+            content, value, interrupt, _ = blocks.reference_projection(index, steps)
             if not value.strip(" \t") or interrupt or blocks.reference_block_interrupts(value):
                 return fallback if title_next_line else None
             at = content

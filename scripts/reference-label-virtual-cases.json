@@ -1,0 +1,3283 @@
+{
+  "provenance": "Actual markdown-flow-ui 0.3.3 ContentRender observations through the remark-flow 1.4.2 application bridge on Node 22.23.4. This bounded subset represents all 30 container/TAB patterns and closing-bracket checks. Repeated literal chunks preserve exact captured sources; every source SHA-256 and selected line ending was checked against the complete 4320-case observation corpus.",
+  "cases": [
+    {
+      "id": "0|text|use|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\nSSS]"
+      ],
+      "sha256": "51ee150c27e5850f203044c54d38b6b66ae7e652aab7d248ed24718c31fce050",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|text|definition|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        "\nSSS]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "41f52b8d3881f247e3116dcf5f655652e7be7509955eec2ea93dfed6a23f8427",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|text|use|tab|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "f40bd1b549d9b2f58d20fe92b35dd8a86153b505be3429efda118b50b5d18e43",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "0|text|definition|tab|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "5b1c65b67bf27f48c58fe1a8bc59538431d8c520733c950567cb74dd7bd2c705",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "1|text|use|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\nSSS]"
+      ],
+      "sha256": "51ee150c27e5850f203044c54d38b6b66ae7e652aab7d248ed24718c31fce050",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "1|text|definition|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        "\nSSS]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "41f52b8d3881f247e3116dcf5f655652e7be7509955eec2ea93dfed6a23f8427",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "1|text|use|tab|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n \tSSS]"
+      ],
+      "sha256": "e3ba5335c2fc4c2ee8be34e1883c5bfe61ed5bb4ed14c6b553360e870e469a10",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "1|text|definition|tab|bare|before",
+      "parts": [
+        "[",
+        [
+          "\\:",
+          498
+        ],
+        "\n \tSSS]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "788d16705ca9c8d1865c00b46444ef390c176ccfc3440a5694c5dd0d035a0266",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "2|text|use|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]"
+      ],
+      "sha256": "02a575693548b52e3ee9f21cc602ff09dbe54b41d56308fb0f60576564e7c5ec",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "2|text|definition|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "ccac5d4a235f1550b2f8ea5bf0d278e0e0adaae08bc3c0f11502fb44dc7f2e94",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "2|text|use|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]"
+      ],
+      "sha256": "1d44706b51c92974ebf85156a149e84dc9da8e59863b2d1a65cfca0e58b47de4",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "2|text|definition|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "221853b2fcc0ef3fe0a9ddcef79780e80c6b32197f1ebb3a64ad89d89670fdb5",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "3|text|use|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]"
+      ],
+      "sha256": "02a575693548b52e3ee9f21cc602ff09dbe54b41d56308fb0f60576564e7c5ec",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "3|text|definition|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "ccac5d4a235f1550b2f8ea5bf0d278e0e0adaae08bc3c0f11502fb44dc7f2e94",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "3|text|use|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> \tSSS]"
+      ],
+      "sha256": "0bcd399dc41444616887042054ccc59b21cfbb54edda688a43e5bc50ba6630d4",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "3|text|definition|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> \tSSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "0bdce98505b13c1be9b5bb12fea9cd29760296798151ea88d0539a952f69c060",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "4|text|use|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]"
+      ],
+      "sha256": "02a575693548b52e3ee9f21cc602ff09dbe54b41d56308fb0f60576564e7c5ec",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "4|text|definition|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "ccac5d4a235f1550b2f8ea5bf0d278e0e0adaae08bc3c0f11502fb44dc7f2e94",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "4|text|use|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>  \tSSS]"
+      ],
+      "sha256": "11cd7c69ef3def71eced9fdc011e95783a0d4debad8ddcb1ae35748c35cf2d17",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "4|text|definition|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>  \tSSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "82ac1e244d49465fd3484e2e7d4a30b9b2b7731d335f0206962f47146d3e86ec",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "5|text|use|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]"
+      ],
+      "sha256": "02a575693548b52e3ee9f21cc602ff09dbe54b41d56308fb0f60576564e7c5ec",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "5|text|definition|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "ccac5d4a235f1550b2f8ea5bf0d278e0e0adaae08bc3c0f11502fb44dc7f2e94",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "5|text|use|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t SSS]"
+      ],
+      "sha256": "0dd842ac241ca685b92ab4cad84f90708b85ab19c77fbd9c1aa47888fe00515e",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "5|text|definition|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t SSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "d3bf6805a3c6ff074a65350817f2bd7a8ea2029887a46a2609314282d2310dde",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "6|text|use|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]"
+      ],
+      "sha256": "02a575693548b52e3ee9f21cc602ff09dbe54b41d56308fb0f60576564e7c5ec",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "6|text|definition|normal|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> SSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "ccac5d4a235f1550b2f8ea5bf0d278e0e0adaae08bc3c0f11502fb44dc7f2e94",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "6|text|use|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t\tSSS]"
+      ],
+      "sha256": "29fe0038ec4c3290b33a461fd61ab4fd17af5e3f707ad3f89cd94fd49f090db6",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "6|text|definition|tab|bare|before",
+      "parts": [
+        "> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t\tSSS]: /x\n>\n> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "39bebd5c1ee916bf72c99d04b3cf0999f1aad69a04c5f5988cc1e984f4fa7dd1",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|text|use|normal|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]"
+      ],
+      "sha256": "1c55e937c06994b637e347dbb463ae64fa2a8bb936b4356bd90a058a03f522c6",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|text|definition|normal|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "73ceab80e734d1dc8c912ae93d56b152db1a00839b5eeda40d20474650473d9b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|text|use|tab|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]"
+      ],
+      "sha256": "1c55e937c06994b637e347dbb463ae64fa2a8bb936b4356bd90a058a03f522c6",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|text|definition|tab|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "73ceab80e734d1dc8c912ae93d56b152db1a00839b5eeda40d20474650473d9b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "8|text|use|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]"
+      ],
+      "sha256": "62bb6b9b8aa28f4b23d3b956163ab2e7674ab52f8ae6ba996c6ee4a31be15880",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "8|text|definition|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "c29158605945af75e9f935e00981b826d08fe0bbaf0da36d1c079db535872d88",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "8|text|use|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "8c2cbec74809400d9da0dce37ea3e49fd7e318128dc2fe01a23a16c1009d6f06",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "8|text|definition|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "b186cab1741ecda4a9e9417716aa5820e7f54913997c53362e89a55b37ce0760",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "9|text|use|normal|bare|before",
+      "parts": [
+        "-\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]"
+      ],
+      "sha256": "ea5396ccdee21ae7ebe84ec8dcc3012f631c0081da98f7cd8bbd7c53f56c29ae",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "9|text|definition|normal|bare|before",
+      "parts": [
+        "-\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "8b26ff8355169d45066373449a386e26725472cd2f88a1856f2493c44ae53e6b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "9|text|use|tab|bare|before",
+      "parts": [
+        "-\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "2757dd44b78cae77e874425930ba628f638dc2bd96b24e9b91fb1d2fcba513a9",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "9|text|definition|tab|bare|before",
+      "parts": [
+        "-\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "04e91b0159dc1eff1ecd72ff0008b7e68fbdfb00dd3f8f1175b536240a2a604b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "10|text|use|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]"
+      ],
+      "sha256": "62bb6b9b8aa28f4b23d3b956163ab2e7674ab52f8ae6ba996c6ee4a31be15880",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "10|text|definition|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "c29158605945af75e9f935e00981b826d08fe0bbaf0da36d1c079db535872d88",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "10|text|use|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n \tSSS]"
+      ],
+      "sha256": "9f18c45bb845ea874c63924cc23092d018f5765138fd7407ca05f2318390ab08",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "10|text|definition|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n \tSSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "9254b972be6b42a2d243cfb9eac817c9f8c2853744f8a5898ceeb8384e04d0f4",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "11|text|use|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]"
+      ],
+      "sha256": "62bb6b9b8aa28f4b23d3b956163ab2e7674ab52f8ae6ba996c6ee4a31be15880",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "11|text|definition|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "c29158605945af75e9f935e00981b826d08fe0bbaf0da36d1c079db535872d88",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "11|text|use|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  \tSSS]"
+      ],
+      "sha256": "c5f295fbd74ec47b276a31e2e23d99948cbdb4f342ee34b00056e0ae58782be5",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "11|text|definition|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  \tSSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "778cd078ac740f3940417f41337073d6754140dfe57cf1e80e820adb01a0fdf9",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "12|text|use|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]"
+      ],
+      "sha256": "62bb6b9b8aa28f4b23d3b956163ab2e7674ab52f8ae6ba996c6ee4a31be15880",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "12|text|definition|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "c29158605945af75e9f935e00981b826d08fe0bbaf0da36d1c079db535872d88",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "12|text|use|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n   \tSSS]"
+      ],
+      "sha256": "7b1c2812b110ba9c4e7758230fedd17955dc5c964d138e27ed2597c24c193123",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "12|text|definition|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n   \tSSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "ccf1e2bd3ca070df2067d2562614aa294d8d155b67d1476a1f952bc29e4bc1e2",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "13|text|use|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]"
+      ],
+      "sha256": "62bb6b9b8aa28f4b23d3b956163ab2e7674ab52f8ae6ba996c6ee4a31be15880",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "13|text|definition|normal|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  SSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "c29158605945af75e9f935e00981b826d08fe0bbaf0da36d1c079db535872d88",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "13|text|use|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t SSS]"
+      ],
+      "sha256": "071154c3a43a31046ab57da003272bbba9f2e717399c8561123f94fde5ee2fc1",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "13|text|definition|tab|bare|before",
+      "parts": [
+        "- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t SSS]: /x\n\n  ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "580aa4d877aaa8514ef25f8c5344c4cae3bbf112a99fb57dbb148cc5c91071fb",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "14|text|use|normal|bare|before",
+      "parts": [
+        "1. [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n   SSS]"
+      ],
+      "sha256": "bbc2577be04bfe862dc8f9d6fbe60f66788740cef238682686178649b0b39667",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "14|text|definition|normal|bare|before",
+      "parts": [
+        "1. [",
+        [
+          "\\:",
+          498
+        ],
+        "\n   SSS]: /x\n\n   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "af6b0232a8d1ae639899371622cbcf3f834a201a4fe723a62905e8b3de0b6b0f",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "14|text|use|tab|bare|before",
+      "parts": [
+        "1. [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "4b664d59ee79a2007b0f10c52156428029a7f91b8c4a5b26de35df6ef7bb196d",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "14|text|definition|tab|bare|before",
+      "parts": [
+        "1. [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "4623185bea14573349c095bf8f4d355340dd7412044d9b2b908281b221732059",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "15|text|use|normal|bare|before",
+      "parts": [
+        "1.\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]"
+      ],
+      "sha256": "de6c625200806d0e909b4e6967c57085ea520ca883c975eff382686314f95e4b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "15|text|definition|normal|bare|before",
+      "parts": [
+        "1.\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "a986c1c25ef5ff9feda8558e819581b637b6b18608d042af65979030b6558302",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "15|text|use|tab|bare|before",
+      "parts": [
+        "1.\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "73fc420780d71d80f3f026e8c0bf4e8624c015b5b5a54a4ec7fec024dae66f63",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "15|text|definition|tab|bare|before",
+      "parts": [
+        "1.\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "3281653178b8bcd0527aaae4856a88f1b7f634e59e59247d2c1daf8014ca682e",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "16|text|use|normal|bare|before",
+      "parts": [
+        "10. [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]"
+      ],
+      "sha256": "e92450817318db11f2ab8ac974d03f5f73939c088efdf6c34b3f95daf638a96a",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "16|text|definition|normal|bare|before",
+      "parts": [
+        "10. [",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "a1eec06308804abe0ca96b916ebb224e4e202c90f58eec9992cae3756aa47432",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "16|text|use|tab|bare|before",
+      "parts": [
+        "10. [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "9ed217c307a4afb6527c0ceba4866fa637321071b9dfc6108e203adaf3787411",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "16|text|definition|tab|bare|before",
+      "parts": [
+        "10. [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "57dc3688199c5828005dce5c9d613a029b63ee6bffb475d620918d5f1ba73c71",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "17|text|use|normal|bare|before",
+      "parts": [
+        "10.\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]"
+      ],
+      "sha256": "901ff29465a50f16dced5bf3e9fc21ecff5bd6dc1b2e9bc79e140bebfefdf53e",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "17|text|definition|normal|bare|before",
+      "parts": [
+        "10.\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "722c1c037e5913796f8201ac81f83e94b38b1b14681f5bf9f9458f817b88644c",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "17|text|use|tab|bare|before",
+      "parts": [
+        "10.\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "be69651b720b402136befbc9d4cb4638a969e6b211f92d88590d4d036063e9dd",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "17|text|definition|tab|bare|before",
+      "parts": [
+        "10.\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "47f68c35c07aae8641f58601c14f08c0800a41a0c8f2613cd0bf6a7eb0fce7ee",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "18|text|use|normal|bare|before",
+      "parts": [
+        "> > [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n> >\n> > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> > SSS]"
+      ],
+      "sha256": "a30ed069d19942ee846a59c2de30aa2bb3e1f1806fa86777beee9e9d04a1ca71",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "18|text|definition|normal|bare|before",
+      "parts": [
+        "> > [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> > SSS]: /x\n> >\n> > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "710571a7cdbd6bf1a29d554f7db74c4024d3dc6eaf3c457517cbf6ddec528115",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "18|text|use|tab|bare|before",
+      "parts": [
+        "> > [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n> >\n> > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> >\tSSS]"
+      ],
+      "sha256": "518723b3451f1c30a9446c994b7d43ce3d68a7007274b9493763d2b7958d292d",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "18|text|definition|tab|bare|before",
+      "parts": [
+        "> > [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> >\tSSS]: /x\n> >\n> > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "3b41a6e267d3835725adf4e871ffe1d83109d9ebd2aea22a21b30e59d3853d8d",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "19|text|use|normal|bare|before",
+      "parts": [
+        ">> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>>\n>> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>> SSS]"
+      ],
+      "sha256": "70aab5bb829efec813676b52544a81ac7b999358def4b08c102f763b9ad40dc1",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "19|text|definition|normal|bare|before",
+      "parts": [
+        ">> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>> SSS]: /x\n>>\n>> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "771cec8b39f7131b04861b272de4bac8839fa432ea1184eeb80604bffa13568c",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "19|text|use|tab|bare|before",
+      "parts": [
+        ">> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>>\n>> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>>\tSSS]"
+      ],
+      "sha256": "7e47e9765f43714a258d593887915a9012e398b2ffa6c0429fdad8ea5cad9b36",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "19|text|definition|tab|bare|before",
+      "parts": [
+        ">> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>>\tSSS]: /x\n>>\n>> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "8e168903ef5f68d25ac69be7ffe2374f5701863fcf72c902472f5dfdd04a87ae",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "20|text|use|normal|bare|before",
+      "parts": [
+        ">\t> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\t>\n>\t> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t> SSS]"
+      ],
+      "sha256": "8ae7e1bd77009d3aea066b11451349b7d1ba8daa24b664fc29bdbb2b98a906e8",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "20|text|definition|normal|bare|before",
+      "parts": [
+        ">\t> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t> SSS]: /x\n>\t>\n>\t> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "aff3f114532128711c88a214e74cd37dcdcf532b837980e705ffbd4e26b8ad7b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "20|text|use|tab|bare|before",
+      "parts": [
+        ">\t> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\t>\n>\t> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t>\tSSS]"
+      ],
+      "sha256": "a8fcd5cad672d240c4fd03071043184c594d778209dd53e400910cbf1ff78011",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "20|text|definition|tab|bare|before",
+      "parts": [
+        ">\t> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t>\tSSS]: /x\n>\t>\n>\t> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "8cbf42bea1e142463028552da3c3e18fe45a56d718702b36c4b8e297e140028a",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "21|text|use|normal|bare|before",
+      "parts": [
+        "- - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]"
+      ],
+      "sha256": "cede2130d884e26d219459e38401a65f2df8380c5cd9beef644ab840c694059f",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "21|text|definition|normal|bare|before",
+      "parts": [
+        "- - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n    SSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "0721cc5461d131d429c42126503062c83fc6399a3c6de7923521f0cdfde35d10",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "21|text|use|tab|bare|before",
+      "parts": [
+        "- - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]"
+      ],
+      "sha256": "70993edc4aaff162d74e6f44fb1eb61e15c35025ccebef31ac7f5f342140c4cd",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "21|text|definition|tab|bare|before",
+      "parts": [
+        "- - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\tSSS]: /x\n\n    ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "717cbecbf970277ba4c137a654fd2ee3ce7f2bc4e6b86128e577c4fd4b785663",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "22|text|use|normal|bare|before",
+      "parts": [
+        "-\t- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n      ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n      SSS]"
+      ],
+      "sha256": "ab9c92fa755d06c3b9d85c7cbdbea23698e1627ed38bd69c880538379bd4d51b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "22|text|definition|normal|bare|before",
+      "parts": [
+        "-\t- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n      SSS]: /x\n\n      ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "15606edce2a521a2177931020cf2689a306af4c8ac1b5e69799b19f971267734",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "22|text|use|tab|bare|before",
+      "parts": [
+        "-\t- [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n      ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t\tSSS]"
+      ],
+      "sha256": "8c3d51163e8a95731b30411f386786fc01005bbb6ce7482617c4a30764ea856a",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "22|text|definition|tab|bare|before",
+      "parts": [
+        "-\t- [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t\tSSS]: /x\n\n      ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "41201ba48f495cb260e45090360e54da789b58c2ad73bd1b4252faac002d54ca",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "23|text|use|normal|bare|before",
+      "parts": [
+        "1. - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n     SSS]"
+      ],
+      "sha256": "1e10fa3265fc5dd5d25095d01a1bcf86793e9666cdbc1d08ee2ac2b7ca459735",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "23|text|definition|normal|bare|before",
+      "parts": [
+        "1. - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n     SSS]: /x\n\n     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "79a420701f03aa4649dd7d91e4abb9b68251f78f8113035660949ed96fd3c294",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "23|text|use|tab|bare|before",
+      "parts": [
+        "1. - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n\n     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t\tSSS]"
+      ],
+      "sha256": "1ccc3321b5ff57a12b53391026bdf08ee02af4b7fcfdabd6a1d3af6fb57cf17e",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "23|text|definition|tab|bare|before",
+      "parts": [
+        "1. - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t\tSSS]: /x\n\n     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "32a5f5cd9d9a41d5517c594ab68adfdae18b7ddfc686b9a8af74b735c8561ed9",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "24|text|use|normal|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>   SSS]"
+      ],
+      "sha256": "e8a61b3078e4341d9c5696224d2466f488007dff4c236aec8007048307a71883",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "24|text|definition|normal|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>   SSS]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "31291fdf8fcb7996a06f3a07580eaab2b4d1a004778e55a56d3a77ee9e60d876",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "24|text|use|tab|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]"
+      ],
+      "sha256": "27d78e2609c1f68235d529a650c9750112e050c5dd0d71bc69cf0f29c41da52b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "24|text|definition|tab|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "a803025912b5f371a1a181ce02ddb948faaa6a4808a895797e3763f84b43daf6",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "25|text|use|normal|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>   SSS]"
+      ],
+      "sha256": "e8a61b3078e4341d9c5696224d2466f488007dff4c236aec8007048307a71883",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "25|text|definition|normal|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>   SSS]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "31291fdf8fcb7996a06f3a07580eaab2b4d1a004778e55a56d3a77ee9e60d876",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "25|text|use|tab|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> \tSSS]"
+      ],
+      "sha256": "3f89e71e4ffc034c276c66c25e7a33e2eea6cb3be482d8f60751203b7cb8e5dc",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "25|text|definition|tab|bare|before",
+      "parts": [
+        "> - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> \tSSS]: /x\n>\n>   ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "a87147cf31e2fe39f49d8d79a963478deca654313bbd2f7ccbf367ec37d91680",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "26|text|use|normal|bare|before",
+      "parts": [
+        "> -\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>     SSS]"
+      ],
+      "sha256": "2a9e7bfbff170f6cd90c327f0fb2f2f397ab4b548e20fecbff27228a4e4e4907",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "26|text|definition|normal|bare|before",
+      "parts": [
+        "> -\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n>     SSS]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "28e082ba13a892d4d2e277c628ddd3c213a5ee203f8f3100e8fe1bdb0c5ec196",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "26|text|use|tab|bare|before",
+      "parts": [
+        "> -\t[",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t\tSSS]"
+      ],
+      "sha256": "940020d1273709ef60792213f2f362c69c3e6e6f9de9f7cd325c228cc52d41b5",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "26|text|definition|tab|bare|before",
+      "parts": [
+        "> -\t[",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\t\tSSS]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "c230d7043c84a6cbe3f88ebf8c92e2186d5786f5478a7c22d23e013c043dabc6",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "27|text|use|normal|bare|before",
+      "parts": [
+        "- > [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n  >\n  > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n  > SSS]"
+      ],
+      "sha256": "5e51c7b94480351aa753b1841e3fbc1e5aee5dfd1d2db5a07f7b0ca9915def53",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "27|text|definition|normal|bare|before",
+      "parts": [
+        "- > [",
+        [
+          "\\:",
+          498
+        ],
+        "\n  > SSS]: /x\n  >\n  > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "b4b7737ede83b924d9394a754bf6b9f6d93e00fc6008c123e826fc5609d995b8",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "27|text|use|tab|bare|before",
+      "parts": [
+        "- > [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n  >\n  > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t>\tSSS]"
+      ],
+      "sha256": "df4cdd5d628545e790684e1f538e7073a5348f2d1c6601b12a5b9e1f35aa1146",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "27|text|definition|tab|bare|before",
+      "parts": [
+        "- > [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t>\tSSS]: /x\n  >\n  > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "9279e590a2631021088faf79fbddcdb44613614ee0b387de1c442f29818f7d67",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "28|text|use|normal|bare|before",
+      "parts": [
+        "-\t> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n    >\n    > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n    > SSS]"
+      ],
+      "sha256": "60d8ad8885a0e7528ff5e3e7f24250d09721c6ef0de19d0d7621a0d60c3d7c7b",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "28|text|definition|normal|bare|before",
+      "parts": [
+        "-\t> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n    > SSS]: /x\n    >\n    > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "cc76270a306391baf090c8f16623b410c287f27cd76c891e440a2eaa64204f8e",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "28|text|use|tab|bare|before",
+      "parts": [
+        "-\t> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n    >\n    > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t>\tSSS]"
+      ],
+      "sha256": "2f86e36b317a4d41225491c463a9e010acbf2d7e137193fa28195f7b3d69665e",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "28|text|definition|tab|bare|before",
+      "parts": [
+        "-\t> [",
+        [
+          "\\:",
+          498
+        ],
+        "\n\t>\tSSS]: /x\n    >\n    > ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "a756383a0f1ae0262a21bbd2177bda833b239a058a071608e526a286006b7aef",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "29|text|use|normal|bare|before",
+      "parts": [
+        "> - - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>     SSS]"
+      ],
+      "sha256": "5393bb100641ebde29adfcdff72269cbf54f7c79f14cc755703b2d71c29f4c85",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "29|text|definition|normal|bare|before",
+      "parts": [
+        "> - - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n>     SSS]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "b2c14d250ca22bdb1908d1dfa283b5a44e9dbb671f22bd9e28be88f1c34b23f5",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "29|text|use|tab|bare|before",
+      "parts": [
+        "> - - [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n> \t\tSSS]"
+      ],
+      "sha256": "8416f079e0db22c3a19973b8884c9ec758748be45b9465740a40b398ee6aaefe",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "29|text|definition|tab|bare|before",
+      "parts": [
+        "> - - [",
+        [
+          "\\:",
+          498
+        ],
+        "\n> \t\tSSS]: /x\n>\n>     ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]"
+      ],
+      "sha256": "56690e4b92ac3617fc255091826fbb09a7c18e99d2ab0ea56fa4e5e0a404e570",
+      "line_endings": [
+        "LF"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|closing|use|normal|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "a",
+          999
+        ],
+        "]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]"
+      ],
+      "sha256": "22ec4c0e4643325aa26236a105e951fc4d12e04d2b63127997f1a2ab4cd014c7",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|closing|use|normal|percent|before",
+      "parts": [
+        ">\t[",
+        [
+          "a",
+          999
+        ],
+        "]: /x\n>\n>\t![?[%{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]"
+      ],
+      "sha256": "045dc6a6da0da86637377d0908cd777b21a0ae5bb77e77a498d33ee0860ab368",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|closing|definition|normal|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "]"
+      ],
+      "sha256": "1539918375b9d3e6bc04345397afc8af96767df0d7452c39ed56c941ebb0407e",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|closing|definition|normal|percent|before",
+      "parts": [
+        ">\t[",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]: /x\n>\n>\t![?[%{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "]"
+      ],
+      "sha256": "547caceb3d46c10cbcc66542ac6ddc4f5c929c8d81b9d7f25d8b1f659905628d",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|closing|both|normal|bare|before",
+      "parts": [
+        ">\t[",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]: /x\n>\n>\t![?[{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]"
+      ],
+      "sha256": "e8dee87ecfb304a96f37563bd57993143102590de8f1f4c725870b45c824ea6d",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "7|closing|both|normal|percent|before",
+      "parts": [
+        ">\t[",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]: /x\n>\n>\t![?[%{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n>\t]"
+      ],
+      "sha256": "e15fb6b75ed92e40779621eac5c6c2247e1c278845d5178f2bab0e91bb2edfb5",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "0|closing|use|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "a",
+          999
+        ],
+        "]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n]"
+      ],
+      "sha256": "b1170a610e4691e839f63b6583c6dcafbe498a63558fd72a167d48a663484166",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|closing|use|normal|percent|before",
+      "parts": [
+        "[",
+        [
+          "a",
+          999
+        ],
+        "]: /x\n\n![?[%{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n]"
+      ],
+      "sha256": "f9a845b655b3bca31c59fa0b0ba210510e5a6051e8c0352a1f0886eb6f05fc77",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|closing|definition|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "a",
+          999
+        ],
+        "\n]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "]"
+      ],
+      "sha256": "fb9cfb7c4c627cd80e1e623f8c827c08012dd33f7635b45148e028b090e949b6",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|closing|definition|normal|percent|before",
+      "parts": [
+        "[",
+        [
+          "a",
+          999
+        ],
+        "\n]: /x\n\n![?[%{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "]"
+      ],
+      "sha256": "def2083b22f278cdaa1deb0a383f320ae6e2cb4b0caf07a4369eb0de2265fafe",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|closing|both|normal|bare|before",
+      "parts": [
+        "[",
+        [
+          "a",
+          999
+        ],
+        "\n]: /x\n\n![?[{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n]"
+      ],
+      "sha256": "7e99920e4ef142d34cc80bfea4e67dad46d831af6962df2f51ffc07a143c805b",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "0|closing|both|normal|percent|before",
+      "parts": [
+        "[",
+        [
+          "a",
+          999
+        ],
+        "\n]: /x\n\n![?[%{{goal}} A | B]][",
+        [
+          "a",
+          999
+        ],
+        "\n]"
+      ],
+      "sha256": "d3e35c91646f80b56ac6f8c1280a22efe1da18389e6a3af6647e19075e27bc2a",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": true,
+      "buttons": []
+    },
+    {
+      "id": "2|text|use|tab|bare|after",
+      "parts": [
+        "> ![?[{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]\n>\n> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x"
+      ],
+      "sha256": "f7db96dba7b018fbc761fe87c417b3ffeb9e42c81932d10aff8ac59a7c0104bd",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "2|text|use|tab|percent|after",
+      "parts": [
+        "> ![?[%{{goal}} A | B]][",
+        [
+          "\\:",
+          498
+        ],
+        "\n>\tSSS]\n>\n> [",
+        [
+          "\\:",
+          498
+        ],
+        " Sß]: /x"
+      ],
+      "sha256": "064882db1f29ce52110ccf835ba2dab5ff70c805daf5915e57c67293e5b5e743",
+      "line_endings": [
+        "LF",
+        "CRLF",
+        "CR"
+      ],
+      "marker": "%{{goal}}",
+      "image": false,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    }
+  ]
+}

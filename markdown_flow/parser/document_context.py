@@ -209,8 +209,9 @@ def read_image_reference_label(text: str, start: int, blocks: DocumentBlocks, li
     while at < limit and size <= 999:
         index = blocks.by_start.get(at)
         if index is not None and at > start:
+            size += blocks.virtual_padding[index]
             at = blocks.content_starts[index]
-        if at >= limit:
+        if at >= limit or size > 999:
             return None
         character = text[at]
         if character == "]":

@@ -708,6 +708,7 @@ physical line ending; only ASCII punctuation can be escaped.
 The browser's 999-unit label budget excludes physical line endings, counts
 non-BMP characters as two units and expands tabs at their source-column stops.
 Continuation padding counts toward that budget after container prefixes.
+This includes virtual spaces left when a container prefix consumes part of a tab.
 Only a complete reference definition closes its block before a fresh list item.
 
 At document level, complete inline code, inline math, link resources, URI/email
