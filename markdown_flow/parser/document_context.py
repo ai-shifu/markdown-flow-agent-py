@@ -306,7 +306,8 @@ class DocumentLiteralReader:
             reference_end = read_reference_end(self.text, reference_start, self.blocks)
             if reference_end is not None:
                 self.blocks.closed_reference_lines.add(self.blocks.line_at(reference_end).start)
-                self.reference_labels.add(" ".join(label.split()).lower().upper())
+                if self.blocks.unclosed_html_start is None or start < self.blocks.unclosed_html_start:
+                    self.reference_labels.add(" ".join(label.split()).lower().upper())
                 return reference_end
         end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends, blocks=self.blocks)
         if end is not None:
@@ -462,6 +463,8 @@ def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
         else:
             at += 1
     for start, end in reader.image_labels:
+        if reader.blocks.unclosed_html_start is not None and start >= reader.blocks.unclosed_html_start:
+            continue
         if text[end : end + 1] == "(" and read_link_resource_end(text, end) is not None:
             yield start, end
         elif text[end : end + 1] == "[":
