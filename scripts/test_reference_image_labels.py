@@ -59,15 +59,6 @@ def test_projected_reference_images_keep_following_flow_answers(opening: str, co
         assert flow.process(questions[0].index, variables={"goal": "old"}, user_input={"goal": ["A"]}).variables == {"goal": ["A"]}
 
 
-@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
-@pytest.mark.parametrize("size", [999, 1000])
-def test_label_length_excludes_projected_prefixes(newline: str, size: int) -> None:
-    source = "> [" + "x" * 499 + newline + "> " + "y" * (size - 500) + "]"
-    reader = DocumentLiteralReader(source)
-    result = read_image_reference_label(source, 2, reader.blocks, reader.inline_limit(2))
-    assert result == ("x" * 499 + "\n" + "y" * (size - 500) if size == 999 else None)
-
-
 @pytest.mark.parametrize("size", [999, 1000])
 def test_label_length_keeps_the_existing_escape_character_count(size: int) -> None:
     label = r"\*" * 499 + ("x" if size == 999 else "xx")

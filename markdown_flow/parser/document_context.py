@@ -227,8 +227,8 @@ def read_image_reference_label(text: str, start: int, blocks: DocumentBlocks, li
             at = blocks.line_at(at).end
         else:
             parts.append(character)
+            size += blocks.label_character_size(at)
             at += 1
-        size += 1
     return None
 
 

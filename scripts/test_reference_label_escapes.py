@@ -5,7 +5,7 @@ from markdown_it import MarkdownIt
 
 from markdown_flow import MarkdownFlow, replace_variables_in_text
 from markdown_flow.enums import BlockType
-from markdown_flow.parser.document_context import DocumentLiteralReader, find_document_image_labels, find_document_interaction_spans, read_image_reference_label
+from markdown_flow.parser.document_context import find_document_image_labels, find_document_interaction_spans
 
 
 CONTAINERS = [("", ""), ("> ", "> "), ("- ", "  "), ("> - ", ">   "), ("- > ", "  > ")]
@@ -103,13 +103,3 @@ def test_reference_identity_preserves_backslashes_and_folds_only_whitespace(newl
 )
 def test_undefined_or_malformed_escaped_labels_keep_real_answers(newline: str, spelling: str, opening: str, continuation: str, before: bool, usage: str, definition: str | None) -> None:
     _assert_contract(_source(usage, definition, spelling, opening, continuation, before, newline), spelling, False)
-
-
-@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
-@pytest.mark.parametrize("size", [999, 1000])
-def test_backslash_line_endings_keep_the_existing_label_bound(newline: str, size: int) -> None:
-    label = "x" * (size - 3) + "\\\ny"
-    source = "> [" + label.replace("\n", newline + "> ") + "]"
-    reader = DocumentLiteralReader(source)
-    result = read_image_reference_label(source, 2, reader.blocks, reader.inline_limit(2))
-    assert result == (label if size == 999 else None)

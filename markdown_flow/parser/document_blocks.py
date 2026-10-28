@@ -385,6 +385,7 @@ class DocumentBlocks:
         self.html_pattern = html
         self._html_token_ends: dict[tuple[int, bool], int | None] = {}
         self._container_ends: dict[tuple[int, tuple[int, ...], bool], int] = {}
+        self._label_tab_widths: dict[int, int] | None = None
         self._html_last_ends: dict[str, int] | None = None
         self.lines = physical_lines(text)
         self.closed_fence_lines: set[int] = set()
@@ -410,6 +411,27 @@ class DocumentBlocks:
     def blank(self, index: int) -> bool:
         """Test Markdown blank padding rather than all Unicode whitespace."""
         return not self.projected_line(index).strip(" \t")
+
+    def label_character_size(self, at: int) -> int:
+        """Count the browser tokenizer units at an original physical source offset."""
+        character = self.text[at]
+        if character in "\r\n":
+            return 0
+        if character != "\t":
+            return 2 if ord(character) > 0xFFFF else 1
+        if self._label_tab_widths is None:
+            self._label_tab_widths = {}
+            column = 0
+            for offset, value in enumerate(self.text):
+                if value in "\r\n":
+                    column = 0
+                elif value == "\t":
+                    width = 4 - column % 4
+                    self._label_tab_widths[offset] = width
+                    column += width
+                elif offset or value != "\ufeff":
+                    column += 2 if ord(value) > 0xFFFF else 1
+        return self._label_tab_widths[at]
 
     def projected_line(self, index: int) -> str:
         """Read native block context after its container prefix at original offsets."""
@@ -649,7 +671,8 @@ class DocumentBlocks:
         match = COMPILED_REFERENCE_PREFIX_REGEX.match(self.text[content_start : line.content_end])
         if match is not None:
             label = match.group(1)
-            if len(label) <= 999 and label.strip(" \t"):
+            label_start = content_start + match.start(1)
+            if len(label) <= 999 and sum(self.label_character_size(at) for at in range(label_start, label_start + len(label))) <= 999 and label.strip(" \t"):
                 return content_start + match.end(), label
             return None
         if self.text[content_start : content_start + 1] != "[":
@@ -677,7 +700,7 @@ class DocumentBlocks:
                 character = self.text[at]
                 if character not in "\r\n":
                     label_parts.append(character)
-                    size += 1
+                    size += self.label_character_size(at)
                     at += 1
                     continue
             if character in "\r\n":
@@ -692,12 +715,12 @@ class DocumentBlocks:
                     return None
                 at = content
                 while at < line.content_end and self.text[at] in " \t":
+                    size += self.label_character_size(at)
                     at += 1
                 label_parts.append("\n")
-                size += 1
                 continue
             label_parts.append(character)
-            size += 1
+            size += self.label_character_size(at)
             at += 1
         return None
 

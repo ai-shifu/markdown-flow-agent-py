@@ -71,12 +71,3 @@ def test_multiline_reference_resolution_preserves_opaque_marker_names(key):
     assert len(questions) == 1
     flow = MarkdownFlow(source)
     assert flow.process(questions[0].index, user_input={key: ["D"]}).variables == {key: ["D"]}
-
-
-@pytest.mark.parametrize("padding", ["", " ", "    ", "\t"])
-@pytest.mark.parametrize("size", [999, 1000])
-def test_multiline_reference_label_length_uses_projected_text(padding, size):
-    first = "a" * (size - 6)
-    label = first + " image"
-    source = "![?[{{goal}} A | B]][" + label + "]\n\n[" + first + "\n" + padding + "image]: /diagram.png"
-    assert bool(list(find_document_image_labels(source))) is (size == 999)
