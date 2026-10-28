@@ -703,6 +703,8 @@ resources retain visible interactions. A complete image node keeps its alt text
 as content even when the browser sanitizes its URL, including SVG data URLs.
 URL sanitization does not turn that alt text into an interactive question.
 Full-reference image labels also follow projected quote/list continuation lines.
+Label backslashes remain part of the reference identity, including before a
+physical line ending; only ASCII punctuation can be escaped.
 Only a complete reference definition closes its block before a fresh list item.
 
 At document level, complete inline code, inline math, link resources, URI/email

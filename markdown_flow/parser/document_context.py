@@ -217,9 +217,7 @@ def read_image_reference_label(text: str, start: int, blocks: DocumentBlocks, li
             return "".join(parts)
         if character == "[":
             return None
-        if character == "\\":
-            if at + 1 >= limit or text[at + 1] in "\r\n":
-                return None
+        if character == "\\" and at + 1 < limit and text[at + 1] in punctuation:
             parts.append(text[at : at + 2])
             at += 2
             size += 2
