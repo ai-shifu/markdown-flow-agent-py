@@ -671,6 +671,21 @@ class DocumentBlocks:
         if not self.indented_may_start(index) and not self.paragraph_interrupts(index):
             return None
         content_start = self.block_content_start(index)
+        if (
+            content_start is None
+            and index
+            and self.lines[index - 1].start in self.closed_reference_lines
+            and not self.paragraph_interrupts(index)
+            and self.paragraph_steps[index] == self.paragraph_steps[index - 1]
+        ):
+            # Consecutive definitions share a content block, whose continuation
+            # indentation is consumed before a new indented-code block can start.
+            content, _ = indentation(
+                self.text[line.start : line.content_end],
+                self.content_starts[index] - line.start,
+                self.virtual_padding[index],
+            )
+            content_start = line.start + content
         if content_start is None:
             return None
         match = COMPILED_REFERENCE_PREFIX_REGEX.match(self.text[content_start : line.content_end])
@@ -833,6 +848,8 @@ class DocumentBlocks:
                 self.content_starts[index] = line.start + content
                 self.virtual_padding[index] = virtual
                 self.container_steps[index] = literal_steps if info is not None else ()
+                if literal_paragraph:
+                    self.paragraph_steps[index] = literal_steps
                 active = literal_steps
                 paragraph = literal_paragraph
                 continue
@@ -933,7 +950,7 @@ class DocumentBlocks:
                     literal_end = resource.end
                     literal_paragraph = True
                     pending_reference = "definition" if not resource.titled and (not continuing_paragraph or entered) and not definition_continuation else None
-                    literal_steps = self.container_steps[index]
+                    literal_steps = self.paragraph_steps[index]
                     paragraph = True
                     active = literal_steps
                 elif reference[0] >= line.content_end:

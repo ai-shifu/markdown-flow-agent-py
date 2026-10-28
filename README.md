@@ -720,7 +720,9 @@ This includes virtual spaces left when a container prefix consumes part of a tab
 Reference definitions retain the browser's paragraph lookahead: a following
 quote or list opener can remain literal paragraph text while a definition waits
 for an optional title. A completed title resolves that lookahead. Definition
-syntax and the surrounding paragraph must both admit a later definition.
+syntax and the surrounding paragraph must both admit a later definition. Consecutive
+definitions accept the continuation indentation of their logical paragraph and
+container. Fresh list items retain separate block ownership.
 
 At document level, complete inline code, inline math, link resources, URI/email
 angle autolinks, indented code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
