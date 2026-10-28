@@ -1,0 +1,653 @@
+{
+  "node": "v22.23.4",
+  "cases": [
+    {
+      "id": "alt-heading('{{goal}}', '\\n')",
+      "kind": "alt-heading",
+      "marker": "{{goal}}",
+      "source": "![prefix\n# ?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "reference-heading('{{goal}}', '\\n')",
+      "kind": "reference-heading",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][id\n# heading]\n\n[id # heading]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "alt-heading('{{goal}}', '\\r\\n')",
+      "kind": "alt-heading",
+      "marker": "{{goal}}",
+      "source": "![prefix\r\n# ?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "reference-heading('{{goal}}', '\\r\\n')",
+      "kind": "reference-heading",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][id\r\n# heading]\r\n\r\n[id # heading]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "alt-heading('{{goal}}', '\\r')",
+      "kind": "alt-heading",
+      "marker": "{{goal}}",
+      "source": "![prefix\r# ?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "reference-heading('{{goal}}', '\\r')",
+      "kind": "reference-heading",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][id\r# heading]\r\r[id # heading]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "alt-heading('%{{goal}}', '\\n')",
+      "kind": "alt-heading",
+      "marker": "%{{goal}}",
+      "source": "![prefix\n# ?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "reference-heading('%{{goal}}', '\\n')",
+      "kind": "reference-heading",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][id\n# heading]\n\n[id # heading]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "alt-heading('%{{goal}}', '\\r\\n')",
+      "kind": "alt-heading",
+      "marker": "%{{goal}}",
+      "source": "![prefix\r\n# ?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "reference-heading('%{{goal}}', '\\r\\n')",
+      "kind": "reference-heading",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][id\r\n# heading]\r\n\r\n[id # heading]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "alt-heading('%{{goal}}', '\\r')",
+      "kind": "alt-heading",
+      "marker": "%{{goal}}",
+      "source": "![prefix\r# ?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "reference-heading('%{{goal}}', '\\r')",
+      "kind": "reference-heading",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][id\r# heading]\r\r[id # heading]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-eof('{{goal}}', '\\n')",
+      "kind": "valid-eof",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-heading('{{goal}}', '\\n')",
+      "kind": "valid-heading",
+      "marker": "{{goal}}",
+      "source": "# ![?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-multiline('{{goal}}', '\\n')",
+      "kind": "valid-multiline",
+      "marker": "{{goal}}",
+      "source": "![prefix\n?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-quote('{{goal}}', '\\n')",
+      "kind": "valid-quote",
+      "marker": "{{goal}}",
+      "source": "> ![prefix\n> ?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-eof('{{goal}}', '\\r\\n')",
+      "kind": "valid-eof",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-heading('{{goal}}', '\\r\\n')",
+      "kind": "valid-heading",
+      "marker": "{{goal}}",
+      "source": "# ![?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-multiline('{{goal}}', '\\r\\n')",
+      "kind": "valid-multiline",
+      "marker": "{{goal}}",
+      "source": "![prefix\r\n?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-quote('{{goal}}', '\\r\\n')",
+      "kind": "valid-quote",
+      "marker": "{{goal}}",
+      "source": "> ![prefix\r\n> ?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-eof('{{goal}}', '\\r')",
+      "kind": "valid-eof",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-heading('{{goal}}', '\\r')",
+      "kind": "valid-heading",
+      "marker": "{{goal}}",
+      "source": "# ![?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-multiline('{{goal}}', '\\r')",
+      "kind": "valid-multiline",
+      "marker": "{{goal}}",
+      "source": "![prefix\r?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-quote('{{goal}}', '\\r')",
+      "kind": "valid-quote",
+      "marker": "{{goal}}",
+      "source": "> ![prefix\r> ?[{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-eof('%{{goal}}', '\\n')",
+      "kind": "valid-eof",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-heading('%{{goal}}', '\\n')",
+      "kind": "valid-heading",
+      "marker": "%{{goal}}",
+      "source": "# ![?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-multiline('%{{goal}}', '\\n')",
+      "kind": "valid-multiline",
+      "marker": "%{{goal}}",
+      "source": "![prefix\n?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-quote('%{{goal}}', '\\n')",
+      "kind": "valid-quote",
+      "marker": "%{{goal}}",
+      "source": "> ![prefix\n> ?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-eof('%{{goal}}', '\\r\\n')",
+      "kind": "valid-eof",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-heading('%{{goal}}', '\\r\\n')",
+      "kind": "valid-heading",
+      "marker": "%{{goal}}",
+      "source": "# ![?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-multiline('%{{goal}}', '\\r\\n')",
+      "kind": "valid-multiline",
+      "marker": "%{{goal}}",
+      "source": "![prefix\r\n?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-quote('%{{goal}}', '\\r\\n')",
+      "kind": "valid-quote",
+      "marker": "%{{goal}}",
+      "source": "> ![prefix\r\n> ?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-eof('%{{goal}}', '\\r')",
+      "kind": "valid-eof",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-heading('%{{goal}}', '\\r')",
+      "kind": "valid-heading",
+      "marker": "%{{goal}}",
+      "source": "# ![?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-multiline('%{{goal}}', '\\r')",
+      "kind": "valid-multiline",
+      "marker": "%{{goal}}",
+      "source": "![prefix\r?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "valid-quote('%{{goal}}', '\\r')",
+      "kind": "valid-quote",
+      "marker": "%{{goal}}",
+      "source": "> ![prefix\r> ?[%{{goal}} A | B]](/x)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "prefix\n?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    }
+  ]
+}

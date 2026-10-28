@@ -505,6 +505,9 @@ def _raw_document_images(text: str) -> tuple[DocumentLiteralReader, list[tuple[i
             at += 1
     images: list[tuple[int, int]] = []
     for start, end in reader.image_labels:
+        # The exclusive label end must stay in its opening paragraph.
+        if end > reader.inline_limit(start):
+            continue
         if reader.blocks.unclosed_html_start is not None and start >= reader.blocks.unclosed_html_start:
             continue
         if text[end : end + 1] == "(" and reader.link_resource_end(end, image=True) is not None:

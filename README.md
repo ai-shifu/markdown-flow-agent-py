@@ -694,7 +694,8 @@ The leading binding is preserved during variable replacement, even if memory
 already has a value for that key. Outside interactions, `{{answer}}` remains a
 replaceable reference and `%{{answer}}` remains preserved.
 
-Confirmed image alt text stays content. Its reference definition may span lines,
+Confirmed image alt text stays content and cannot cross a Markdown paragraph or
+heading boundary. Its reference definition may span lines,
 but must start a Markdown block. Later numbered list items start new blocks;
 ordinary and lazy paragraph continuations do not.
 Multiline inline-image destinations and titles follow quote/list continuations.
