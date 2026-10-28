@@ -82,6 +82,8 @@ def replace_variables_in_text(
     text: str,
     variables: Mapping[str, str | list[str]] | None = None,
     add_quotes: bool = True,
+    *,
+    _preserve_interaction_bindings: bool = True,
 ) -> str:
     """
     Replace variables in text, undefined or empty variables are auto-assigned "UNKNOWN".
@@ -104,7 +106,10 @@ def replace_variables_in_text(
     # occurrence; references in the question body or outside controls still read
     # memory. The document scanner excludes literal examples and escaped controls.
     bindings = set()
-    for start, end in find_document_interaction_spans(text):
+    # Already classified content producers disable binding discovery: their
+    # slices may no longer include the owning definition or native HTML sibling.
+    interactions = find_document_interaction_spans(text) if _preserve_interaction_bindings else ()
+    for start, end in interactions:
         body_start = start + 2
         binding = COMPILED_LAYER2_VARIABLE_REGEX.match(text[body_start : end - 1])
         if binding is not None:

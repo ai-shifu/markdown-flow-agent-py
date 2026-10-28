@@ -704,6 +704,11 @@ paragraph boundaries. Incomplete or syntactically invalid image
 resources retain visible interactions. A complete image node keeps its alt text
 as content even when the browser sanitizes its URL, including SVG data URLs.
 URL sanitization does not turn that alt text into an interactive question.
+Reference definitions belong to the Markdown source run rendered by the learner
+UI. Separate backtick-code, SVG and sandbox-HTML fragments do not share those
+definitions. Native HTML can keep its neighboring Markdown in a single rich run;
+tilde and container fences retain their renderer-specific ownership. Code-block
+preprocessing preserves these distinctions when the document is split into blocks.
 Full-reference image labels also follow projected quote/list continuation lines.
 Label backslashes remain part of the reference identity, including before a
 physical line ending; only ASCII punctuation can be escaped.

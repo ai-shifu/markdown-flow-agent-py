@@ -559,7 +559,7 @@ class MarkdownFlow:
         for segment in segments:
             at = 0
             parts: list[tuple[str, bool]] = []
-            for start, end in find_document_interaction_spans(segment):
+            for start, end in find_document_interaction_spans(segment, code_blocks=self._preprocessor.code_blocks):
                 parts.extend(((segment[at:start], False), (segment[start:end], True)))
                 at = end
             parts.append((segment[at:], False))
@@ -744,8 +744,10 @@ class MarkdownFlow:
         # Extract preserved content (remove !=== markers)
         content = extract_preserved_content(block.content)
 
+        # Real controls were already split into INTERACTION blocks. A sliced
+        # content block must not claim a binding after losing its render-run context.
         # Replace variables without adding quotes (preserved content should remain as-is)
-        content = replace_variables_in_text(content, variables or {}, add_quotes=False)
+        content = replace_variables_in_text(content, variables or {}, add_quotes=False, _preserve_interaction_bindings=False)
 
         # Restore code blocks (replace placeholders with original code blocks)
         content = self._preprocessor.restore_code_blocks(content)
@@ -1363,8 +1365,8 @@ class MarkdownFlow:
         # Returns: (processed_content, has_preserved_content)
         block_content, has_preserved_content = process_output_instructions(block_content)
 
-        # Replace variables
-        block_content = replace_variables_in_text(block_content, variables or {})
+        # Real controls were split earlier; this content fragment contains reads.
+        block_content = replace_variables_in_text(block_content, variables or {}, _preserve_interaction_bindings=False)
 
         # Restore code blocks only (let LLM see real code block content)
         # Code block preprocessing prevents parser from misinterpreting

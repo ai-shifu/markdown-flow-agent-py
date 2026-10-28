@@ -2,6 +2,7 @@
 
 import pytest
 from markdown_it import MarkdownIt
+from render_observations import observed_rendering
 
 from markdown_flow import MarkdownFlow, replace_variables_in_text
 from markdown_flow.enums import BlockType
@@ -134,12 +135,12 @@ def test_reference_definitions_start_only_at_native_block_boundaries(prefix: str
     """Only renderer-admitted definitions can turn an alt control into a real image."""
     definition = container + ("[course\n" + container + "image]: /x" if multiline else "[course image]: /x")
     source = "![?[{{goal}} A | B]][course image]\n\n" + prefix + definition
-    image = "<img " in MarkdownIt().render(source)
+    image, visible = observed_rendering(source, "<img " in MarkdownIt().render(source))
     assert bool(list(find_document_image_labels(source))) is image
     controls = list(find_document_interaction_spans(source))
-    assert [source[start:end] for start, end in controls] == ([] if image else ["?[{{goal}} A | B]"])
+    assert [source[start:end] for start, end in controls] == (["?[{{goal}} A | B]"] if visible else [])
     replaced = replace_variables_in_text(source, {"goal": "old"}, add_quotes=False)
-    assert replaced == (source.replace("{{goal}}", "old") if image else source)
+    assert replaced == (source.replace("{{goal}}", "old") if not visible else source)
 
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])

@@ -2,6 +2,7 @@
 
 import pytest
 from markdown_it import MarkdownIt
+from render_observations import observed_rendering
 
 from markdown_flow import MarkdownFlow, replace_variables_in_text
 from markdown_flow.enums import BlockType
@@ -10,16 +11,16 @@ from markdown_flow.parser.document_context import find_document_image_labels, fi
 
 def _assert_image_contract(source: str, spelling: str, *, check_flow: bool = True) -> None:
     control = "?[" + spelling + " A | B]"
-    image = "<img " in MarkdownIt().render(source)
+    image, visible = observed_rendering(source, "<img " in MarkdownIt().render(source))
     assert bool(list(find_document_image_labels(source))) is image
-    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([] if image else [control])
-    replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
+    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([control] if visible else [])
+    replacement = source.replace("{{goal}}", "old") if not visible and spelling == "{{goal}}" else source
     assert replace_variables_in_text(source, {"goal": "old"}, add_quotes=False) == replacement
     if not check_flow:
         return
     flow = MarkdownFlow(source)
     questions = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
-    assert [block.content for block in questions] == ([] if image else [control])
+    assert [block.content for block in questions] == ([control] if visible else [])
     if questions:
         assert flow.process(questions[0].index, variables={"goal": "old"}, user_input={"goal": ["A"]}).variables == {"goal": ["A"]}
 

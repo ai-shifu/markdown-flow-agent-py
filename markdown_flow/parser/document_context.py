@@ -1,7 +1,8 @@
 """Document-stage boundaries without changing the raw variable-marker grammar."""
 
+import re
 from bisect import bisect_right
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from string import punctuation
 
 from ..constants import (
@@ -26,6 +27,7 @@ from .document_blocks import (
     read_angle_autolink,
     read_reference_resource_end,
 )
+from .rendered_reference_runs import RunIndex, build_ownership, normalize_markdown_run
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -345,7 +347,8 @@ class DocumentLiteralReader:
             if reference_end is not None:
                 self.blocks.closed_reference_lines.add(self.blocks.line_at(reference_end).start)
                 if self.blocks.unclosed_html_start is None or start < self.blocks.unclosed_html_start:
-                    self.reference_labels.add(" ".join(label.split()).lower().upper())
+                    normalized = " ".join(label.split()).lower().upper()
+                    self.reference_labels.add(normalized)
                 return reference_end
         end = read_document_literal_end(self.text, start, last_html_ends=self.last_html_ends, blocks=self.blocks)
         if end is not None:
@@ -487,7 +490,7 @@ def find_document_variable_markers(text: str) -> Iterator[VariableMarker]:
                 yield marker
 
 
-def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
+def _raw_document_images(text: str) -> tuple[DocumentLiteralReader, list[tuple[int, int]]]:
     """Find confirmed image labels without mistaking incomplete notation for alt text."""
     reader = DocumentLiteralReader(text)
     at = 0
@@ -500,15 +503,17 @@ def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
             at = marker.end if marker is not None else len(text)
         else:
             at += 1
+    images: list[tuple[int, int]] = []
     for start, end in reader.image_labels:
         if reader.blocks.unclosed_html_start is not None and start >= reader.blocks.unclosed_html_start:
             continue
         if text[end : end + 1] == "(" and reader.link_resource_end(end, image=True) is not None:
-            yield start, end
+            images.append((start, end))
         elif text[end : end + 1] == "[":
             label = read_image_reference_label(text, end, reader.blocks, reader.inline_limit(end))
             if label and " ".join(label.split()).lower().upper() in reader.reference_labels:
-                yield start, end
+                images.append((start, end))
+    return reader, images
 
 
 def find_document_protected_spans(text: str) -> Iterator[tuple[int, int]]:
@@ -517,11 +522,11 @@ def find_document_protected_spans(text: str) -> Iterator[tuple[int, int]]:
         yield start, end
 
 
-def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
+def _raw_document_interactions(text: str, image_labels: list[tuple[int, int]]) -> Iterator[tuple[int, int]]:
     """Find controls outside markup while retaining raw ownership inside controls."""
     at = 0
     reader = DocumentLiteralReader(text)
-    image_labels = sorted(find_document_image_labels(text)) if "![" in text else []
+    image_labels = sorted(image_labels)
     image_index = 0
     while at < len(text):
         literal_end = reader.read(at)
@@ -552,3 +557,141 @@ def find_document_interaction_spans(text: str) -> Iterator[tuple[int, int]]:
             at = end + 1
         else:
             at += 1
+
+
+def _render_owners(text: str, reader: DocumentLiteralReader, images: list[tuple[int, int]]) -> tuple[RunIndex, list[tuple[int, int]]]:
+    """Supply existing raw scanner ranges to the pinned UI's render-run rules."""
+    protected: list[tuple[int, int]] = []
+    metadata: list[tuple[int, int]] = []
+    variables: list[tuple[int, int]] = []
+    html_bounds: dict[int, int] = {}
+    code_starts: list[int] = []
+    code_ranges: list[tuple[int, int]] = []
+    for start, end, literal in _document_units(text):
+        index = reader.blocks.by_start.get(start)
+        content = reader.blocks.block_content_start(index) if index is not None else start
+        is_html = content is not None and text[content : content + 1] == "<"
+        if literal and is_html and not text.startswith("<!--", content):
+            html_bounds[content] = end
+        else:
+            protected.append((start, end))
+        if not literal:
+            variables.append((start, end))
+        elif text[start : start + 1] in ("(", "[") or read_angle_autolink(text, start) is not None:
+            metadata.append((start, end))
+        if index is not None:
+            fenced = reader.blocks.fence(start)
+            indented = _indented_code_end(text, start, reader.blocks)
+            if fenced is not None and content is not None:
+                code_starts.append(content)
+            if fenced is not None or indented is not None or text[start : start + 1] == "`":
+                code_ranges.append((start, end))
+        elif literal and text[start : start + 1] == "`":
+            code_ranges.append((start, end))
+    for start, end in images:
+        finish = end
+        if text[end : end + 1] == "(":
+            finish = reader.link_resource_end(end, image=True) or end
+        elif text[end : end + 1] == "[":
+            cursor = end + 1
+            while cursor < len(text):
+                if text[cursor] == "\\" and cursor + 1 < len(text) and text[cursor + 1] in punctuation:
+                    cursor += 2
+                elif text[cursor] == "]":
+                    finish = cursor + 1
+                    break
+                else:
+                    cursor += 1
+        metadata.append((start, finish))
+    controls = list(_raw_document_interactions(text, images))
+    return build_ownership(
+        text,
+        protected=(*protected, *metadata, *variables, *controls),
+        metadata=metadata,
+        variables=variables,
+        html_bounds=html_bounds,
+        controls=(start for start, _ in controls),
+        code_starts=code_starts,
+        code_ranges=code_ranges,
+    ), sorted(code_ranges)
+
+
+def _scoped_document_images(text: str) -> tuple[list[tuple[int, int]], RunIndex | None, list[tuple[int, int]]]:
+    reader, images = _raw_document_images(text)
+    if not reader.image_labels:
+        return images, None, []
+    owners, render_code_ranges = _render_owners(text, reader, images)
+    scoped_images: list[tuple[int, int]] = []
+    code_index = 0
+    for run in owners.runs:
+        if run.kind not in {"markdown", "stable"}:
+            continue
+        while code_index < len(render_code_ranges) and render_code_ranges[code_index][1] <= run.start:
+            code_index += 1
+        following = code_index
+        code_ranges: list[tuple[int, int]] = []
+        while following < len(render_code_ranges) and render_code_ranges[following][0] < run.end:
+            start, end = render_code_ranges[following]
+            code_ranges.append((max(start, run.start) - run.start, min(end, run.end) - run.start))
+            following += 1
+        projection = normalize_markdown_run(text[run.start : run.end], code_ranges)
+        if run.start == 0 and run.end == len(text) and projection.text == text:
+            scoped_images.extend(images)
+            continue
+        _, child_images = _raw_document_images(projection.text)
+        scoped_images.extend((run.start + projection.raw_offset(start), run.start + projection.raw_offset(end)) for start, end in child_images)
+    return scoped_images, owners, reader.image_labels
+
+
+def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
+    """Resolve image references only inside their actual UI Markdown run."""
+    images, _, _ = _scoped_document_images(text)
+    yield from images
+
+
+_CODE_PLACEHOLDER = re.compile(r"(?<![^\r\n])__MDFLOW_CODE_BLOCK_[0-9]+__(?=$|[\r\n])")
+
+
+def find_document_interaction_spans(text: str, *, code_blocks: Mapping[str, str] | None = None) -> Iterator[tuple[int, int]]:
+    """Keep controls within rendered source runs, retaining preprocessed offsets."""
+    if code_blocks:
+        pieces: list[str] = []
+        changes: list[tuple[int, int, int, int]] = []
+        cursor = 0
+        expanded_length = 0
+        for match in _CODE_PLACEHOLDER.finditer(text):
+            original = code_blocks.get(match.group())
+            if original is None:
+                continue
+            before = text[cursor : match.start()]
+            pieces.extend((before, original))
+            expanded_length += len(before)
+            changes.append((expanded_length, expanded_length + len(original), match.start(), match.end()))
+            expanded_length += len(original)
+            cursor = match.end()
+        if changes:
+            pieces.append(text[cursor:])
+            expanded = "".join(pieces)
+            starts = [start for start, _, _, _ in changes]
+
+            def original_offset(offset: int) -> int:
+                index = bisect_right(starts, offset) - 1
+                if index < 0:
+                    return offset
+                start, end, original_start, original_end = changes[index]
+                return original_start if offset < end else offset - end + original_end
+
+            for start, end in find_document_interaction_spans(expanded):
+                left, right = original_offset(start), original_offset(end)
+                if text[left : left + 2] == "?[":
+                    yield left, right
+            return
+    images, owners, candidates = _scoped_document_images(text) if "![" in text else ([], None, [])
+    candidates = sorted(candidates)
+    candidate_index = 0
+    for start, end in _raw_document_interactions(text, images):
+        while candidate_index < len(candidates) and candidates[candidate_index][1] <= start:
+            candidate_index += 1
+        image_control = candidate_index < len(candidates) and candidates[candidate_index][0] <= start
+        if not image_control or owners is None or (owner := owners.owner(start)) < 0 or owners.runs[owner].kind in {"markdown", "stable"}:
+            yield start, end

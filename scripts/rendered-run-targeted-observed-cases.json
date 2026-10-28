@@ -1,0 +1,215 @@
+{
+  "node": "v22.23.4",
+  "cases": [
+    {
+      "id": "metadata-rewindbare",
+      "kind": "metadata-rewind",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][image]\n\n[Read](/x \"```\")\n\n```js\ncode\n```\n\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B",
+          "Copy"
+        ],
+        "markdownRuns": 3,
+        "iframes": 0,
+        "codeBlocks": 1
+      }
+    },
+    {
+      "id": "content-slice-native-afterbare",
+      "kind": "content-slice-native-after",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][image]\n\n```js\ncode\n```\n\n[image]: /x\n\n?[{{visible}} C | D]\n\n<details>native</details>",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [
+          "Copy",
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 1
+      }
+    },
+    {
+      "id": "svg-tailbare",
+      "kind": "svg-tail",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][image]\n\n<svg\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "partial-svg-tailbare",
+      "kind": "partial-svg-tail",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][image]\n\n<sv",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "mermaid-tailbare",
+      "kind": "mermaid-tail",
+      "marker": "{{goal}}",
+      "source": "![?[{{goal}} A | B]][image]\n\n```mermaid\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "mermaid-tail-nativebare",
+      "kind": "mermaid-tail-native",
+      "marker": "{{goal}}",
+      "source": "<details>native</details>\n\n![?[{{goal}} A | B]][image]\n\n```mermaid\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B",
+          "Copy"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 1
+      }
+    },
+    {
+      "id": "metadata-rewindpercent",
+      "kind": "metadata-rewind",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[Read](/x \"```\")\n\n```js\ncode\n```\n\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B",
+          "Copy"
+        ],
+        "markdownRuns": 3,
+        "iframes": 0,
+        "codeBlocks": 1
+      }
+    },
+    {
+      "id": "content-slice-native-afterpercent",
+      "kind": "content-slice-native-after",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][image]\n\n```js\ncode\n```\n\n[image]: /x\n\n?[{{visible}} C | D]\n\n<details>native</details>",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [
+          "Copy",
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 1
+      }
+    },
+    {
+      "id": "svg-tailpercent",
+      "kind": "svg-tail",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][image]\n\n<svg\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "partial-svg-tailpercent",
+      "kind": "partial-svg-tail",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][image]\n\n<sv",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "mermaid-tailpercent",
+      "kind": "mermaid-tail",
+      "marker": "%{{goal}}",
+      "source": "![?[%{{goal}} A | B]][image]\n\n```mermaid\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "id": "mermaid-tail-nativepercent",
+      "kind": "mermaid-tail-native",
+      "marker": "%{{goal}}",
+      "source": "<details>native</details>\n\n![?[%{{goal}} A | B]][image]\n\n```mermaid\n[image]: /x",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B",
+          "Copy"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 1
+      }
+    }
+  ]
+}

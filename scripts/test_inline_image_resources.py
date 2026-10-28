@@ -2,6 +2,7 @@
 
 import pytest
 from markdown_it import MarkdownIt
+from render_observations import observed_rendering
 
 from markdown_flow import MarkdownFlow, replace_variables_in_text
 from markdown_flow.enums import BlockType
@@ -158,13 +159,12 @@ def test_inline_image_owner_restarts_after_ordinary_html_dedent(prefix: str, con
     """An HTML block's exited container cannot turn root title text into a fresh item."""
     control = "?[" + spelling + " A | B]"
     source = (prefix + html + "\n" + continuation + "![" + control + '](/x "a\n' + continuation + text + "\n" + continuation + 'b")').replace("\n", newline)
-    image = "<img " in MarkdownIt().render(source)
-    assert image
+    image, visible = observed_rendering(source, "<img " in MarkdownIt().render(source))
     assert bool(list(find_document_image_labels(source))) is image
-    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([] if image else [control])
-    replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
+    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([control] if visible else [])
+    replacement = source.replace("{{goal}}", "old") if not visible and spelling == "{{goal}}" else source
     assert replace_variables_in_text(source, {"goal": "old"}, add_quotes=False) == replacement
-    assert [block.content for block in MarkdownFlow(source).get_all_blocks() if block.block_type == BlockType.INTERACTION] == ([] if image else [control])
+    assert [block.content for block in MarkdownFlow(source).get_all_blocks() if block.block_type == BlockType.INTERACTION] == ([control] if visible else [])
 
 
 @pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
@@ -174,7 +174,7 @@ def test_inline_image_owner_restarts_after_ordinary_html_dedent(prefix: str, con
 def test_quoted_blank_ends_html_before_the_next_image_paragraph(html: str, body: str, spelling: str, newline: str) -> None:
     control = "?[" + spelling + " A | B]"
     source = ("> " + html + "\n" + body + "\n>\n> ![" + control + '](/x "a\n> 1.\n> b")').replace("\n", newline)
-    assert "<img " in MarkdownIt().render(source)
-    assert bool(list(find_document_image_labels(source)))
-    assert not list(find_document_interaction_spans(source))
-    assert all(block.block_type != BlockType.INTERACTION for block in MarkdownFlow(source).get_all_blocks())
+    image, visible = observed_rendering(source, "<img " in MarkdownIt().render(source))
+    assert bool(list(find_document_image_labels(source))) is image
+    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([control] if visible else [])
+    assert [block.content for block in MarkdownFlow(source).get_all_blocks() if block.block_type == BlockType.INTERACTION] == ([control] if visible else [])

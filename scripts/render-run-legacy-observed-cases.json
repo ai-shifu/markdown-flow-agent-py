@@ -1,0 +1,1967 @@
+{
+  "provenance": "Exact prior component regression sources captured with installed ContentRender 0.3.3 and remark-flow 1.4.2; all three physical line endings observed.",
+  "cases": [
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n<!DOCTYPE x>\n2. [image]: /x",
+      "sha256": "8cc141d41e8357a1cde49988849bc80efb61c1515c729d496152477891d1e873",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n<!DOCTYPE x>\r\n2. [image]: /x",
+      "sha256": "a9028f7920a8979affda8e3674fbe10529ff99d4b96f7de4af4cd65e19193c71",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r<!DOCTYPE x>\r2. [image]: /x",
+      "sha256": "219b235d91027efbf106f306143448ee4762402ff9f55a4666ec8e5f1fefd74a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n<!DOCTYPE x>\n2. [image]: /x",
+      "sha256": "f9726d5259c4022b279bfa9f2634095c2f627a1496098a3b6c83d3735b95da02",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n<!DOCTYPE x>\r\n2. [image]: /x",
+      "sha256": "cf533d810908dccb393ba08e45f9f9d58d752c0d5d03505cff73fb725e89ba7d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r<!DOCTYPE x>\r2. [image]: /x",
+      "sha256": "d2f78cb8260c38e6e513c147d5dd7ff27b9fa000b115027b5a2173e614674c9a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> <!DOCTYPE x>\n> 2. [image]: /x",
+      "sha256": "ecb889a3689b2daff43589cdf28e3360592af946fd3d65b19b22f91db9f88ef6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> <!DOCTYPE x>\r\n> 2. [image]: /x",
+      "sha256": "bd8fea5015fd1abc3817a5a012e1b11a69849cd22784416bf0075ec03fe41737",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> <!DOCTYPE x>\r> 2. [image]: /x",
+      "sha256": "a856b620f1a444b8b659ac98af0d1c6c38f25b7adff7cfbe9fe38c19e2a9f4ea",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> <!DOCTYPE x>\n> 2. [image]: /x",
+      "sha256": "e9e8aa85cede4faabad519eb142eaf2dec75b079749826534d0396440f88222b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> <!DOCTYPE x>\r\n> 2. [image]: /x",
+      "sha256": "10621451586164a6284f425c3b879f785b16a335ed9e404625bae4d39891765a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> <!DOCTYPE x>\r> 2. [image]: /x",
+      "sha256": "8e15238a2f44faad197418aa62b756042f3177eb47ba9943f620596cff41e8cc",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n- <!DOCTYPE x>\n  2. [image]: /x",
+      "sha256": "08a4584c3823d0cef77a13c5aacacafb0271b8674550be6e367af943a283ddcf",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n- <!DOCTYPE x>\r\n  2. [image]: /x",
+      "sha256": "96392903e98c757a18f8f866b4c4a3cbd2e1f5fe1bf72d731c243a7656edb150",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r- <!DOCTYPE x>\r  2. [image]: /x",
+      "sha256": "10d3b2f1978485719aa874863e76908839c388709fab86ab943c09e11ff2b803",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n- <!DOCTYPE x>\n  2. [image]: /x",
+      "sha256": "8d76bb1c9347e56beee557385c62ae8a3f1bd5305f5d470be22e44eb38da3552",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n- <!DOCTYPE x>\r\n  2. [image]: /x",
+      "sha256": "baaec23bb0f1b196872b0e3a0bc319b09a166baa8578925879e4835079324764",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r- <!DOCTYPE x>\r  2. [image]: /x",
+      "sha256": "566e02ea83e25d144fa7a87b820737044e18a5225dfc34b7372d41b0bf470bef",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> - <!DOCTYPE x>\n>   2. [image]: /x",
+      "sha256": "c0d7c460f6f1933ea7694b2440b23d9cdefab0219b016f308390013135cceeb8",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> - <!DOCTYPE x>\r\n>   2. [image]: /x",
+      "sha256": "807d1256c47d8a786e094b780cc5252d11d6678b76af8e7d7b57eb19fa9690a2",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> - <!DOCTYPE x>\r>   2. [image]: /x",
+      "sha256": "aa4bd765c54bd6dc34c3c3d220dd577051c3c2404fdfd51fcded3fe1afae8213",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> - <!DOCTYPE x>\n>   2. [image]: /x",
+      "sha256": "eebf7793aeb5d00646f39c0365b59f02263d114035838c9f1e6cf96598c77ab5",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> - <!DOCTYPE x>\r\n>   2. [image]: /x",
+      "sha256": "dfa98d2889160f1e1f2f9deae050cb7fcfb3e1a24d8a38f3233bdcaaf1309409",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> - <!DOCTYPE x>\r>   2. [image]: /x",
+      "sha256": "a9b7581a48de175b0d6e684cb92391cd9780aa73da33e5aeddff0111f39f7f5c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n<script>x</script>\n2. [image]: /x",
+      "sha256": "ba72beb8d7f6fe685f49f3206d0b48a5d5c6e04bd9f81d876e22804a13df5f76",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n<script>x</script>\r\n2. [image]: /x",
+      "sha256": "963b4212b7ab8c44c2b3326d6851c244cce65a383ec7c7493714fe5f7fb17f62",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r<script>x</script>\r2. [image]: /x",
+      "sha256": "34dea1a481855994547ad3f98a160ee378099e4ec36e481dc43cb5f1a72a90b4",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n<script>x</script>\n2. [image]: /x",
+      "sha256": "665792784692c0588a48b30a62cbae73515eebf1a2824332aea70f4cfc15c4ba",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n<script>x</script>\r\n2. [image]: /x",
+      "sha256": "be5f50557156e7bd6ca9d6c5c92a6492603a59c2e26854c365df293b1dbd4713",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r<script>x</script>\r2. [image]: /x",
+      "sha256": "bcc34956e596fd9f1b2ddd568ffa30a75977e0a6d392567caa0a887c65b252bb",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> <script>x</script>\n> 2. [image]: /x",
+      "sha256": "748f80eddfc9c3d96cafdaedf8e81bae253c0dd042afbd16307e7096462f124d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> <script>x</script>\r\n> 2. [image]: /x",
+      "sha256": "447b44d06edca64d04fc76a2182a9bc359f759204dfb0eb260f3951a54e378c4",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> <script>x</script>\r> 2. [image]: /x",
+      "sha256": "eff9e027829cc1f9627913b23e8477c27d6ded1826e9a049e339bf7b873d597f",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> <script>x</script>\n> 2. [image]: /x",
+      "sha256": "42a1270093825961184f709b0f39daad1e0da9dfc3a3a43f0b6c8fa1cf871743",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> <script>x</script>\r\n> 2. [image]: /x",
+      "sha256": "445cbbd9e1e96e9c5914bd2ac6d2ca5b873e44fb26569eb395b80d4f35e8012d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> <script>x</script>\r> 2. [image]: /x",
+      "sha256": "8c0a1927501f4744d43929c70c50996eec2158e7b02161d845b263b61e9e904a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n- <script>x</script>\n  2. [image]: /x",
+      "sha256": "be8d43c649fb93540563999a238aeccf804a89b8a970b9ea58c4bb5f01712cdd",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n- <script>x</script>\r\n  2. [image]: /x",
+      "sha256": "a0d54746a7ca713104b2f1ef215be4e5f3c984a938ed1daec69f74799ef8b459",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r- <script>x</script>\r  2. [image]: /x",
+      "sha256": "514e12cffad83b37fb43197a659960f4ad901d156894b12477efdf0165ae20dc",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n- <script>x</script>\n  2. [image]: /x",
+      "sha256": "0ece5c6362517340b0f17ae70862bd0f7f779aab6df3a4480632c9d53f65786f",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n- <script>x</script>\r\n  2. [image]: /x",
+      "sha256": "67987a2bf6df08d0928fefe9c375c9444bef753785bfa86aaa3e6c0f9b1f9a6f",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r- <script>x</script>\r  2. [image]: /x",
+      "sha256": "1a74fc1ef30d202796e0f8a4128e5d39b6c81816119617772ae7aef3a051bfb3",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> - <script>x</script>\n>   2. [image]: /x",
+      "sha256": "8496d0cd2145a7fc7d929ebd841a6cee2924847b90df9fb2fe8671ac33a39885",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> - <script>x</script>\r\n>   2. [image]: /x",
+      "sha256": "2065416f313fbd60e8cbe342a0b9f7a9da7bb7ee35a38157eea6faaad204305d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> - <script>x</script>\r>   2. [image]: /x",
+      "sha256": "d17d4ba48c506c3578706ff4f233f6f9036a53740f6cf2eecd9b7a44d4aa588c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> - <script>x</script>\n>   2. [image]: /x",
+      "sha256": "6a7be081094637d8a0bc69f5ae20dadf8fbf575403f4b835ec7af4320ad3f936",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> - <script>x</script>\r\n>   2. [image]: /x",
+      "sha256": "ecb5860be372d7290d04f66f9846ccd21f8880dc928e9e134a5c2a8187f09de9",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> - <script>x</script>\r>   2. [image]: /x",
+      "sha256": "5b116031964251ebfd33b08da3a494cd890d109e5d595720469e12bdf0d01e25",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n<style>\n2. raw\n</style>\n2. [image]: /x",
+      "sha256": "ad86cbc52f4f1bc87da53844f2c4334a15b60f10a60ac31dc7a92f5ce941d7aa",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n<style>\r\n2. raw\r\n</style>\r\n2. [image]: /x",
+      "sha256": "67792cd70bb4989f046488b55eda03a5110db477cc29ad37b3c2c41c6d839dc1",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r<style>\r2. raw\r</style>\r2. [image]: /x",
+      "sha256": "06dd14134ecb086241987b6b2a40ba9659baf6638baefc4cd3cbf653fa5b7343",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n<style>\n2. raw\n</style>\n2. [image]: /x",
+      "sha256": "e158d5638fac561c9165250606420f9343820a745a0b2ab7c3e1b957ea496ad7",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n<style>\r\n2. raw\r\n</style>\r\n2. [image]: /x",
+      "sha256": "7c725a69ae92415f87f2ddf6fcef52a861bcb5eb5b58391b198cf6c72e30a8c4",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r<style>\r2. raw\r</style>\r2. [image]: /x",
+      "sha256": "c1c3c46695104f4247f76399e19b2ac28d42bd7616a4567ec1fa755e57ef9407",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> <style>\n> 2. raw\n> </style>\n> 2. [image]: /x",
+      "sha256": "b25320f20909fc6b88a2ba5fcf211641004c69a78100f997869bc89e9ab3bfdd",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> <style>\r\n> 2. raw\r\n> </style>\r\n> 2. [image]: /x",
+      "sha256": "66f263f521a518b28c8e9caa9cdbbbe1cd83a74c1dbd683884afcfdf7254f2d5",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> <style>\r> 2. raw\r> </style>\r> 2. [image]: /x",
+      "sha256": "746b10c52d7dcd6658e88d4557712f79fd6e8c66cd2fd6c4216ad401d8850f2d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> <style>\n> 2. raw\n> </style>\n> 2. [image]: /x",
+      "sha256": "35bdc92ff0dbd4babd9b4cfa3243507ccce9ed616f8b26aa778a9e68a8314331",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> <style>\r\n> 2. raw\r\n> </style>\r\n> 2. [image]: /x",
+      "sha256": "631925715aaad18d1440bce83f22bffedd026a6f29dc2af089bd5566ea195d77",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> <style>\r> 2. raw\r> </style>\r> 2. [image]: /x",
+      "sha256": "4f8c4163d9b4de0cf8b038e0c56c35f62ba1ef27c753a5762ab874506bfea6cc",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n- <style>\n  2. raw\n  </style>\n  2. [image]: /x",
+      "sha256": "abdc4bb6952ceaa9fa1de58cd7c9ba9acfdcdf2acf40c3aa44cc4370c6eb630c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n- <style>\r\n  2. raw\r\n  </style>\r\n  2. [image]: /x",
+      "sha256": "1a116e63b1799469eae4cc3578eab9e41f5fc183e49fcf24cefdd1f2412e54b0",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r- <style>\r  2. raw\r  </style>\r  2. [image]: /x",
+      "sha256": "5715e693592866aabfbb8775038f5451c80a11a707ef388fd8af916c8ae24bc8",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n- <style>\n  2. raw\n  </style>\n  2. [image]: /x",
+      "sha256": "8487bfefac3c2e9ec912c1235cb5e84db1c8af29589ce7cf7c21c99186604f97",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n- <style>\r\n  2. raw\r\n  </style>\r\n  2. [image]: /x",
+      "sha256": "a50896a2908616704c6e80cce025fdbc13e14199c2619a3d39d4236665d0342e",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r- <style>\r  2. raw\r  </style>\r  2. [image]: /x",
+      "sha256": "ae889f77a3c950c2bfd52443cd8f917dd4e781bef88aa1894855e09d80bc3cfb",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> - <style>\n>   2. raw\n>   </style>\n>   2. [image]: /x",
+      "sha256": "0fba9fb2fe0ca0f17a5bd817acd177224e2084abce3b77699caeabfe8dbe081a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> - <style>\r\n>   2. raw\r\n>   </style>\r\n>   2. [image]: /x",
+      "sha256": "bca941cc1f7a063e65304ac98fa627ceb33b0fc92d67bf098355909d5d9678a8",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> - <style>\r>   2. raw\r>   </style>\r>   2. [image]: /x",
+      "sha256": "4213c599ac39b601f9e60fda6f9a6cc8913f9e463030cf1d2f97375ca5df6f10",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> - <style>\n>   2. raw\n>   </style>\n>   2. [image]: /x",
+      "sha256": "ca3e3e189d8477e10aa96eb10617438f794e718205f979c8dfbec09e29b4919f",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> - <style>\r\n>   2. raw\r\n>   </style>\r\n>   2. [image]: /x",
+      "sha256": "26e806ec4c18aea9ab737c7f93c1c8b436336425c95575e0fa82e7f9c9445f14",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> - <style>\r>   2. raw\r>   </style>\r>   2. [image]: /x",
+      "sha256": "3805e11af95141918919ade221b629807dd669ab6d108c25b417bc061790819d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n```\n2. code\n```\n2. [image]: /x",
+      "sha256": "5e8acaad39d5e8877232f9d8f871a95a71c24752d6cd0dd51600422396f3f7ec",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n```\r\n2. code\r\n```\r\n2. [image]: /x",
+      "sha256": "959c619c16e6b14be3ef565cd7f436425131d6d5d5fccd31d7f48c7a05dea2f8",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n```\n2. code\n```\n2. [image]: /x",
+      "sha256": "221a6ed71a44f0aa0c761302f5260bdb3cd8afa7cf57dc5aac78241f9fd4c0b1",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n```\r\n2. code\r\n```\r\n2. [image]: /x",
+      "sha256": "c043e2dd44226e546812935665ff887f209c542e1ff562e5a24d028e19399f10",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "[image]: /x\n\n<!DOCTYPE incomplete\n![?[{{goal}} A | B]](/x)",
+      "sha256": "e4599c600d22773a7caefc0297fb4f43060ea3dc936339a3b5e8fdbf601d39a3",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\n\r\n<!DOCTYPE incomplete\r\n![?[{{goal}} A | B]](/x)",
+      "sha256": "e3fd3da7883bd6470c69d2a71f86e5429d9fb1f456dafa29fcf35d0a69bba72a",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\r<!DOCTYPE incomplete\r![?[{{goal}} A | B]](/x)",
+      "sha256": "2e808154b7b719fc8a19d38df63afb8be1dccf7e1a083d2801847bfe512ecd8c",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\n\n<!DOCTYPE incomplete\n![?[%{{goal}} A | B]](/x)",
+      "sha256": "6c039596f6a6b9467d2894c718f54db1138f3b3f822c5a6cf368554a283f5679",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\n\r\n<!DOCTYPE incomplete\r\n![?[%{{goal}} A | B]](/x)",
+      "sha256": "27d7129eae9ec0f26bb68c817b5d6d5154aab6d6db4fe15d5929757f06365b26",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\r<!DOCTYPE incomplete\r![?[%{{goal}} A | B]](/x)",
+      "sha256": "fdbf08e573ee26d5d963dd38495301fa69d33a08f6d708f80bfa8ab7c4c8b84d",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\n\n<!DOCTYPE incomplete\n![?[{{goal}} A | B]][image]",
+      "sha256": "34dcc51d61f76f33d8aa9695850b296fba9479f9d856b916e9acd52688a32e13",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\n\r\n<!DOCTYPE incomplete\r\n![?[{{goal}} A | B]][image]",
+      "sha256": "38073aa4b7162c6ef22f002870d6be6b93819008b91c2aa22d48c3fa6153d2fb",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\r<!DOCTYPE incomplete\r![?[{{goal}} A | B]][image]",
+      "sha256": "3cbd02ebb651212379341f51890120f9e481370991b238d6d9b507768bb58f8f",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\n\n<!DOCTYPE incomplete\n![?[%{{goal}} A | B]][image]",
+      "sha256": "9af35f18abcc2cec1aad9f11c9d0413f4d0dbe4224d99aec862c7d73841d48e2",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\n\r\n<!DOCTYPE incomplete\r\n![?[%{{goal}} A | B]][image]",
+      "sha256": "9e0b3981182a51c6f0a87a1bbbd41fd1335459c26275a5fd686b3731aca5348d",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "[image]: /x\r\r<!DOCTYPE incomplete\r![?[%{{goal}} A | B]][image]",
+      "sha256": "c5e0613e41a4c17059815b7a92bb637fa678eebbf9cdf1702c0a82b6b709fc1c",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n<!doctype x\n1. [image]: /x",
+      "sha256": "f678166895ea74dddefee0bcff3549f3eca16863ad691898fad257d254a6a536",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n<!doctype x\n1. [image]: /x",
+      "sha256": "9a3ba4f04e26bed8973f62f0639b148d0dc88261dbba164e6f58b8d7b46d66ed",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n```\n<!-- incomplete\n```\n2. [image]: /x",
+      "sha256": "4cccf0cb4e1e429fe2deaa8f5b7cd1c2fa6076f6b7ade6547a44e7fd767550e6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n```\n<!-- incomplete\n```\n2. [image]: /x",
+      "sha256": "0c7ebbe4e6156917f1e2bd7249468b67276f66f8804cf25500656a1c5585e8d6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "> <div>\n![?[{{goal}} A | B]](/x \"a\n1.\nb\")",
+      "sha256": "a3c88470587fbabd57de4880131d508caa59850c1d4908c32842666f5d6f09ee",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n![?[{{goal}} A | B]](/x \"a\r\n1.\r\nb\")",
+      "sha256": "09af7f1c37c758e30da02f6d91ad9c128d8f18482dda495188a47946e2cc1948",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r![?[{{goal}} A | B]](/x \"a\r1.\rb\")",
+      "sha256": "392e9c4b048eecb3308b06f11872e5d2043ff54c3a6beda3b4e891af4b49fc32",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n![?[%{{goal}} A | B]](/x \"a\n1.\nb\")",
+      "sha256": "2fb72dad8b22bb471c09c63f7b8497bee7866183c432999dfc33f73499fbb253",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n![?[%{{goal}} A | B]](/x \"a\r\n1.\r\nb\")",
+      "sha256": "a9071f0d6d6e07b9aaa13404ef9fc63c9c03c6808290958a81d546434f9454b2",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r![?[%{{goal}} A | B]](/x \"a\r1.\rb\")",
+      "sha256": "5851338995c0d69dd870ac9728323417004e5853a56f6c2deed7ff7651ab79d9",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\n> ![?[{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "7aeecba05f97c59b739b16f0056f902d41e788513bdec9a224ee2b7831920026",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r\n> ![?[{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "40b88f5317ca9efe22482f9d2bfe629b42c24bd20f142571a628d07d277516d4",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r> ![?[{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "a4e7ea43d45be36b932ec4c0af63da18603a1ea5a14ebefeb38a9d868b483cdd",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\n> ![?[%{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "544f9e640f7956a26500bbf74459b612e7e2b06ee87eeafbf7909da59c384a2e",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r\n> ![?[%{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "8f4090f76c2aa6e2332ecffd9ea6be97b5821fc768c44b55d628ff7e40be2a38",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r> ![?[%{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "1419a24dfb2056ebb821a16250c9470d9a6f8115d03b38b3d519924d571cb8c8",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\n  ![?[{{goal}} A | B]](/x \"a\n  1.\n  b\")",
+      "sha256": "67bbcb96b214d47aca58dca1cbef65b1d3674e36cc858ddf9998fddb450043fe",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r\n  ![?[{{goal}} A | B]](/x \"a\r\n  1.\r\n  b\")",
+      "sha256": "e3f10867d6b245bd77e92f509c2a5a87b61c2db9c0ce46de91557241d04fca8d",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r  ![?[{{goal}} A | B]](/x \"a\r  1.\r  b\")",
+      "sha256": "61422d70ac22ddd8c0f8e572d0f7a75b3bee49e43f65ec91a84e306300e95395",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\n  ![?[%{{goal}} A | B]](/x \"a\n  1.\n  b\")",
+      "sha256": "1b0845400489572e2b6754fead98883a2bf9dcd4ebf6a5091575da424e92e819",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r\n  ![?[%{{goal}} A | B]](/x \"a\r\n  1.\r\n  b\")",
+      "sha256": "6b4d1a337f56671bf2d96e22469ff0b221c5c71af6dd2e674f574420ae1ddcd8",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r  ![?[%{{goal}} A | B]](/x \"a\r  1.\r  b\")",
+      "sha256": "1f2c5982f78c1085374415fbacc905facbb303ed00fd57e3fe3048dba4b26d15",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\n> ![?[{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "2761ac5b95e87408ee9e10893a306c9094d18b78315cc0c4a4bb861513e795f7",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r\n> ![?[{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "6f7c868aecc467745805421bff64608a61ffb3044f0016f51aa99c0e4be61ff6",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r> ![?[{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "ef0a44729c7495b42a858910ce00c3fbd22db8df4afc71697a1dec94da929586",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\n> ![?[%{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "53012c2ff223de0f3f758f7f8a36718c568d39d5a04ebd0e126fc5a34c350ee2",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r\n> ![?[%{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "50847c39787434d57d2d62c1a80b9f5856bd9b28544bed5fc68509dc22547a93",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r> ![?[%{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "425375f8973d0254df3e193a8da3a01c6153057b1c482f6cb7f1e0c585516db3",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\n![?[{{goal}} A | B]](/x \"a\n1.\nb\")",
+      "sha256": "c8ea5bd34989b0c03eb9dc4ef6fe4ae6d228ccd3b9436bfe67eb7c50c94e84b3",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r\n![?[{{goal}} A | B]](/x \"a\r\n1.\r\nb\")",
+      "sha256": "f55ae771b15bc863d6b8a53ccc31b4d6d21e39f41dc812df59128ca5bf1bf1d0",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r![?[{{goal}} A | B]](/x \"a\r1.\rb\")",
+      "sha256": "4906f4a91b1c5fb766bf19acda68d1f360c31c03230f70bd4e662b451a5995d2",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\n![?[%{{goal}} A | B]](/x \"a\n1.\nb\")",
+      "sha256": "ffcb03ab4c3839390d63e0e0579feb94668ffeaebcfaf4a840061e9339dd6002",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r\n![?[%{{goal}} A | B]](/x \"a\r\n1.\r\nb\")",
+      "sha256": "fcff2ffd2389d14ad105cc6fc286a1e66fdb7f7adb9d4327f2660cf64cd1072e",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r![?[%{{goal}} A | B]](/x \"a\r1.\rb\")",
+      "sha256": "009d6e6d9ccec7bc6c47c26c8ae1f596fb68fe78db6ae37e78f3894742212130",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n![?[{{goal}} A | B]](/x \"a\n2. next\nb\")",
+      "sha256": "6d78b7078b9199ccb7806a9eab32cf69bd1bcba748d52124e6c15db2edf39e00",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n![?[{{goal}} A | B]](/x \"a\r\n2. next\r\nb\")",
+      "sha256": "6b2c228273139ddc3556740fac1de7bf04df32a76d7aa586b46d5026b3ece617",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r![?[{{goal}} A | B]](/x \"a\r2. next\rb\")",
+      "sha256": "4595404ab7c7b25b185b97b96c52667458c8bce7fd298e87f72e389db7cf77bb",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n![?[%{{goal}} A | B]](/x \"a\n2. next\nb\")",
+      "sha256": "40304807039bdb708dc1262b0c0684a34ba4a3f97bfab0c89badb1fe308a9148",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n![?[%{{goal}} A | B]](/x \"a\r\n2. next\r\nb\")",
+      "sha256": "577bec339128719ef317742c717cbeae1e450a54392500820df8d6e9d22f7aa3",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r![?[%{{goal}} A | B]](/x \"a\r2. next\rb\")",
+      "sha256": "dd0d852fad67a0916f3394bd379745ba06b6145099f13f8e4f46d01c80ad0af6",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\n> ![?[{{goal}} A | B]](/x \"a\n> 2. next\n> b\")",
+      "sha256": "c2edc56979e7dda9a31b0c378f69a786691cf263f94ad7438464258ae9ed8ab8",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r\n> ![?[{{goal}} A | B]](/x \"a\r\n> 2. next\r\n> b\")",
+      "sha256": "889353a3b7697176e9bdbe98d526157bb4fca36617c2f2fffc14e4bd95e0ad0c",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r> ![?[{{goal}} A | B]](/x \"a\r> 2. next\r> b\")",
+      "sha256": "0a59362c1877fd904279c863da01c2ccad1a4350007d64d0d830ee9c1ee273ce",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\n> ![?[%{{goal}} A | B]](/x \"a\n> 2. next\n> b\")",
+      "sha256": "f0fce95ce8d0dd2b564c275622e94512426cba9a7609c7a1f5d4bd83f96baa14",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r\n> ![?[%{{goal}} A | B]](/x \"a\r\n> 2. next\r\n> b\")",
+      "sha256": "a27c74661eedd8a58ed6d2829e647e65ff7eaf52255eb745a7512bf7218b1c31",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> - <div>\r> ![?[%{{goal}} A | B]](/x \"a\r> 2. next\r> b\")",
+      "sha256": "60988d522c5d3db4b2b719bb304a06a150d1a45e645576f2baca21aeb0ba0984",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\n  ![?[{{goal}} A | B]](/x \"a\n  2. next\n  b\")",
+      "sha256": "c0ff774d5b509e08a760372fccc5106149fb0b1c6372ce366960e37de3d5729a",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r\n  ![?[{{goal}} A | B]](/x \"a\r\n  2. next\r\n  b\")",
+      "sha256": "837fa2e7abcaa4dd4bc699380c7eb34fb3bbf26d81fe98954e4de54a52c83f6f",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r  ![?[{{goal}} A | B]](/x \"a\r  2. next\r  b\")",
+      "sha256": "1f00f2b9cc0ce747bc44d235e74733d0f9fe4127434f2e514cc4750f2dc8f7bd",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\n  ![?[%{{goal}} A | B]](/x \"a\n  2. next\n  b\")",
+      "sha256": "df62b10f09c7ba838cd9976339c3b95f4fb2537babb77c4c429d9e0251d4a036",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r\n  ![?[%{{goal}} A | B]](/x \"a\r\n  2. next\r\n  b\")",
+      "sha256": "e16bfd1456c18cbb411c32d686754e4810971b0943437f4284ebb7a47750a5c1",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- > <div>\r  ![?[%{{goal}} A | B]](/x \"a\r  2. next\r  b\")",
+      "sha256": "f9645e5e4013c3b3531217415d339929e9386839605979e651287e39f93105bb",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\n> ![?[{{goal}} A | B]](/x \"a\n> 2. next\n> b\")",
+      "sha256": "efc1d85a953054b52cbbd5d08c8da96a2ddd5d4b3ca144725272cbc1d2b3af8c",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r\n> ![?[{{goal}} A | B]](/x \"a\r\n> 2. next\r\n> b\")",
+      "sha256": "ec80c46eaa01473fcccf9af69e32cd1a91e57ed42c515bb5bb78b90f7844968a",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r> ![?[{{goal}} A | B]](/x \"a\r> 2. next\r> b\")",
+      "sha256": "02756bb027df03343609c80f08f37af98a1c535354268f3bbdf72b36c4fe896f",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\n> ![?[%{{goal}} A | B]](/x \"a\n> 2. next\n> b\")",
+      "sha256": "a2a643cf95651abef8a7f4fee20cae415395a7b59c09fc01a761a73c4136ed6f",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r\n> ![?[%{{goal}} A | B]](/x \"a\r\n> 2. next\r\n> b\")",
+      "sha256": "2e035bd569c6deb67c1b4827d0f51d86c0459fda1e8e476bb8b41b50c92c4d01",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> > <div>\r> ![?[%{{goal}} A | B]](/x \"a\r> 2. next\r> b\")",
+      "sha256": "b537fabd73b1bc09a8d1f7e7a322128f1f19a089c79390f61073a4501e412da6",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\n![?[{{goal}} A | B]](/x \"a\n2. next\nb\")",
+      "sha256": "0dfb36eed8f2b8b0323793e46d70cb6dacf7301391a5b1f7ef30cbdb3da74ddf",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r\n![?[{{goal}} A | B]](/x \"a\r\n2. next\r\nb\")",
+      "sha256": "41a877d799645e26ea85d94c975999ebce40594d73c5d7ff1f074f44b132f1d0",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r![?[{{goal}} A | B]](/x \"a\r2. next\rb\")",
+      "sha256": "b5787f3a7538a848343622b4447dd8919c4b5d1438162da3d19ef6183ff451b1",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\n![?[%{{goal}} A | B]](/x \"a\n2. next\nb\")",
+      "sha256": "9f569edc097d0aaf25c024f88181a378f33470ef35d350a41a1d43f602372ad6",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r\n![?[%{{goal}} A | B]](/x \"a\r\n2. next\r\nb\")",
+      "sha256": "9722d820c356a636f0a8b3ffa289564f22620ea9e8f7f07345569409a0468ebe",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "- <div>\r![?[%{{goal}} A | B]](/x \"a\r2. next\rb\")",
+      "sha256": "fe15762dd81840a8edaa6c8ba5821d42c5dff6967f74ef458927f22c5030e8bb",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n> body\n>\n> ![?[{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "0bdbe4c575568271043e084ebd66cf4454149aa95b5dc588665c5340bfc30e98",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n> body\r\n>\r\n> ![?[{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "8dff509e8ed4ec22187d575548483f9b3a41d46995faa5bc5af4b5197a3f0c97",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r> body\r>\r> ![?[{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "60f9d9b4150b8c4ba44b8098ce7f2224f6ab6597d743deb4c59d0d09601352d2",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n> body\n>\n> ![?[%{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "f9c564ddb1a792224e02c1cd0e4466df45f84d1bce6f74d05e073f768cc983e7",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n> body\r\n>\r\n> ![?[%{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "db1d831b16727553cade7e533c73071930d222c3d5e717dd8c3f3537de592fcf",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r> body\r>\r> ![?[%{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "cbea580e4c30ef7a0d259be1d7e12169b95d1e6a5620eab9943776b183b9e231",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n> - body\n>\n> ![?[{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "70edcdbc46957132db0d30553cb220a8ce034529ca79b7408ec3f9fbcf5dc27d",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n> - body\r\n>\r\n> ![?[{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "24b1a7edac547db0d1893ac0be539b03a2148bc3230397ad4d1abaf5e89ad291",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r> - body\r>\r> ![?[{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "7498fb604001f1f88131773d50b04c9a4e0de2571db5e541597b797d02c3e1c3",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\n> - body\n>\n> ![?[%{{goal}} A | B]](/x \"a\n> 1.\n> b\")",
+      "sha256": "81ea7b93c8229dc6f4726e08f79912246edaca324ceafea71c7f1f00295cbb0c",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r\n> - body\r\n>\r\n> ![?[%{{goal}} A | B]](/x \"a\r\n> 1.\r\n> b\")",
+      "sha256": "b5a2877d1f5522de333174cadf6b7becd1f68e891e8b0db4cad4d822732a0dc6",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "> <div>\r> - body\r>\r> ![?[%{{goal}} A | B]](/x \"a\r> 1.\r> b\")",
+      "sha256": "b72b2cc14b0082a8b77c71bb77766b8aa77ae47174d65529b1af161091950eb7",
+      "images": 0,
+      "buttons": []
+    },
+    {
+      "source": "![?[{{goal}} A | B]][course image]\n\n```\ncode\n```\n[course image]: /x",
+      "sha256": "fa3cac2016f55e5e515a78d57f2a3bf5450c52ddcf55080ba65405e4f6872995",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][course image]\n\n```\ncode\n```\n[course\nimage]: /x",
+      "sha256": "2fee2ee2a72d3eb939a227137f24b1e570ade4bbe77db688b2582f95bfaf3b15",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][course image]\n\n<script>raw</script>\n[course image]: /x",
+      "sha256": "b27d106c690ff54f65c4e95be15fac16631f8035be090cc9e826b76a10970a6c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][course image]\n\n<script>raw</script>\n[course\nimage]: /x",
+      "sha256": "4c152ea50ab461bc749e82afbb9df71a96bc1f2df13586938e17d5a42724425d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][course image]\n\n<!DOCTYPE x>\n[course image]: /x",
+      "sha256": "b0ee16308426622ad5f58bae472b7c0a594525c3c316438a0b9e15c692e841b7",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][course image]\n\n<!DOCTYPE x>\n[course\nimage]: /x",
+      "sha256": "a210ab99b38e965d8085ffeb7f1fa170d60aa9980446a9fad885228cc387cc69",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n- <pre>\n  raw\n  </pre>\n  2. [image]: /x",
+      "sha256": "313329051177ceeee35283f7090e9477efeb13e6521c16a94b1cbc7a736d75a2",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n- <pre>\r\n  raw\r\n  </pre>\r\n  2. [image]: /x",
+      "sha256": "c53ae39991862c9147fa2defb644c1f56b8c76b3d2d81694386930992be3a008",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n- <pre>\n  raw\n  </pre>\n  2. [image]: /x",
+      "sha256": "3dbb210fd56b52a185eff718768727f059274127b4b3a56c383a7dd4cef410ce",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n- <pre>\r\n  raw\r\n  </pre>\r\n  2. [image]: /x",
+      "sha256": "e7ceeb3f3e4dcc1d9685f7073fead4e46f799fcb44e9ec51e0e8c6212ea33d9a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n- <textarea>\n  raw\n  </textarea>\n  2. [image]: /x",
+      "sha256": "942b72e0e4b3bb0a6215eb064ae8c308df1a33de142f689969c0044ac995763a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n- <textarea>\r\n  raw\r\n  </textarea>\r\n  2. [image]: /x",
+      "sha256": "7469b81ee9f2dbea2ab6434a251d706f2a816c61ec20f89a5375d584acc134d9",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n- <textarea>\n  raw\n  </textarea>\n  2. [image]: /x",
+      "sha256": "1d8707bea41ed2835a94173160ddab28759d760bba8903f99e80ad042e358665",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n- <textarea>\r\n  raw\r\n  </textarea>\r\n  2. [image]: /x",
+      "sha256": "905508ca8c5f431526ff133df2dfe2a66aca8548e7df40d5f33b25732d055460",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n    code\n2. [image]: /x",
+      "sha256": "339a2e9d2cf76097eb5bc24c91ac5615ab2f8c4d884340a66e90707ba0bf4570",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n    code\r\n2. [image]: /x",
+      "sha256": "cbe270a9e380558e1f3d7374d86ce7393ddd130c2c0c869b4521f4dcc4b96ec6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r    code\r2. [image]: /x",
+      "sha256": "ba9f49af52dc043ab4a7fadd6c931e118758f4c6708628abda97383d88284ecf",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n    code\n2. [image]: /x",
+      "sha256": "6f1558630c7805b17c873a637ad5a77b39d13b8c8b629c8b9c85bfd3f9f82d29",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n    code\r\n2. [image]: /x",
+      "sha256": "87c24c7dd5c3d81631fca780219be6db1c7eac903ef6380892c8b47741279a77",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r    code\r2. [image]: /x",
+      "sha256": "94f8845b25c4d322b332b0a55378976c331d8f1c45e6a03b2fb809a90b03dfae",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n>     code\n> 2. [image]: /x",
+      "sha256": "0dd92b00df6e63ebabf7b81f4e8632e614b8a0eca216f5f790b99f3e7c73cd4b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n>     code\r\n> 2. [image]: /x",
+      "sha256": "81faf349ff732e0e507dda1898f5081aefb2ffb8cc29436680b5fc490ec5bb78",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r>     code\r> 2. [image]: /x",
+      "sha256": "1d5487f29e40af91c977315df9c4d3baa75419488adfa3bfb6c605925e4e356e",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n>     code\n> 2. [image]: /x",
+      "sha256": "b9d018c3aa4b2ce7a9aafdd3334b29619d678b513cc094872e6b9249035fae1c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n>     code\r\n> 2. [image]: /x",
+      "sha256": "fd2512dbaf4bde98273b9915fb289a467d7f90bbd4890b44233898e19833c408",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r>     code\r> 2. [image]: /x",
+      "sha256": "5b154dfd6e2830e8b006a1a7cdf941aea8390325cc1b20487d4682b103c55e0b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n-     code\n  2. [image]: /x",
+      "sha256": "977ed4dd146bb384f4c105d3eda6e49e99a22a21c05cf2e65a4d5c9c1169c016",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n-     code\r\n  2. [image]: /x",
+      "sha256": "058d3da06c0e48c13d2f57b387e3ab808482989023ad18731e6aa2068d1a10e9",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r-     code\r  2. [image]: /x",
+      "sha256": "58ccf5592e429d13ea06204216d2d505b05a15bc06102ace3e330da27f73134b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n-     code\n  2. [image]: /x",
+      "sha256": "f6df7864be0cbe0a8b9818d1e032f99eb85b6afea30c0c7bfc0aeb6abdff7953",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n-     code\r\n  2. [image]: /x",
+      "sha256": "fcf6446f7b68566b5fcf222bab107e6b24a75d46a067d784029db0160a421505",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r-     code\r  2. [image]: /x",
+      "sha256": "8eeb23b1a5bde0cbb29873819635a88fdf413fb119a389014636e6e33b7e7073",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> -     code\n>   2. [image]: /x",
+      "sha256": "0e672e499d2fd6e2db54cb78776508e331f0b48d9d9064cb6118d8387f20d4cb",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> -     code\r\n>   2. [image]: /x",
+      "sha256": "071f58dcf70ae9e76e786e283e77bf52933e020f761316c8495b9a660f90da2a",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> -     code\r>   2. [image]: /x",
+      "sha256": "0e6819f5aec30b5efe07406918860648652900e6f09581f059a258a91417e673",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> -     code\n>   2. [image]: /x",
+      "sha256": "5bd80e99e523822e84bee9d56fdeb5651a6d689c5029703bdd350accd8cf1072",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> -     code\r\n>   2. [image]: /x",
+      "sha256": "76ffed2771580ef9a4d04c5112c58c783054b33f145958e8a9345e09473e0c64",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> -     code\r>   2. [image]: /x",
+      "sha256": "8413cffceca1e18453a34e9c0ef5b3de9f6ac8d1cbc57535f4fd59b4cdcc4fb6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n    code\n    more\n2. [image]: /x",
+      "sha256": "66ffbd9a07bcb2ab5c602f2b8aa717d4e5d8540c9446e1b537fae88442191b3b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n    code\r\n    more\r\n2. [image]: /x",
+      "sha256": "51e83fddda198887caf0a28912a82d52b0b575b6d32cb425f0a3db211bf83982",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r    code\r    more\r2. [image]: /x",
+      "sha256": "be7302a7adb6c18fa26cde4743cd0cddde63b6244e41b3204e62113ca6070231",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n    code\n    more\n2. [image]: /x",
+      "sha256": "c1e977719ea578ecde8fffa9dc200b3e5be51b8869fc248498153e7cf7dd91d8",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n    code\r\n    more\r\n2. [image]: /x",
+      "sha256": "86adaf506cbf9627c6385f489082ba108920ea4f655107f7cf01c82e09d8a269",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r    code\r    more\r2. [image]: /x",
+      "sha256": "a0de25013e991b071566bfbde0a8fcd58327e8bed23861a171069758f9d556e4",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n>     code\n>     more\n> 2. [image]: /x",
+      "sha256": "9ed5d2ccafc510a833462c0c704cd7a967b4a1c1bc7410f5b1a6d91a4274f103",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n>     code\r\n>     more\r\n> 2. [image]: /x",
+      "sha256": "b6839c8dfd1e4823f75ea86a68beb85d73d5c92540819d632392f7efd7b4dae1",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r>     code\r>     more\r> 2. [image]: /x",
+      "sha256": "48215ca38c7ce96adc045a0b429300f4bbcd60cb47c2d1e7d25922448e30ad0f",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n>     code\n>     more\n> 2. [image]: /x",
+      "sha256": "53aeb88004263791d853f6b6bae826c0da654c71af19fa11af7d442cf4ec4414",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n>     code\r\n>     more\r\n> 2. [image]: /x",
+      "sha256": "68f3da472c7d7f93c9eddab8903d6b3b22401a195075ae151f8440cf7d2bd345",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r>     code\r>     more\r> 2. [image]: /x",
+      "sha256": "8b96df633a765dd7abafe69d737436a05e3656b44cca44fdfe053fa65a35102d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n-     code\n      more\n  2. [image]: /x",
+      "sha256": "46606a7eccf23202affe2520c1458f21055ff8fe0e9c029f68ecea56af898111",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n-     code\r\n      more\r\n  2. [image]: /x",
+      "sha256": "e918f343bf9a502e0855ed6210634946541a237609305991a415817cd1757d1e",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r-     code\r      more\r  2. [image]: /x",
+      "sha256": "cc6b9347054ff9825aca1dafe358bf9e9f6b1fc3ae0261b543166b84ed2a8532",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n-     code\n      more\n  2. [image]: /x",
+      "sha256": "41009981cb3aa5d29f1ccd361eac81d9cd359026e5b778091f0a6030f0fca808",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n-     code\r\n      more\r\n  2. [image]: /x",
+      "sha256": "b5bc37f518ae8ae2789b5e0c1cdac635f0d31ad98b0a0586a74e1db0a31886fb",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r-     code\r      more\r  2. [image]: /x",
+      "sha256": "222ad3a38a205be152ff21b9c17510845e09cbf5c5c59f53b4c6168fc63b1920",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> -     code\n>       more\n>   2. [image]: /x",
+      "sha256": "2f54634620b2f866feba43828b3518087954c5848a510e9c39660be7647e0cb6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> -     code\r\n>       more\r\n>   2. [image]: /x",
+      "sha256": "1931838c2711f4abee2194b65c784ab9d2f9d22d608496ce54cddffa16af6aca",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> -     code\r>       more\r>   2. [image]: /x",
+      "sha256": "e451dfb619d80f6097efadf5ff059e8e5080347dbbc282e46a9caaf94a17dc06",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> -     code\n>       more\n>   2. [image]: /x",
+      "sha256": "1a71b4958848fa9cad314cf62682fb3f1358fa16aaa284a4a3a7e9b6c17d673b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> -     code\r\n>       more\r\n>   2. [image]: /x",
+      "sha256": "cbecce9589138366c45c761e49aa2cbcc8a5c7fde57276077a240c43a77f9478",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> -     code\r>       more\r>   2. [image]: /x",
+      "sha256": "53f01870bf821fcda7eb195761ae298209669d63bfd53d299fa037ecaefa9e43",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n\tcode\n2. [image]: /x",
+      "sha256": "c7e1116ac70a5b652f58357ac38a3b09f813b76bbc13c395e640aa64fe5eeb14",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n\tcode\r\n2. [image]: /x",
+      "sha256": "a21d340f41353ef3f7a8ce1ec7a6afe792e8525b8e6b65672e015758a58a59a0",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r\tcode\r2. [image]: /x",
+      "sha256": "35343b838dfbdc35f80a0fb1b9562fd0b544c2957058c43ba30c1f8847887a0d",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n\tcode\n2. [image]: /x",
+      "sha256": "0ff15788b8de6cffcf092455f4c655f12b22ec32a0c3987474cc66669dcaa0c6",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n\tcode\r\n2. [image]: /x",
+      "sha256": "3ab07cd2c128b9424ec6b84b9a148d6b976aabaad79a3f99ae5ee3eb2857586c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r\tcode\r2. [image]: /x",
+      "sha256": "9a5dd23fe36398ccca2ec0fcc463aa5b6521788bc6e0509f6e5ca9febabc8677",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\n\n> - \tcode\n>   2. [image]: /x",
+      "sha256": "a8fc4c4bc9ccce47b947730f15694c667aa2a9ddaa973e4a3f604d272d88cede",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n> - \tcode\r\n>   2. [image]: /x",
+      "sha256": "98bdb9ba59ef418d22104267abd02d9f1e816e9912a0927853dfe37fdf75bd4b",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[{{goal}} A | B]][image]\r\r> - \tcode\r>   2. [image]: /x",
+      "sha256": "cb657e35c29ac119991821a82fd2f22468d45e32be1a39ccdedb8d05871addb4",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\n\n> - \tcode\n>   2. [image]: /x",
+      "sha256": "5b1dccf3176ba2d2783ec2cf5f2eb2514fd4e9e58983780461a3e63ed8ea7658",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n> - \tcode\r\n>   2. [image]: /x",
+      "sha256": "cb5d965fd5795cad5b731688b6ef00c6910c88d98f3664e06e99afdb4665e6e5",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    },
+    {
+      "source": "![?[%{{goal}} A | B]][image]\r\r> - \tcode\r>   2. [image]: /x",
+      "sha256": "56b4f0a9a297e02764f9ffa12e64885f937ab3306b4df7f70b18f16d7cf26e4c",
+      "images": 0,
+      "buttons": [
+        "A",
+        "B",
+        "Copy"
+      ]
+    }
+  ]
+}
