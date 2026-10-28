@@ -698,7 +698,7 @@ Confirmed image alt text stays content. Its reference definition may span lines,
 but must start a Markdown block. Later numbered list items start new blocks;
 ordinary and lazy paragraph continuations do not.
 Multiline inline-image destinations and titles follow quote/list continuations
-and stop at real paragraph boundaries. Incomplete resources retain visible interactions.
+and stop at real paragraph boundaries. Incomplete or renderer-rejected image resources retain visible interactions.
 Full-reference image labels also follow projected quote/list continuation lines.
 Only a complete reference definition closes its block before a fresh list item.
 

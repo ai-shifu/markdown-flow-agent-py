@@ -16,7 +16,17 @@ from ..constants import (
     COMPILED_SETEXT_EQUALS_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
-from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink, read_reference_resource_end
+from .document_blocks import (
+    DocumentBlocks,
+    container_content_info,
+    container_content_start,
+    container_opening,
+    fence_opening,
+    indentation,
+    is_rendered_link_destination,
+    read_angle_autolink,
+    read_reference_resource_end,
+)
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -107,7 +117,7 @@ def literal_variable_markers(text: str, start: int, end: int) -> Iterator[Variab
             yield VariableMarker(left + marker.start, left + marker.end, marker.raw_name, marker.name)
 
 
-def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit: int) -> int | None:
+def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit: int, *, image: bool = False) -> int | None:
     """Read a complete inline-link resource, without claiming an unfinished one."""
     at = start + 1
 
@@ -127,6 +137,7 @@ def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit:
     at = skip_space(at)
     if at is None or at >= limit:
         return None
+    destination_start = at
     if text[at] == "<":
         at += 1
         while at < limit:
@@ -162,6 +173,12 @@ def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit:
         if depth:
             return None
     destination_end = at
+    if image:
+        destination = text[destination_start:destination_end]
+        if destination.startswith("<"):
+            destination = destination[1:-1]
+        if not is_rendered_link_destination(destination):
+            return None
     at = skip_space(at)
     if at is None or at >= limit:
         return None
@@ -320,9 +337,9 @@ class DocumentLiteralReader:
             self.resource_limits[key] = limit
         return limit
 
-    def link_resource_end(self, start: int) -> int | None:
+    def link_resource_end(self, start: int, *, image: bool = False) -> int | None:
         """Read a complete inline resource within the owning paragraph."""
-        return read_link_resource_end(self.text, start, self.blocks, self.inline_limit(start))
+        return read_link_resource_end(self.text, start, self.blocks, self.inline_limit(start), image=image)
 
     def read(self, start: int) -> int | None:
         index = self.blocks.by_start.get(start)
@@ -495,7 +512,7 @@ def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
     for start, end in reader.image_labels:
         if reader.blocks.unclosed_html_start is not None and start >= reader.blocks.unclosed_html_start:
             continue
-        if text[end : end + 1] == "(" and reader.link_resource_end(end) is not None:
+        if text[end : end + 1] == "(" and reader.link_resource_end(end, image=True) is not None:
             yield start, end
         elif text[end : end + 1] == "[":
             label = read_image_reference_label(text, end, reader.blocks, reader.inline_limit(end))
