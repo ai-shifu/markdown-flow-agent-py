@@ -16,7 +16,7 @@ from ..constants import (
     COMPILED_SETEXT_EQUALS_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
-from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink
+from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink, read_reference_resource_end
 
 
 _HTML_TERMINATORS = (("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>"))
@@ -223,71 +223,9 @@ def read_image_reference_label(text: str, start: int, blocks: DocumentBlocks, li
     return None
 
 
-def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | None:
-    """Read a complete definition resource without claiming an unfinished title."""
-    at = blocks.reference_space(start, start)
-    if at is None or at >= len(text):
-        return None
-    destination_start = at
-    if text[at] == "<":
-        at += 1
-        while at < len(text):
-            if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
-                at += 2
-            elif text[at] == ">":
-                at += 1
-                break
-            elif text[at] in "<\r\n":
-                return None
-            else:
-                at += 1
-        else:
-            return None
-    else:
-        depth = 0
-        while at < len(text) and text[at] not in " \t\r\n":
-            character = text[at]
-            if character == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
-                at += 2
-                continue
-            if character == "(":
-                depth += 1
-                if depth > 32:
-                    return None
-            elif character == ")":
-                depth -= 1
-                if depth < 0:
-                    return None
-            elif ord(character) < 32 or character == "\x7f":
-                return None
-            at += 1
-        if depth:
-            return None
-    if at == destination_start:
-        return None
-    destination_end = at
-    destination_line = blocks.line_at(destination_end)
-    fallback = destination_line.content_end if not text[destination_end : destination_line.content_end].strip(" \t") else None
-    at = blocks.reference_space(at, start)
-    if at is None or at >= len(text) or text[at] not in "\"'(":
-        return fallback
-    title_next_line = at > destination_line.content_end
-    if at == destination_end:
-        return None
-    closing = ")" if text[at] == "(" else text[at]
-    at += 1
-    title_start = at
-    while at < len(text):
-        if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
-            at += 2
-        elif text[at] == closing:
-            line_end = blocks.line_at(at).content_end
-            if blocks.reference_has_blank(title_start, at) or text[at + 1 : line_end].strip(" \t"):
-                return fallback if title_next_line else None
-            return line_end
-        else:
-            at += 1
-    return fallback if title_next_line else None
+def read_reference_end(text: str, start: int, blocks: DocumentBlocks, *, origin: int | None = None) -> int | None:
+    """Share the resource grammar with document block projection."""
+    return read_reference_resource_end(text, start, blocks, origin=origin)
 
 
 def _document_breaks(text: str, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> list[tuple[int, int]]:
@@ -395,7 +333,7 @@ class DocumentLiteralReader:
         reference_prefix = self.blocks.reference_label_prefix(start)
         if reference_prefix is not None:
             reference_start, label = reference_prefix
-            reference_end = read_reference_end(self.text, reference_start, self.blocks)
+            reference_end = read_reference_end(self.text, reference_start, self.blocks, origin=start)
             if reference_end is not None:
                 self.blocks.closed_reference_lines.add(self.blocks.line_at(reference_end).start)
                 if self.blocks.unclosed_html_start is None or start < self.blocks.unclosed_html_start:

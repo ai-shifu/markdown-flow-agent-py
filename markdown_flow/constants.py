@@ -5,6 +5,7 @@ Constants for document parsing, variable matching, validation, and other core fu
 """
 
 import re
+from string import punctuation
 
 from .variable_names import (
     VARIABLE_ASSIGNMENT_SOURCE,
@@ -58,7 +59,10 @@ COMPILED_PHYSICAL_LINE_END_REGEX = re.compile(r"\r\n|\r|\n")
 COMPILED_CONTAINER_LIST_REGEX = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?=[ \t]|$)")
 COMPILED_DOCUMENT_FENCE_REGEX = re.compile(r"(`{3,})([^`]*$)|(~{3,})(.*$)")
 COMPILED_DOCUMENT_TAG_REGEX = re.compile(r" {0,3}</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t/>]|$)")
-COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\]\\\r\n])+)]\:[ \t]*")
+COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\[\]\\\r\n])+)]\:[ \t]*")
+COMPILED_LINK_UNESCAPE_REGEX = re.compile(r"\\([" + re.escape(punctuation) + r"])|&([a-z#][a-z0-9]{1,31});", re.IGNORECASE)
+COMPILED_LINK_BAD_PROTOCOL_REGEX = re.compile(r"^(vbscript|javascript|file|data):")
+COMPILED_LINK_IMAGE_DATA_REGEX = re.compile(r"^data:image/(gif|png|jpeg|webp);")
 COMPILED_DOCUMENT_BREAK_REGEX = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})$")
 COMPILED_SETEXT_REGEX = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
 COMPILED_SETEXT_EQUALS_REGEX = re.compile(r" {0,3}=+[ \t]*$")
