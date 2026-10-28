@@ -1,5 +1,6 @@
 """Document-stage boundaries without changing the raw variable-marker grammar."""
 
+from bisect import bisect_right
 from collections.abc import Iterator
 from string import punctuation
 
@@ -11,6 +12,8 @@ from ..constants import (
     COMPILED_PHYSICAL_LINE_END_REGEX,
     COMPILED_RAW_HTML_END_REGEX,
     COMPILED_RAW_HTML_START_REGEX,
+    COMPILED_RESOURCE_HTML_BREAK_REGEX,
+    COMPILED_SETEXT_EQUALS_REGEX,
 )
 from ..variable_names import VariableMarker, find_variable_markers, read_variable_marker
 from .document_blocks import DocumentBlocks, container_content_info, container_content_start, container_opening, fence_opening, indentation, read_angle_autolink
@@ -104,23 +107,30 @@ def literal_variable_markers(text: str, start: int, end: int) -> Iterator[Variab
             yield VariableMarker(left + marker.start, left + marker.end, marker.raw_name, marker.name)
 
 
-def read_link_resource_end(text: str, start: int) -> int | None:
+def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit: int) -> int | None:
     """Read a complete inline-link resource, without claiming an unfinished one."""
     at = start + 1
 
+    def projected(cursor: int) -> int:
+        index = blocks.by_start.get(cursor)
+        return blocks.content_starts[index] if index is not None and cursor > start else cursor
+
     def skip_space(cursor: int) -> int | None:
         beginning = cursor
-        while cursor < len(text) and text[cursor] in " \t\r\n":
+        while cursor < limit:
+            cursor = projected(cursor)
+            if cursor >= limit or text[cursor] not in " \t\r\n":
+                break
             cursor += 1
         return None if COMPILED_BLANK_LINE_REGEX.search(text, beginning, cursor) else cursor
 
     at = skip_space(at)
-    if at is None or at >= len(text):
+    if at is None or at >= limit:
         return None
     if text[at] == "<":
         at += 1
-        while at < len(text):
-            if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+        while at < limit:
+            if text[at] == "\\" and at + 1 < limit and text[at + 1] in punctuation:
                 at += 2
             elif text[at] == ">":
                 at += 1
@@ -133,9 +143,9 @@ def read_link_resource_end(text: str, start: int) -> int | None:
             return None
     else:
         depth = 0
-        while at < len(text):
+        while at < limit:
             character = text[at]
-            if character == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+            if character == "\\" and at + 1 < limit and text[at + 1] in punctuation:
                 at += 2
                 continue
             if character in " \t\r\n" or (character == ")" and depth == 0):
@@ -153,7 +163,7 @@ def read_link_resource_end(text: str, start: int) -> int | None:
             return None
     destination_end = at
     at = skip_space(at)
-    if at is None or at >= len(text):
+    if at is None or at >= limit:
         return None
     if text[at] == ")":
         return at + 1
@@ -162,14 +172,17 @@ def read_link_resource_end(text: str, start: int) -> int | None:
     closing = ")" if text[at] == "(" else text[at]
     at += 1
     title_start = at
-    while at < len(text):
-        if text[at] == "\\" and at + 1 < len(text) and text[at + 1] in punctuation:
+    while at < limit:
+        at = projected(at)
+        if at >= limit:
+            return None
+        if text[at] == "\\" and at + 1 < limit and text[at + 1] in punctuation:
             at += 2
         elif text[at] == closing:
             if COMPILED_BLANK_LINE_REGEX.search(text, title_start, at) is not None:
                 return None
             at = skip_space(at + 1)
-            return at + 1 if at is not None and at < len(text) and text[at] == ")" else None
+            return at + 1 if at is not None and at < limit and text[at] == ")" else None
         else:
             at += 1
     return None
@@ -242,8 +255,8 @@ def read_reference_end(text: str, start: int, blocks: DocumentBlocks) -> int | N
     return fallback if title_next_line else None
 
 
-def _math_spans(text: str, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> dict[int, int]:
-    """Index equal-width math delimiters once, bounded by paragraphs and blocks."""
+def _document_breaks(text: str, last_html_ends: dict[str, int], blocks: DocumentBlocks) -> list[tuple[int, int]]:
+    """Share paragraph and block boundaries across inline math and link resources."""
     breaks: list[tuple[int, int]] = []
     for index, line in enumerate(blocks.lines):
         value = blocks.projected_line(index)
@@ -255,6 +268,11 @@ def _math_spans(text: str, last_html_ends: dict[str, int], blocks: DocumentBlock
         if COMPILED_ATX_START_REGEX.match(value) is not None:
             breaks.extend(((line.start, line.start), (line.content_end, line.content_end)))
     breaks.sort()
+    return breaks
+
+
+def _math_spans(text: str, breaks: list[tuple[int, int]]) -> dict[int, int]:
+    """Index equal-width math delimiters once, bounded by paragraphs and blocks."""
     spans: dict[int, int] = {}
     next_run: dict[int, tuple[int, int]] = {}
     boundary_index = len(breaks) - 1
@@ -285,7 +303,12 @@ class DocumentLiteralReader:
         self.text = text
         self.last_html_ends = document_html_ends(text)
         self.blocks = DocumentBlocks(text, COMPILED_INLINE_HTML_REGEX)
-        self.math_spans = _math_spans(text, self.last_html_ends, self.blocks)
+        breaks = _document_breaks(text, self.last_html_ends, self.blocks)
+        self.math_spans = _math_spans(text, breaks)
+        self.resource_breaks = sorted(
+            {start for start, _ in breaks} | {line.start for index, line in enumerate(self.blocks.lines) if COMPILED_RESOURCE_HTML_BREAK_REGEX.match(self.blocks.projected_line(index)) is not None}
+        )
+        self.resource_limits: dict[tuple[int, int], int] = {}
         self.labels: list[tuple[bool, bool]] = []
         self.label_starts: list[int] = []
         self.image_labels: list[tuple[int, int]] = []
@@ -293,6 +316,36 @@ class DocumentLiteralReader:
         self.active_links: set[int] = set()
         self.resource_start = -1
         self.resource_image = False
+
+    def link_resource_end(self, start: int) -> int | None:
+        """Bound a resource by its owning paragraph without rescanning lazy suffixes."""
+        following = bisect_right(self.resource_breaks, start)
+        origin = self.blocks.paragraph_steps[self.blocks.by_start[self.blocks.line_at(start).start]]
+        skipped: list[tuple[int, int]] = []
+        limit = len(self.text)
+        while following < len(self.resource_breaks):
+            # Tuple identity avoids rehashing deep container stacks for each link.
+            key = following, id(origin)
+            if key in self.resource_limits:
+                limit = self.resource_limits[key]
+                break
+            boundary = self.resource_breaks[following]
+            index = self.blocks.by_start.get(boundary)
+            if (
+                origin
+                and index is not None
+                and not self.blocks.paragraph_interrupts(index)
+                and COMPILED_SETEXT_EQUALS_REGEX.fullmatch(self.blocks.projected_line(index)) is not None
+                and container_content_start(self.text[boundary : self.blocks.lines[index].content_end], origin) is None
+            ):
+                skipped.append(key)
+                following += 1
+                continue
+            limit = boundary
+            break
+        for key in skipped:
+            self.resource_limits[key] = limit
+        return read_link_resource_end(self.text, start, self.blocks, limit)
 
     def read(self, start: int) -> int | None:
         index = self.blocks.by_start.get(start)
@@ -315,7 +368,7 @@ class DocumentLiteralReader:
         if self.text[start] == "$" and start in self.math_spans:
             return self.math_spans[start]
         if self.text[start] == "(" and start == self.resource_start:
-            resource_end = read_link_resource_end(self.text, start)
+            resource_end = self.link_resource_end(start)
             if resource_end is not None and not self.resource_image:
                 for index in self.active_links:
                     self.labels[index] = (False, False)
@@ -465,7 +518,7 @@ def find_document_image_labels(text: str) -> Iterator[tuple[int, int]]:
     for start, end in reader.image_labels:
         if reader.blocks.unclosed_html_start is not None and start >= reader.blocks.unclosed_html_start:
             continue
-        if text[end : end + 1] == "(" and read_link_resource_end(text, end) is not None:
+        if text[end : end + 1] == "(" and reader.link_resource_end(end) is not None:
             yield start, end
         elif text[end : end + 1] == "[":
             # A full reference image may use brackets in its alt text, but the

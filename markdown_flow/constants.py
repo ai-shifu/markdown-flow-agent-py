@@ -61,6 +61,8 @@ COMPILED_DOCUMENT_TAG_REGEX = re.compile(r" {0,3}</?([A-Za-z][A-Za-z0-9-]*)(?=[ 
 COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\]\\\r\n])+)]\:[ \t]*")
 COMPILED_DOCUMENT_BREAK_REGEX = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})$")
 COMPILED_SETEXT_REGEX = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
+COMPILED_SETEXT_EQUALS_REGEX = re.compile(r" {0,3}=+[ \t]*$")
+COMPILED_RESOURCE_HTML_BREAK_REGEX = re.compile(r" {0,3}(?:<!--|<\?|<!\[CDATA\[|<![A-Z])")
 
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
 # variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};
