@@ -187,8 +187,6 @@ def read_link_resource_end(text: str, start: int, blocks: DocumentBlocks, limit:
             return None
         if text[at] == "\\" and at + 1 < limit and text[at + 1] in punctuation:
             at += 2
-        elif image and closing == ")" and text[at] == "(":
-            return None
         elif text[at] == closing:
             if COMPILED_BLANK_LINE_REGEX.search(text, title_start, at) is not None:
                 return None

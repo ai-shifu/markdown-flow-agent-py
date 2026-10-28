@@ -697,8 +697,10 @@ replaceable reference and `%{{answer}}` remains preserved.
 Confirmed image alt text stays content. Its reference definition may span lines,
 but must start a Markdown block. Later numbered list items start new blocks;
 ordinary and lazy paragraph continuations do not.
-Multiline inline-image destinations and titles follow quote/list continuations
-and stop at real paragraph boundaries. Incomplete or syntactically invalid image
+Multiline inline-image destinations and titles follow quote/list continuations.
+Parenthesized titles end at the first unescaped closing parenthesis; opening
+parentheses inside those titles remain literal text. Resources stop at real
+paragraph boundaries. Incomplete or syntactically invalid image
 resources retain visible interactions. A complete image node keeps its alt text
 as content even when the browser sanitizes its URL, including SVG data URLs.
 URL sanitization does not turn that alt text into an interactive question.

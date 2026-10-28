@@ -1,65 +1,44 @@
-"""Parenthesized image titles cannot contain an unescaped opening parenthesis."""
+"""Image-title admission follows captured browser behavior, not another parser's rules."""
+
+import json
+from pathlib import Path
 
 import pytest
-from markdown_it import MarkdownIt
 
 from markdown_flow import MarkdownFlow, replace_variables_in_text
 from markdown_flow.enums import BlockType
 from markdown_flow.parser.document_context import find_document_image_labels, find_document_interaction_spans, find_document_protected_spans
 
 
-@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
-@pytest.mark.parametrize("spelling", ["{{goal}}", "%{{goal}}"])
-@pytest.mark.parametrize(("opening", "continuation"), [("", ""), ("> ", "> "), ("> - ", ">   "), ("- > ", "  > ")])
-@pytest.mark.parametrize("form", ["inline", "reference", "reference-next-line"])
-@pytest.mark.parametrize(
-    "title",
-    [
-        "(Diagram)",
-        "(Diagram (draft)",
-        "(Diagram (draft))",
-        r"(Diagram \(draft)",
-        r"(Diagram \(draft\))",
-        r"(Diagram \\(draft)",
-        '"Diagram (draft)"',
-        "'Diagram (draft)'",
-        "(Diagram\n(draft)",
-        "(Diagram &#40;draft&#41;)",
-    ],
-)
-def test_parenthesized_title_admission_matches_rendering(title: str, form: str, opening: str, continuation: str, spelling: str, newline: str) -> None:
-    control = "?[" + spelling + " A | B]"
-    projected_title = title.replace("\n", "\n" + continuation)
-    if form == "inline":
-        source = opening + "![" + control + "](/x " + projected_title + ")"
-    else:
-        separator = " " if form == "reference" else "\n" + continuation + " "
-        source = opening + "![" + control + "][image]\n\n" + opening + "[image]: /x" + separator + projected_title
-    source = source.replace("\n", newline)
-    image = "<img " in MarkdownIt().render(source)
+OBSERVED_CASES = json.loads(Path(__file__).with_name("parenthesized-title-observed-cases.json").read_text())["cases"]
+
+
+@pytest.mark.parametrize("case", OBSERVED_CASES, ids=lambda case: str(case["id"]))
+def test_parenthesized_titles_match_observed_images_and_visible_questions(case) -> None:
+    source = case["source"]
+    observed = case["observed"]
+    image = bool(observed["images"])
+    questions = []
+    if "A" in observed["buttons"]:
+        questions.append("?[" + case["marker"] + " A | B]")
+    if "C" in observed["buttons"]:
+        questions.append("?[{{visible}} C | D]")
     assert bool(list(find_document_image_labels(source))) is image
-    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == ([] if image else [control])
-    replacement = source.replace("{{goal}}", "old") if image and spelling == "{{goal}}" else source
-    assert replace_variables_in_text(source, {"goal": "old"}, add_quotes=False) == replacement
+    assert [source[start:end] for start, end in find_document_interaction_spans(source)] == questions
+    replacement = source.replace("{{goal}}", "old") if image and case["marker"] == "{{goal}}" else source
+    variables: dict[str, str | list[str]] = {"goal": "old", "visible": "stale", "inside": "{{inside}}"}
+    assert replace_variables_in_text(source, variables, add_quotes=False) == replacement
     flow = MarkdownFlow(source)
-    questions = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
-    assert [block.content for block in questions] == ([] if image else [control])
-    if questions:
-        assert flow.process(questions[0].index, variables={"goal": "old"}, user_input={"goal": ["A"]}).variables == {"goal": ["A"]}
-
-
-@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
-@pytest.mark.parametrize("title", ["(Diagram (draft)", "(Diagram (draft))", "(Diagram\n(draft)"])
-def test_invalid_next_line_reference_title_keeps_destination_only_fallback(title: str, newline: str) -> None:
-    source = ("![?[{{goal}} A | B]][image]\n\n[image]: /x\n " + title).replace("\n", newline)
-    assert "<img " in MarkdownIt().render(source)
-    assert bool(list(find_document_image_labels(source)))
-    assert not list(find_document_interaction_spans(source))
+    blocks = [block for block in flow.get_all_blocks() if block.block_type == BlockType.INTERACTION]
+    assert [block.content for block in blocks] == questions
+    for block in blocks:
+        name, value = ("visible", "D") if block.content == "?[{{visible}} C | D]" else ("goal", "B")
+        assert flow.process(block.index, variables=variables, user_input={name: [value]}).variables == {name: [value]}
 
 
 @pytest.mark.parametrize("image", [False, True])
 @pytest.mark.parametrize("resource", ["(/x (Diagram ({{))", "(/x (Diagram \\( {{))"])
-def test_parenthesized_image_validation_preserves_generic_literal_spans(resource: str, image: bool) -> None:
+def test_parenthesized_resources_preserve_generic_literal_spans(resource: str, image: bool) -> None:
     prefix = ("!" if image else "") + "[example]" + resource
     source = prefix + "\n\n?[{{visible}} C | D]\n\nRead {{value}}."
     assert (prefix.index("("), len(prefix)) in list(find_document_protected_spans(source))

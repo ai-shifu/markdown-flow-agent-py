@@ -1,0 +1,6461 @@
+{
+  "provenance": "Actual published markdown-flow-ui 0.3.3 ContentRender through the application bridge to remark-flow 1.4.2, observed on Node 22.23.4. This bounded subset retains every title/form/destination shape, all exact-review variants and every title-literal/following-question row from the complete 2466-case observation corpus.",
+  "cases": [
+    {
+      "group": "title",
+      "id": 0,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 3,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 4,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 5,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 6,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 7,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 8,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 9,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 10,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 11,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 12,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 13,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n[image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 14,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]][image]\r\r[image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 15,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 16,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n[image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 17,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]][image]\r\r[image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 18,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 19,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n[image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 20,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]][image]\r\r[image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 21,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 22,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n[image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 23,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]][image]\r\r[image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 24,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 25,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n[image]: /x\r\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 26,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]][image]\r\r[image]: /x\r(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 27,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 28,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n[image]: /x\r\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 29,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]][image]\r\r[image]: /x\r(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 30,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 31,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n[image]: </x>\r\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 32,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]][image]\r\r[image]: </x>\r(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 33,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 34,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n[image]: </x>\r\n(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 35,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]][image]\r\r[image]: </x>\r(Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 36,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 37,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 38,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 39,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 40,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 41,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 42,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 43,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 44,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 45,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 46,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 47,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 48,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[{{goal}} A | B]][image]\n> \n> [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 49,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[{{goal}} A | B]][image]\r\n> \r\n> [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 50,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[{{goal}} A | B]][image]\r> \r> [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 51,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[%{{goal}} A | B]][image]\n> \n> [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 52,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[%{{goal}} A | B]][image]\r\n> \r\n> [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 53,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[%{{goal}} A | B]][image]\r> \r> [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 54,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[{{goal}} A | B]][image]\n> \n> [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 55,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[{{goal}} A | B]][image]\r\n> \r\n> [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 56,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[{{goal}} A | B]][image]\r> \r> [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 57,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[%{{goal}} A | B]][image]\n> \n> [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 58,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[%{{goal}} A | B]][image]\r\n> \r\n> [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 59,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[%{{goal}} A | B]][image]\r> \r> [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 60,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[{{goal}} A | B]][image]\n> \n> [image]: /x\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 61,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[{{goal}} A | B]][image]\r\n> \r\n> [image]: /x\r\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 62,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[{{goal}} A | B]][image]\r> \r> [image]: /x\r> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 63,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[%{{goal}} A | B]][image]\n> \n> [image]: /x\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 64,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[%{{goal}} A | B]][image]\r\n> \r\n> [image]: /x\r\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 65,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[%{{goal}} A | B]][image]\r> \r> [image]: /x\r> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 66,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[{{goal}} A | B]][image]\n> \n> [image]: </x>\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 67,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[{{goal}} A | B]][image]\r\n> \r\n> [image]: </x>\r\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 68,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[{{goal}} A | B]][image]\r> \r> [image]: </x>\r> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 69,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> ![?[%{{goal}} A | B]][image]\n> \n> [image]: </x>\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 70,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> ![?[%{{goal}} A | B]][image]\r\n> \r\n> [image]: </x>\r\n> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 71,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> ![?[%{{goal}} A | B]][image]\r> \r> [image]: </x>\r> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 72,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 73,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 74,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 75,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 76,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 77,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 78,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 79,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 80,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 81,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 82,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 83,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 84,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[{{goal}} A | B]][image]\n>   \n>   [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 85,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[{{goal}} A | B]][image]\r\n>   \r\n>   [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 86,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[{{goal}} A | B]][image]\r>   \r>   [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 87,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\n>   \n>   [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 88,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r\n>   \r\n>   [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 89,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r>   \r>   [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 90,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[{{goal}} A | B]][image]\n>   \n>   [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 91,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[{{goal}} A | B]][image]\r\n>   \r\n>   [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 92,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[{{goal}} A | B]][image]\r>   \r>   [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 93,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\n>   \n>   [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 94,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r\n>   \r\n>   [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 95,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r>   \r>   [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 96,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[{{goal}} A | B]][image]\n>   \n>   [image]: /x\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 97,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[{{goal}} A | B]][image]\r\n>   \r\n>   [image]: /x\r\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 98,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[{{goal}} A | B]][image]\r>   \r>   [image]: /x\r>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 99,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\n>   \n>   [image]: /x\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 100,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r\n>   \r\n>   [image]: /x\r\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 101,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r>   \r>   [image]: /x\r>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 102,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[{{goal}} A | B]][image]\n>   \n>   [image]: </x>\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 103,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[{{goal}} A | B]][image]\r\n>   \r\n>   [image]: </x>\r\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 104,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[{{goal}} A | B]][image]\r>   \r>   [image]: </x>\r>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 105,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\n>   \n>   [image]: </x>\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 106,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r\n>   \r\n>   [image]: </x>\r\n>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 107,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "quote list",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "> - ![?[%{{goal}} A | B]][image]\r>   \r>   [image]: </x>\r>   (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 108,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 109,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 110,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 111,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 112,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 113,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[%{{goal}} A | B]](/x (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 114,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 115,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 116,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 117,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 118,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 119,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "inline",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[%{{goal}} A | B]](</x> (Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 120,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[{{goal}} A | B]][image]\n  > \n  > [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 121,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[{{goal}} A | B]][image]\r\n  > \r\n  > [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 122,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[{{goal}} A | B]][image]\r  > \r  > [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 123,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\n  > \n  > [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 124,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r\n  > \r\n  > [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 125,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r  > \r  > [image]: /x (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 126,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[{{goal}} A | B]][image]\n  > \n  > [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 127,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[{{goal}} A | B]][image]\r\n  > \r\n  > [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 128,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[{{goal}} A | B]][image]\r  > \r  > [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 129,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\n  > \n  > [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 130,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r\n  > \r\n  > [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 131,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r  > \r  > [image]: </x> (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 132,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[{{goal}} A | B]][image]\n  > \n  > [image]: /x\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 133,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[{{goal}} A | B]][image]\r\n  > \r\n  > [image]: /x\r\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 134,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[{{goal}} A | B]][image]\r  > \r  > [image]: /x\r  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 135,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\n  > \n  > [image]: /x\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 136,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r\n  > \r\n  > [image]: /x\r\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 137,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r  > \r  > [image]: /x\r  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 138,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[{{goal}} A | B]][image]\n  > \n  > [image]: </x>\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 139,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[{{goal}} A | B]][image]\r\n  > \r\n  > [image]: </x>\r\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 140,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[{{goal}} A | B]][image]\r  > \r  > [image]: </x>\r  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 141,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\n  > \n  > [image]: </x>\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 142,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r\n  > \r\n  > [image]: </x>\r\n  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 143,
+      "titleIndex": 0,
+      "title": "(Diagram (draft)",
+      "container": "list quote",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "- > ![?[%{{goal}} A | B]][image]\r  > \r  > [image]: </x>\r  > (Diagram (draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 144,
+      "titleIndex": 1,
+      "title": "(Diagram (draft))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 150,
+      "titleIndex": 1,
+      "title": "(Diagram (draft))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram (draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 156,
+      "titleIndex": 1,
+      "title": "(Diagram (draft))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 162,
+      "titleIndex": 1,
+      "title": "(Diagram (draft))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram (draft))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 168,
+      "titleIndex": 1,
+      "title": "(Diagram (draft))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 174,
+      "titleIndex": 1,
+      "title": "(Diagram (draft))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram (draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 288,
+      "titleIndex": 2,
+      "title": "(Diagram (draft)))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft))))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 294,
+      "titleIndex": 2,
+      "title": "(Diagram (draft)))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram (draft))))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 300,
+      "titleIndex": 2,
+      "title": "(Diagram (draft)))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft)))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 306,
+      "titleIndex": 2,
+      "title": "(Diagram (draft)))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram (draft)))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 312,
+      "titleIndex": 2,
+      "title": "(Diagram (draft)))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 318,
+      "titleIndex": 2,
+      "title": "(Diagram (draft)))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram (draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 432,
+      "titleIndex": 3,
+      "title": "(Diagram \\(draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram \\(draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 438,
+      "titleIndex": 3,
+      "title": "(Diagram \\(draft)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram \\(draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 444,
+      "titleIndex": 3,
+      "title": "(Diagram \\(draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram \\(draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 450,
+      "titleIndex": 3,
+      "title": "(Diagram \\(draft)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram \\(draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 456,
+      "titleIndex": 3,
+      "title": "(Diagram \\(draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram \\(draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 462,
+      "titleIndex": 3,
+      "title": "(Diagram \\(draft)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram \\(draft)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 576,
+      "titleIndex": 4,
+      "title": "(Diagram \\(draft\\))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram \\(draft\\)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 582,
+      "titleIndex": 4,
+      "title": "(Diagram \\(draft\\))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram \\(draft\\)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 588,
+      "titleIndex": 4,
+      "title": "(Diagram \\(draft\\))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram \\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 594,
+      "titleIndex": 4,
+      "title": "(Diagram \\(draft\\))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram \\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 600,
+      "titleIndex": 4,
+      "title": "(Diagram \\(draft\\))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram \\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 606,
+      "titleIndex": 4,
+      "title": "(Diagram \\(draft\\))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram \\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 720,
+      "titleIndex": 5,
+      "title": "(Diagram \\\\(draft))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram \\\\(draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 726,
+      "titleIndex": 5,
+      "title": "(Diagram \\\\(draft))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram \\\\(draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 732,
+      "titleIndex": 5,
+      "title": "(Diagram \\\\(draft))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram \\\\(draft))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 738,
+      "titleIndex": 5,
+      "title": "(Diagram \\\\(draft))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram \\\\(draft))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 744,
+      "titleIndex": 5,
+      "title": "(Diagram \\\\(draft))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram \\\\(draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 750,
+      "titleIndex": 5,
+      "title": "(Diagram \\\\(draft))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram \\\\(draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 864,
+      "titleIndex": 6,
+      "title": "(Diagram \\\\\\(draft\\))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram \\\\\\(draft\\)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 870,
+      "titleIndex": 6,
+      "title": "(Diagram \\\\\\(draft\\))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram \\\\\\(draft\\)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 876,
+      "titleIndex": 6,
+      "title": "(Diagram \\\\\\(draft\\))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram \\\\\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 882,
+      "titleIndex": 6,
+      "title": "(Diagram \\\\\\(draft\\))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram \\\\\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 888,
+      "titleIndex": 6,
+      "title": "(Diagram \\\\\\(draft\\))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram \\\\\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 894,
+      "titleIndex": 6,
+      "title": "(Diagram \\\\\\(draft\\))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram \\\\\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram \\(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1008,
+      "titleIndex": 7,
+      "title": "\"Diagram (draft)\"",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x \"Diagram (draft)\")",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1014,
+      "titleIndex": 7,
+      "title": "\"Diagram (draft)\"",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> \"Diagram (draft)\")",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1020,
+      "titleIndex": 7,
+      "title": "\"Diagram (draft)\"",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x \"Diagram (draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1026,
+      "titleIndex": 7,
+      "title": "\"Diagram (draft)\"",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> \"Diagram (draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1032,
+      "titleIndex": 7,
+      "title": "\"Diagram (draft)\"",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n\"Diagram (draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1038,
+      "titleIndex": 7,
+      "title": "\"Diagram (draft)\"",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n\"Diagram (draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1152,
+      "titleIndex": 8,
+      "title": "'Diagram (draft)'",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x 'Diagram (draft)')",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1158,
+      "titleIndex": 8,
+      "title": "'Diagram (draft)'",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> 'Diagram (draft)')",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1164,
+      "titleIndex": 8,
+      "title": "'Diagram (draft)'",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x 'Diagram (draft)'",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1170,
+      "titleIndex": 8,
+      "title": "'Diagram (draft)'",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> 'Diagram (draft)'",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1176,
+      "titleIndex": 8,
+      "title": "'Diagram (draft)'",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n'Diagram (draft)'",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1182,
+      "titleIndex": 8,
+      "title": "'Diagram (draft)'",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n'Diagram (draft)'",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1296,
+      "titleIndex": 9,
+      "title": "(Diagram &lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram &lpar;draft&rpar;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1302,
+      "titleIndex": 9,
+      "title": "(Diagram &lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram &lpar;draft&rpar;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1308,
+      "titleIndex": 9,
+      "title": "(Diagram &lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram &lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1314,
+      "titleIndex": 9,
+      "title": "(Diagram &lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram &lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1320,
+      "titleIndex": 9,
+      "title": "(Diagram &lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram &lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1326,
+      "titleIndex": 9,
+      "title": "(Diagram &lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram &lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1440,
+      "titleIndex": 10,
+      "title": "(Diagram &#40;draft&#41;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram &#40;draft&#41;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1446,
+      "titleIndex": 10,
+      "title": "(Diagram &#40;draft&#41;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram &#40;draft&#41;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1452,
+      "titleIndex": 10,
+      "title": "(Diagram &#40;draft&#41;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram &#40;draft&#41;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1458,
+      "titleIndex": 10,
+      "title": "(Diagram &#40;draft&#41;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram &#40;draft&#41;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1464,
+      "titleIndex": 10,
+      "title": "(Diagram &#40;draft&#41;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram &#40;draft&#41;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1470,
+      "titleIndex": 10,
+      "title": "(Diagram &#40;draft&#41;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram &#40;draft&#41;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1584,
+      "titleIndex": 11,
+      "title": "(Diagram &#x28;draft&#x29;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram &#x28;draft&#x29;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1590,
+      "titleIndex": 11,
+      "title": "(Diagram &#x28;draft&#x29;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram &#x28;draft&#x29;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1596,
+      "titleIndex": 11,
+      "title": "(Diagram &#x28;draft&#x29;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram &#x28;draft&#x29;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1602,
+      "titleIndex": 11,
+      "title": "(Diagram &#x28;draft&#x29;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram &#x28;draft&#x29;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1608,
+      "titleIndex": 11,
+      "title": "(Diagram &#x28;draft&#x29;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram &#x28;draft&#x29;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1614,
+      "titleIndex": 11,
+      "title": "(Diagram &#x28;draft&#x29;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram &#x28;draft&#x29;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1728,
+      "titleIndex": 12,
+      "title": "(Diagram\n(draft))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram\n(draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1734,
+      "titleIndex": 12,
+      "title": "(Diagram\n(draft))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram\n(draft)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1740,
+      "titleIndex": 12,
+      "title": "(Diagram\n(draft))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram\n(draft))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1746,
+      "titleIndex": 12,
+      "title": "(Diagram\n(draft))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram\n(draft))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1752,
+      "titleIndex": 12,
+      "title": "(Diagram\n(draft))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram\n(draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1758,
+      "titleIndex": 12,
+      "title": "(Diagram\n(draft))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram\n(draft))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": null
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1872,
+      "titleIndex": 13,
+      "title": "(Diagram\n\\(draft\\))",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram\n\\(draft\\)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1878,
+      "titleIndex": 13,
+      "title": "(Diagram\n\\(draft\\))",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram\n\\(draft\\)))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1884,
+      "titleIndex": 13,
+      "title": "(Diagram\n\\(draft\\))",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram\n\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1890,
+      "titleIndex": 13,
+      "title": "(Diagram\n\\(draft\\))",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram\n\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1896,
+      "titleIndex": 13,
+      "title": "(Diagram\n\\(draft\\))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram\n\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 1902,
+      "titleIndex": 13,
+      "title": "(Diagram\n\\(draft\\))",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram\n\\(draft\\))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2016,
+      "titleIndex": 14,
+      "title": "\"Diagram\n(draft)\"",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x \"Diagram\n(draft)\")",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2022,
+      "titleIndex": 14,
+      "title": "\"Diagram\n(draft)\"",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> \"Diagram\n(draft)\")",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2028,
+      "titleIndex": 14,
+      "title": "\"Diagram\n(draft)\"",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x \"Diagram\n(draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2034,
+      "titleIndex": 14,
+      "title": "\"Diagram\n(draft)\"",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> \"Diagram\n(draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2040,
+      "titleIndex": 14,
+      "title": "\"Diagram\n(draft)\"",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n\"Diagram\n(draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2046,
+      "titleIndex": 14,
+      "title": "\"Diagram\n(draft)\"",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n\"Diagram\n(draft)\"",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2160,
+      "titleIndex": 15,
+      "title": "(Diagram (draft)\ntext)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft)\ntext))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2166,
+      "titleIndex": 15,
+      "title": "(Diagram (draft)\ntext)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram (draft)\ntext))",
+      "observed": {
+        "images": [],
+        "buttons": [
+          "A",
+          "B"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2172,
+      "titleIndex": 15,
+      "title": "(Diagram (draft)\ntext)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft)\ntext)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2178,
+      "titleIndex": 15,
+      "title": "(Diagram (draft)\ntext)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram (draft)\ntext)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2184,
+      "titleIndex": 15,
+      "title": "(Diagram (draft)\ntext)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft)\ntext)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2190,
+      "titleIndex": 15,
+      "title": "(Diagram (draft)\ntext)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram (draft)\ntext)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2304,
+      "titleIndex": 16,
+      "title": "(Diagram\n&lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram\n&lpar;draft&rpar;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2310,
+      "titleIndex": 16,
+      "title": "(Diagram\n&lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "inline",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](</x> (Diagram\n&lpar;draft&rpar;))",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2316,
+      "titleIndex": 16,
+      "title": "(Diagram\n&lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram\n&lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2322,
+      "titleIndex": 16,
+      "title": "(Diagram\n&lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x> (Diagram\n&lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2328,
+      "titleIndex": 16,
+      "title": "(Diagram\n&lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram\n&lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title",
+      "id": 2334,
+      "titleIndex": 16,
+      "title": "(Diagram\n&lpar;draft&rpar;)",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": true,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: </x>\n(Diagram\n&lpar;draft&rpar;)",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram\n(draft)"
+          }
+        ],
+        "buttons": [],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2448,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft ?[{{inside}} X | Y]))\n\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2449,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft ?[{{inside}} X | Y])\n\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2450,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft ?[{{inside}} X | Y])\n\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2451,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft ?[{{inside}} X | Y]))\r\n\r\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2452,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n[image]: /x (Diagram (draft ?[{{inside}} X | Y])\r\n\r\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2453,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[{{goal}} A | B]][image]\r\n\r\n[image]: /x\r\n(Diagram (draft ?[{{inside}} X | Y])\r\n\r\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2454,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]](/x (Diagram (draft ?[{{inside}} X | Y]))\r\r?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2455,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]][image]\r\r[image]: /x (Diagram (draft ?[{{inside}} X | Y])\r\r?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2456,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[{{goal}} A | B]][image]\r\r[image]: /x\r(Diagram (draft ?[{{inside}} X | Y])\r\r?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2457,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]](/x (Diagram (draft ?[{{inside}} X | Y]))\n\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2458,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[image]: /x (Diagram (draft ?[{{inside}} X | Y])\n\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2459,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "LF",
+      "source": "![?[%{{goal}} A | B]][image]\n\n[image]: /x\n(Diagram (draft ?[{{inside}} X | Y])\n\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2460,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]](/x (Diagram (draft ?[{{inside}} X | Y]))\r\n\r\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2461,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n[image]: /x (Diagram (draft ?[{{inside}} X | Y])\r\n\r\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2462,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CRLF",
+      "source": "![?[%{{goal}} A | B]][image]\r\n\r\n[image]: /x\r\n(Diagram (draft ?[{{inside}} X | Y])\r\n\r\n?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2463,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "inline",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]](/x (Diagram (draft ?[{{inside}} X | Y]))\r\r?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2464,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]][image]\r\r[image]: /x (Diagram (draft ?[{{inside}} X | Y])\r\r?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    },
+    {
+      "group": "title-literal",
+      "id": 2465,
+      "title": "(Diagram (draft ?[{{inside}} X | Y])",
+      "container": "plain",
+      "form": "reference-next-line",
+      "angle": false,
+      "marker": "%{{goal}}",
+      "lineEnding": "CR",
+      "source": "![?[%{{goal}} A | B]][image]\r\r[image]: /x\r(Diagram (draft ?[{{inside}} X | Y])\r\r?[{{visible}} C | D]",
+      "observed": {
+        "images": [
+          {
+            "src": "/x",
+            "alt": "?[%{{goal}} A | B]",
+            "title": "Diagram (draft ?[{{inside}} X | Y]"
+          }
+        ],
+        "buttons": [
+          "C",
+          "D"
+        ],
+        "markdownRuns": 1,
+        "iframes": 0,
+        "codeBlocks": 0
+      }
+    }
+  ]
+}
