@@ -462,6 +462,20 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 
 ## Variable System
 
+The canonical text-name grammar is documented in
+[Text variable names](README.md#text-variable-names). Keep extraction,
+replacement, interaction parsing, document boundaries, and translation aligned
+with `markdown_flow.variable_names`. Names trim Python whitespace at their edges,
+retain exact internal text, and end at the first literal `}}`; quotes and
+backslashes have no decoding rule. Emit padded markers through the public format
+helpers, and never reinterpret or translate the name as interaction body text.
+At document level, complete inline code, math, link resources, URI/email angle
+autolinks, indented code, and raw-text HTML bodies bound local variable examples;
+complete declarations there retain collection/replacement, while escaped openers
+stay literal. Keep these document-stage rules out of the raw marker helper APIs.
+Run the shared corpus and document regressions with `python -m pytest scripts -q`
+when changing any of these paths. Do not migrate historical keys implicitly.
+
 ### Binding and Reference Roles
 
 **Ordinary References: `{{variable}}`**
@@ -590,12 +604,12 @@ Support for display text different from stored value:
 **Problem Scenario:** When interaction blocks need translation, button text changes, causing validation failures.
 
 ```markdown
-Original interaction: ?[{{fruit}} 苹果|香蕉|橙子]
-Translated (English): ?[{{fruit}} Apple|Banana|Orange]
+Original interaction: ?[{{fruit}} Apple|Banana|Pear]
+Translated (French): ?[{{fruit}} Pomme|Banane|Poire]
 
-User sees "Apple" in frontend and selects it
-Returns user_input: {"fruit": ["Apple"]}
-Validation compares against original document "苹果" → ❌ Validation fails
+User sees "Pomme" in frontend and selects it
+Returns user_input: {"fruit": ["Pomme"]}
+Validation compares against original document "Apple" → ❌ Validation fails
 ```
 
 **Solution 1: Automatic Value Conversion ⚡**
@@ -604,27 +618,27 @@ MarkdownFlow supports **automatic translation detection and value addition**, no
 
 ```markdown
 # Original document (unchanged)
-?[{{fruit}} 苹果|香蕉|橙子]
+?[{{fruit}} Apple|Banana|Pear]
 
 # After translation (automatic value addition)
-?[{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
+?[{{fruit}} Pomme//Apple|Banane//Banana|Poire//Pear]
 ```
 
 **How It Works:**
 
-1. Detects translation occurred (苹果 → Apple)
-2. Automatically adds value separation: `Apple//苹果`
-3. Display = Translated text (Apple), Value = Original text (苹果)
-4. User selects "Apple", frontend extracts value = "苹果"
-5. Validation compares against original document: 苹果 is in [苹果, 香蕉, 橙子] ✅
-6. Business layer receives stable original Chinese values
+1. Detects translation occurred (Apple → Pomme)
+2. Automatically adds value separation: `Pomme//Apple`
+3. Display = Translated text (Pomme), Value = Original text (Apple)
+4. User selects "Pomme", frontend extracts value = "Apple"
+5. Validation compares against original document: Apple is in [Apple, Banana, Pear] ✅
+6. Business layer receives stable original English values
 
 **Key Advantages:**
 
 - ✅ Zero configuration: No need to modify existing documents
 - ✅ Smart detection: Only adds when translation occurs
 - ✅ Backward compatible: Existing display//value format remains unchanged
-- ✅ Business layer stability: Always receives original Chinese values
+- ✅ Business layer stability: Always receives original English values
 
 **Solution 2: Manual display//value Separation Format**
 
@@ -632,12 +646,12 @@ Manually specify stable values (for scenarios requiring custom values):
 
 ```markdown
 # Recommended format
-?[{{fruit}} 苹果//apple|香蕉//banana|橙子//orange]
+?[{{fruit}} Apple//apple|Banana//banana|Pear//pear]
 
 # After translation
-?[{{fruit}} Apple//apple|Banana//banana|Orange//orange]
+?[{{fruit}} Pomme//apple|Banane//banana|Poire//pear]
 
-# User selects "Apple", but returns stable value: "apple"
+# User selects "Pomme", but returns stable value: "apple"
 user_input: {"fruit": ["apple"]}  ✅ Validation succeeds
 ```
 
@@ -663,33 +677,33 @@ provider = create_provider(ProviderConfig(
 ))
 
 # Original document (no value separation)
-document = "?[{{fruit}} 苹果|香蕉|橙子]"
+document = "?[{{fruit}} Apple|Banana|Pear]"
 mf = MarkdownFlow(document, llm_provider=provider)
-mf.set_prompt("document", "Please use English")
+mf.set_prompt("document", "Please use French")
 
 # Render phase: Automatically add value
 render_result = mf.process(0)
-# Result: ?[{{fruit}} Apple//苹果|Banana//香蕉|Orange//橙子]
+# Result: ?[{{fruit}} Pomme//Apple|Banane//Banana|Poire//Pear]
 print(render_result.content)
 
-# Input phase: User selects "Apple", frontend extracts value = "苹果"
-user_input = {"fruit": ["苹果"]}
+# Input phase: User selects "Pomme", frontend extracts value = "Apple"
+user_input = {"fruit": ["Apple"]}
 validation_result = mf.process(0, user_input=user_input)
-# validation_result.variables["fruit"] = ["苹果"]  ✅
-print(validation_result.variables["fruit"])  # Output: ['苹果']
+# validation_result.variables["fruit"] = ["Apple"]  ✅
+print(validation_result.variables["fruit"])  # Output: ['Apple']
 ```
 
 ```python
 # Python version - Manual display//value format
-document = "?[{{level}} 初级//beginner|中级//intermediate|高级//advanced]"
+document = "?[{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]"
 mf = MarkdownFlow(document, llm_provider=provider)
-mf.set_prompt("document", "Please use English")
+mf.set_prompt("document", "Please use French")
 
 # Render phase: Translate Display, keep Value
 render_result = mf.process(0)
-# Result: ?[{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]
+# Result: ?[{{level}} Débutant//beginner|Intermédiaire//intermediate|Avancé//advanced]
 
-# Input phase: User selects "Beginner", returns value: "beginner"
+# Input phase: User selects "Débutant", returns value: "beginner"
 user_input = {"level": ["beginner"]}
 validation_result = mf.process(0, user_input=user_input)
 # validation_result.variables["level"] = ["beginner"]  ✅
@@ -697,12 +711,12 @@ validation_result = mf.process(0, user_input=user_input)
 
 **Value Naming Best Practices:**
 
-| Scenario | Display (Chinese) | Value (Recommended) |
+| Scenario | Display (English) | Value (Recommended) |
 | ---------- | ------------------- | --------------------- |
-| Difficulty Level | 初级/中级/高级 | beginner/intermediate/advanced |
-| Yes/No Selection | 是/否 | yes/no or true/false or 1/0 |
-| Fruit Selection | 苹果/香蕉/橙子 | apple/banana/orange |
-| Role Selection | 小兔子/小松鼠 | rabbit/squirrel or role_rabbit/role_squirrel |
+| Difficulty Level | Beginner/Intermediate/Advanced | beginner/intermediate/advanced |
+| Yes/No Selection | Yes/No | yes/no or true/false or 1/0 |
+| Fruit Selection | Apple/Banana/Pear | apple/banana/pear |
+| Role Selection | Rabbit/Squirrel | rabbit/squirrel or role_rabbit/role_squirrel |
 
 **Testing & Validation:**
 
@@ -722,9 +736,9 @@ pytest tests/ -k "interaction" -v
 | Feature | Automatic Conversion (v1.0+) | Manual display//value |
 | --------- | ------------------------------ | ---------------------- |
 | Document Modification | Not required | Required |
-| Value Type | Original Chinese | Custom (e.g., English, numbers) |
+| Value Type | Original English | Custom (e.g., English, numbers) |
 | Use Cases | General scenarios | Scenarios requiring stable English values |
-| Business Layer Impact | Receives original Chinese values | Receives custom values |
+| Business Layer Impact | Receives original English values | Receives custom values |
 
 **Recommended Approach:**
 
@@ -860,7 +874,7 @@ Supports two standard Markdown fence formats:
 
 - Fence Length: At least 3 characters (`` ``` `` or `~~~`), can be longer
 - Indentation: Maximum 3 spaces
-- Info String: Supports language identifiers (e.g., `` ```python ``、`~~~markdown`)
+- Info String: Supports language identifiers (e.g., `` ```python ``, `~~~markdown`)
 - Closing Fence: Must be same type, length ≥ opening fence
 
 ### How It Works
@@ -1222,6 +1236,7 @@ class TestMarkdownFlow:
 
 - **Test data**: Test data can be in any language for internationalization testing
 - **Example content**: MarkdownFlow documents used as examples can contain non-English content
+- **Existing translated documentation**: `README_CN.md` may use Simplified Chinese as a translation of the canonical English `README.md`.
 
 ### File Naming Conventions
 
@@ -1802,11 +1817,11 @@ if "{{" in user_content:
 **Scenario 3: Compare Before/After Preprocessing**
 
 ```python
-document = """说明：
+document = """Instructions:
 
 ```markdown
 !===
-固定输出
+Preserved output
 !===
 ```"""
 

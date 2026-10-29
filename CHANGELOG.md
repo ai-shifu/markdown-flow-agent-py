@@ -1,6 +1,8 @@
-## Unreleased
+## v0.4.16 (2026-10-29)
 
 - Use leading `{{var}}` answer bindings in interactions while accepting the legacy spelling.
+- Preserve exact text variable names through parsing, replacement, answer storage and translation.
+- Keep leading bindings separate from ordinary body references and retain the shared normalization helpers and document boundaries.
 
 ## v0.3.0 (2026-07-29)
 

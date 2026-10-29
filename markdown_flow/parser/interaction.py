@@ -9,8 +9,6 @@ from enum import Enum
 from typing import Any
 
 from ..constants import (
-    COMPILED_INTERACTION_REGEX,
-    COMPILED_LAYER1_INTERACTION_REGEX,
     COMPILED_LAYER2_VARIABLE_REGEX,
 )
 from ..escaping import (
@@ -20,6 +18,7 @@ from ..escaping import (
     split_unescaped,
     unescape_interaction_text,
 )
+from ..variable_names import find_interaction_spans, normalize_variable_name
 
 
 class InteractionType(Enum):
@@ -44,12 +43,16 @@ def extract_interaction_question(content: str) -> str | None:
         Question text if found, None otherwise
     """
     # Match interaction format: ?[...] using pre-compiled regex
-    match = COMPILED_INTERACTION_REGEX.match(content.strip())
-    if not match:
+    source = content.strip()
+    spans = list(find_interaction_spans(source))
+    if not spans or spans[0] != (0, len(source)):
         return None  # type: ignore[unreachable]
 
     # Extract interaction content (remove ?[ and ])
-    interaction_content = match.group(1) if match.groups() else match.group(0)[2:-1]
+    interaction_content = source[2:-1]
+    variable = COMPILED_LAYER2_VARIABLE_REGEX.match(interaction_content)
+    if variable:
+        interaction_content = variable.group(2)
 
     # Find ... separator, question text follows. An ellipsis an option escaped is not one.
     at = find_unescaped(interaction_content, "...")
@@ -61,7 +64,7 @@ def extract_interaction_question(content: str) -> str | None:
 
 def has_interaction(content: str) -> bool:
     """Check if content contains interaction syntax ?[...]."""
-    return bool(COMPILED_INTERACTION_REGEX.search(content))
+    return next(find_interaction_spans(content), None) is not None
 
 
 class InteractionParser:
@@ -112,17 +115,10 @@ class InteractionParser:
             Extracted bracket content, None if validation fails
         """
         content = content.strip()
-        match = COMPILED_LAYER1_INTERACTION_REGEX.search(content)
-
-        if not match:
+        spans = list(find_interaction_spans(content))
+        if spans != [(0, len(content))]:
             return None  # type: ignore[unreachable]
-
-        # Ensure matched content is complete (no other text)
-        matched_text = match.group(0)
-        if matched_text.strip() != content:
-            return None
-
-        return match.group(1)
+        return content[2:-1]
 
     def _layer2_detect_variable(self, inner_content: str) -> tuple[bool, str | None, str]:
         """
@@ -140,7 +136,9 @@ class InteractionParser:
             # No variable, use entire content for display button parsing
             return False, None, inner_content  # type: ignore[unreachable]
 
-        variable_name = match.group(1).strip()
+        variable_name = normalize_variable_name(match.group(1))
+        if variable_name is None:
+            raise ValueError("Invalid variable name")
         remaining_content = match.group(2).strip()
 
         return True, variable_name, remaining_content

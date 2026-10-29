@@ -18,6 +18,9 @@ The cost is that a literal backslash cannot sit immediately before a literal del
 an escaped bar, not a backslash and a separator. Nothing in the measured corpus writes that.
 """
 
+from .variable_names import read_variable_marker
+
+
 # The characters a backslash may make ordinary. `/` covers `//`, `.` covers `...`.
 ESCAPABLE = "|/.]"
 
@@ -45,6 +48,12 @@ def escape_interaction_text(text: str) -> str:
     out: list[str] = []
     index = 0
     while index < len(text):
+        if text.startswith("{{", index):
+            marker = read_variable_marker(text, index)
+            end = marker.end if marker is not None else len(text)
+            out.append(text[index:end])
+            index = end
+            continue
         char = text[index]
         if char == ".":
             run = len(text) - index - len(text[index:].lstrip("."))
@@ -72,6 +81,12 @@ def unescape_interaction_text(text: str) -> str:
     out: list[str] = []
     index = 0
     while index < len(text):
+        if text.startswith("{{", index):
+            marker = read_variable_marker(text, index)
+            end = marker.end if marker is not None else len(text)
+            out.append(text[index:end])
+            index = end
+            continue
         if is_escape(text, index):
             out.append(text[index + 1])
             index += 2
@@ -90,6 +105,12 @@ def find_unescaped(text: str, needle: str, start: int = 0) -> int:
     """
     index = start
     while index < len(text):
+        if text.startswith("{{", index):
+            marker = read_variable_marker(text, index)
+            if marker is None:
+                return -1
+            index = marker.end
+            continue
         if is_escape(text, index):
             index += 2
             continue
@@ -118,6 +139,10 @@ def split_on_single_pipe(text: str) -> list[str]:
     start = 0
     index = 0
     while index < len(text):
+        if text.startswith("{{", index):
+            marker = read_variable_marker(text, index)
+            index = marker.end if marker is not None else len(text)
+            continue
         if is_escape(text, index):
             index += 2
             continue
@@ -160,7 +185,8 @@ def split_on_ellipsis(content: str) -> tuple[str, str] | None:
 
     What is new is only that an escaped ellipsis no longer counts.
     """
-    head = content.split("\n", 1)[0]
+    newline = find_unescaped(content, "\n")
+    head = content[:newline] if newline >= 0 else content
     at = rfind_unescaped(head, "...")
     if at < 0:
         return None
