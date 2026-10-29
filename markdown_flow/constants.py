@@ -33,7 +33,7 @@ INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # P
 # InteractionParser specific regex patterns
 COMPILED_INTERACTION_REGEX = re.compile(INTERACTION_PATTERN)  # Main interaction pattern matcher
 COMPILED_LAYER1_INTERACTION_REGEX = COMPILED_INTERACTION_REGEX  # Layer 1: Basic format validation (alias)
-COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^\s*" + VARIABLE_ASSIGNMENT_SOURCE + r"(.*)$")
+COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^\s*%?" + VARIABLE_REFERENCE_SOURCE + r"(.*)$")
 COMPILED_LAYER3_ELLIPSIS_REGEX = re.compile(r"^(.*)\.\.\.(.*)")  # Layer 3: Split content around ellipsis
 COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Parse Button//value format
 COMPILED_BRACE_VARIABLE_REGEX = re.compile(r"(?<!%)" + VARIABLE_REFERENCE_SOURCE)
@@ -55,12 +55,14 @@ COMPILED_DOLLAR_RUN_REGEX = re.compile(r"\$+")
 COMPILED_BLANK_LINE_REGEX = re.compile(r"(?:\r\n|\r(?!\n)|(?<!\r)\n)[ \t]*(?:\r\n|\r(?!\n)|(?<!\r)\n)")
 COMPILED_ATX_START_REGEX = re.compile(r"^ {0,3}#{1,6}(?=[ \t\r\n]|$)", re.MULTILINE)
 COMPILED_PHYSICAL_LINE_END_REGEX = re.compile(r"\r\n|\r|\n")
-COMPILED_CONTAINER_LIST_REGEX = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?=[ \t])")
+COMPILED_CONTAINER_LIST_REGEX = re.compile(r"(?:[-+*]|[0-9]{1,9}[.)])(?=[ \t]|$)")
 COMPILED_DOCUMENT_FENCE_REGEX = re.compile(r"(`{3,})([^`]*$)|(~{3,})(.*$)")
 COMPILED_DOCUMENT_TAG_REGEX = re.compile(r" {0,3}</?([A-Za-z][A-Za-z0-9-]*)(?=[ \t/>]|$)")
-COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\]\\\r\n])+)]\:[ \t]*")
+COMPILED_REFERENCE_PREFIX_REGEX = re.compile(r" {0,3}\[((?:\\[^\r\n]|[^\[\]\\\r\n])+)]\:[ \t]*")
 COMPILED_DOCUMENT_BREAK_REGEX = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})$")
 COMPILED_SETEXT_REGEX = re.compile(r" {0,3}(?:=+|-+)[ \t]*$")
+COMPILED_SETEXT_EQUALS_REGEX = re.compile(r" {0,3}=+[ \t]*$")
+COMPILED_RESOURCE_HTML_BREAK_REGEX = re.compile(r" {0,3}(?:<!--|<\?|<!\[CDATA\[|<![A-Z])")
 
 # Canonical user_input key for non-assignment interactions (?[A|B] without a
 # variable). Clients should submit {DEFAULT_NON_ASSIGNMENT_INPUT_KEY: values};

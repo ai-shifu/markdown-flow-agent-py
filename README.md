@@ -22,7 +22,7 @@ English | [Simplified Chinese](README_CN.md)
 ```bash
 pip install markdown-flow
 # or
-pip install -e .  # For development
+pip install -e ".[test]"  # For development and offline tests
 ```
 
 ### Basic Usage
@@ -686,9 +686,43 @@ The first literal `}}` closes a marker. A name cannot contain that pair. Quotes
 and backslashes are literal characters with no decoding rule, and nested `{{`
 inside a name is not another marker. Every complete `{{ ... }}` or `%{{ ... }}`
 is read before interaction delimiters, so internal `]`, `|`, `//`, and `...` stay
-literal. Only a leading assignment marker sets the interaction's variable;
+literal. Both `?[%{{answer}} A | B]` and `?[{{answer}} A | B]` assign the selected
+answer to `answer`. Only a leading marker (after optional whitespace) sets the interaction's variable;
 markers elsewhere in its body remain literal option text. An unterminated
 marker keeps the remaining text opaque, without restarting at an inner `?[`.
+The leading binding is preserved during variable replacement, even if memory
+already has a value for that key. Outside interactions, `{{answer}}` remains a
+replaceable reference and `%{{answer}}` remains preserved.
+
+Confirmed image alt text stays content and cannot cross a Markdown paragraph or
+heading boundary. Its reference definition may span lines,
+but must start a Markdown block. Later numbered list items start new blocks;
+ordinary and lazy paragraph continuations do not.
+Multiline inline-image destinations and titles follow quote/list continuations.
+Parenthesized titles end at the first unescaped closing parenthesis; opening
+parentheses inside those titles remain literal text. Resources stop at real
+paragraph boundaries. Incomplete or syntactically invalid image
+resources retain visible interactions. A complete image node keeps its alt text
+as content even when the browser sanitizes its URL, including SVG data URLs.
+URL sanitization does not turn that alt text into an interactive question.
+Reference definitions belong to the Markdown source run rendered by the learner
+UI. Separate backtick-code, SVG and sandbox-HTML fragments do not share those
+definitions. Native HTML can keep its neighboring Markdown in a single rich run;
+tilde and container fences retain their renderer-specific ownership. Code-block
+preprocessing preserves these distinctions when the document is split into blocks.
+Full-reference image labels also follow projected quote/list continuation lines.
+Label backslashes remain part of the reference identity, including before a
+physical line ending; only ASCII punctuation can be escaped.
+The browser's 999-unit label budget excludes physical line endings, counts
+non-BMP characters as two units and expands tabs at their source-column stops.
+Continuation padding counts toward that budget after container prefixes.
+This includes virtual spaces left when a container prefix consumes part of a tab.
+Reference definitions retain the browser's paragraph lookahead: a following
+quote or list opener can remain literal paragraph text while a definition waits
+for an optional title. A completed title resolves that lookahead. Definition
+syntax and the surrounding paragraph must both admit a later definition. Consecutive
+definitions accept the continuation indentation of their logical paragraph and
+container. Fresh list items retain separate block ownership.
 
 At document level, complete inline code, inline math, link resources, URI/email
 angle autolinks, indented code, and raw-text HTML bodies (`script`, `style`, `pre`, `textarea`) bound local
