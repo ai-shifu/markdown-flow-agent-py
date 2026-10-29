@@ -6,17 +6,17 @@ A powerful Python package for parsing and processing specially formatted Markdow
 Core Features:
     - Parse documents into blocks using --- and ?[] separators
     - Three-layer parsing architecture for complex interaction formats
-    - Extract variable placeholders ({{variable}} and %{{variable}} formats)
+    - Extract names from answer bindings and ordinary variable references
     - Build LLM-ready prompts and message formats
     - Handle user interaction validation and input processing
     - Support multiple processing modes: COMPLETE, STREAM
 
 Supported Interaction Types:
-    - TEXT_ONLY: ?[%{{var}}...question] - Text input only
-    - BUTTONS_ONLY: ?[%{{var}} A|B] - Button selection only
-    - BUTTONS_WITH_TEXT: ?[%{{var}} A|B|...question] - Buttons + text input
-    - BUTTONS_MULTI_SELECT: ?[%{{var}} A||B||C] - Multi-select buttons
-    - BUTTONS_MULTI_WITH_TEXT: ?[%{{var}} A||B||...question] - Multi-select + text input
+    - TEXT_ONLY: ?[{{var}}...question] - Text input only
+    - BUTTONS_ONLY: ?[{{var}} A|B] - Button selection only
+    - BUTTONS_WITH_TEXT: ?[{{var}} A|B|...question] - Buttons + text input
+    - BUTTONS_MULTI_SELECT: ?[{{var}} A||B||C] - Multi-select buttons
+    - BUTTONS_MULTI_WITH_TEXT: ?[{{var}} A||B||...question] - Multi-select + text input
     - NON_ASSIGNMENT_BUTTON: ?[Continue|Cancel] - No-variable interaction.
       Supports the same shapes as variable interactions (?[A|B], ?[A||B],
       ?[...question], ?[A|B|...question]); the answer is not assigned to a
@@ -43,8 +43,8 @@ Basic Usage:
     stream_result = mf.process(0, mode=ProcessMode.STREAM)
 
 Variable System:
-    - {{variable}} - Regular variables, replaced with actual values
-    - %{{variable}} - Preserved variables, kept in original format for LLM understanding
+    - A leading {{variable}} in ?[] binds the answer and stays intact during rendering
+    - {{variable}} elsewhere reads the current value for content personalization
 
 Import Guide:
     from markdown_flow import MarkdownFlow, ProcessMode, LLMProvider
