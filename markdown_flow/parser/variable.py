@@ -141,7 +141,8 @@ def replace_variables_in_text(
         # Only a leading binding belongs to the next answer. References in the
         # same interaction still read the supplied values, including this key.
         binding_starts = set()
-        for interaction in COMPILED_INTERACTION_REGEX.finditer(result):
+        interactions = COMPILED_INTERACTION_REGEX.finditer(result) if "]" in result else ()
+        for interaction in interactions:
             binding = COMPILED_LAYER2_VARIABLE_REGEX.match(interaction.group(1))
             if binding is not None:
                 binding_starts.add(interaction.start(1) + binding.start(1) - 2)
