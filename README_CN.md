@@ -34,7 +34,7 @@ from markdown_flow import MarkdownFlow, ProcessMode
 document = """
 你好 {{name}}！让我们探索一下你的 Python 技能。
 
-?[%{{level}} 初学者 | 中级 | 高级]
+?[{{level}} 初学者 | 中级 | 高级]
 
 根据你的 {{level}} 水平，这里有一些建议...
 """
@@ -81,11 +81,11 @@ for chunk in mf.process(
 document = """
 你偏爱的编程语言是什么？
 
-?[%{{language}} Python | JavaScript | Go | 其他...]
+?[{{language}} Python | JavaScript | Go | 其他...]
 
 选择你的技能（多选）：
 
-?[%{{skills}} Python||JavaScript||Go||Rust]
+?[{{skills}} Python||JavaScript||Go||Rust]
 
 ?[继续 | 跳过]
 """
@@ -142,7 +142,7 @@ class MarkdownFlow:
 **方法：**
 
 - `get_all_blocks()` - 将文档解析为结构化块
-- `extract_variables()` - 提取所有 `{{variable}}` 和 `%{{variable}}` 模式
+- `extract_variables()` - 提取答案绑定和变量引用中的变量名
 - `process()` - 使用统一接口通过 LLM 处理块
 
 **示例：**
@@ -151,7 +151,7 @@ class MarkdownFlow:
 mf = MarkdownFlow("""
 # 欢迎 {{name}}！
 
-选择你的经验：?[%{{exp}} 初学者 | 专家]
+选择你的经验：?[{{exp}} 初学者 | 专家]
 
 你的经验水平是 {{exp}}。
 """)
@@ -246,7 +246,7 @@ class BlockType(Enum):
 
 # 交互块 - 需要用户输入
 """
-?[%{{choice}} 选项 A | 选项 B | 输入自定义选项...]
+?[{{choice}} 选项 A | 选项 B | 输入自定义选项...]
 """
 
 # 保留内容 - 原样输出
@@ -271,7 +271,7 @@ class BlockType(Enum):
 ```python
 class InteractionType(NamedTuple):
     name: str                    # 类型名称
-    variable: Optional[str]      # 要分配的变量 (%{{var}})
+    variable: Optional[str]      # Leading answer binding ({{var}})
     buttons: List[str]          # 按钮选项
     question: Optional[str]      # 文本输入问题
     has_text_input: bool        # 是否允许文本输入
@@ -281,19 +281,19 @@ class InteractionType(NamedTuple):
 
 ```python
 # TEXT_ONLY：带问题的文本输入
-"?[%{{name}} 你的名字是什么？]"
+"?[{{name}} 你的名字是什么？]"
 
 # BUTTONS_ONLY：仅按钮选择
-"?[%{{level}} 初学者 | 中级 | 高级]"
+"?[{{level}} 初学者 | 中级 | 高级]"
 
 # BUTTONS_WITH_TEXT：按钮与备用文本输入
-"?[%{{preference}} 选项 A | 选项 B | 请指定...]"
+"?[{{preference}} 选项 A | 选项 B | 请指定...]"
 
 # BUTTONS_MULTI_SELECT：多选按钮
-"?[%{{skills}} Python||JavaScript||Go||Rust]"
+"?[{{skills}} Python||JavaScript||Go||Rust]"
 
 # BUTTONS_MULTI_WITH_TEXT：多选带文本备选
-"?[%{{frameworks}} React||Vue||Angular||请指定其他...]"
+"?[{{frameworks}} React||Vue||Angular||请指定其他...]"
 
 # NON_ASSIGNMENT_BUTTON：无变量交互。支持与变量交互相同的全部形态；
 # 答案不写入任何变量，而是回流到对话上下文（见下方「无变量交互」）
@@ -303,9 +303,23 @@ class InteractionType(NamedTuple):
 "?[选项A | 选项B | ...其他，请说明]"
 ```
 
+### 答案绑定与变量引用
+
+在交互开头使用 `{{variable}}` 绑定答案，例如
+`?[{{level}} 初学者 | 专家]`。渲染交互时，即使该变量已有值，开头的绑定标记也保持不变；
+提交答案后，答案写入同名变量。
+
+其他位置的 `{{variable}}` 是读取当前值的普通引用，例如“你的水平是 {{level}}。”
+会读取已保存的答案。交互正文后面的引用也会读取变量值，只有开头的标记用于绑定答案。
+
+#### 旧变量写法兼容
+
+已有的 `?[%{{level}} 初学者 | 专家]` 交互仍可解析。交互之外，旧写法
+`%{{variable}}` 继续保留原文，不改变已有行为。新文档请使用上面的标准绑定与引用写法。
+
 ### 无变量交互
 
-不带 `%{{variable}}` 的交互块收集的答案不写入变量，而是回流到对话上下文：
+开头没有变量绑定的交互块收集的答案不写入变量，而是回流到对话上下文：
 
 1. 客户端用规范 key `input`（`DEFAULT_NON_ASSIGNMENT_INPUT_KEY`）提交答案；
    库也会宽容地合并任意其他 key 下的值。
@@ -331,16 +345,16 @@ class InteractionType(NamedTuple):
 
 ```python
 def extract_variables_from_text(text: str) -> Set[str]:
-    """提取所有 {{variable}} 和 %{{variable}} 模式。"""
+    """Extract names from answer bindings and ordinary references."""
 
-def replace_variables_in_text(text: str, variables: dict) -> str:
-    """替换 {{variable}} 模式的值，保留 %{{variable}}。"""
+def replace_variables_in_text(text: str, variables: dict, add_quotes: bool = True) -> str:
+    """Replace ordinary references while keeping leading interaction bindings."""
 
 # 示例
-text = "你好 {{name}}！选择：?[%{{level}} 基础 | 高级]"
+text = "你好 {{name}}！选择：?[{{level}} 基础 | 高级]"
 vars = extract_variables_from_text(text)  # {'name', 'level'}
-result = replace_variables_in_text(text, {'name': 'Alice'})
-# 返回："你好 Alice！选择：?[%{{level}} 基础 | 高级]"
+result = replace_variables_in_text(text, {'name': 'Alice'}, add_quotes=False)
+# 返回："你好 Alice！选择：?[{{level}} 基础 | 高级]"
 ```
 
 #### 交互处理
@@ -356,11 +370,11 @@ def generate_smart_validation_template(interaction_type: InteractionType) -> str
     """为交互生成验证模板。"""
 
 # 示例
-parser_result = InteractionParser.parse("%{{choice}} A | B | 输入自定义...")
-print(parser_result.name)          # "BUTTONS_WITH_TEXT"
-print(parser_result.variable)      # "choice"
-print(parser_result.buttons)       # ["A", "B"]
-print(parser_result.question)      # "输入自定义..."
+parser_result = InteractionParser().parse("?[{{choice}} A | B | ...输入自定义]")
+print(parser_result["type"].name)   # "BUTTONS_WITH_TEXT"
+print(parser_result["variable"])   # "choice"
+print([button["display"] for button in parser_result["buttons"]])  # ["A", "B"]
+print(parser_result["question"])   # "输入自定义"
 ```
 
 ### 类型和模型
@@ -432,13 +446,13 @@ result = mf.process(
 
 ```markdown
 <!-- 单选（传统） -->
-?[%{{language}} Python|JavaScript|Go]
+?[{{language}} Python|JavaScript|Go]
 
 <!-- 多选（新增） -->
-?[%{{skills}} Python||JavaScript||Go||Rust]
+?[{{skills}} Python||JavaScript||Go||Rust]
 
 <!-- 多选带文本备选 -->
-?[%{{frameworks}} React||Vue||Angular||请指定其他...]
+?[{{frameworks}} React||Vue||Angular||请指定其他...]
 ```
 
 #### 变量类型
@@ -510,7 +524,7 @@ def process_conversation():
 
 你当前的经验水平如何？
 
-?[%{{experience}} 完全初学者 | 有一些经验 | 有经验]
+?[{{experience}} 完全初学者 | 有一些经验 | 有经验]
 
 ---
 
@@ -655,10 +669,10 @@ template = """
 欢迎！让我们创建一个个性化的学习计划。
 
 你的名字是什么？
-?[%{{name}} 输入你的名字]
+?[{{name}} 输入你的名字]
 
 你好 {{name}}！你想学什么？
-?[%{{subject}} Python | JavaScript | 数据科学 | 机器学习]
+?[{{subject}} Python | JavaScript | 数据科学 | 机器学习]
 
 很好的选择，{{name}}！{{subject}} 是一个绝佳的学习领域。
 """
@@ -677,9 +691,9 @@ builder.start_interaction()
 不可使用。大小写、连续空格和 Unicode 字符序列不做归一化，U+FEFF 也属于名字。
 
 第一个字面 `}}` 结束变量标记，因此名字不能包含该字符对。引号和反斜杠都是
-普通字符，不做解码；名字中的 `{{` 不会递归解析。先识别完整的 `{{ ... }}` 或
-`%{{ ... }}`，再处理交互分隔符，所以标记内部的 `]`、`|`、`//`、`...` 都保留原样。
-只有交互开头的赋值标记会设置该交互的变量名，正文其他位置的标记属于原样选项文本。
+普通字符，不做解码；名字中的 `{{` 不会递归解析。先识别完整的 `{{ ... }}` 标记，
+再处理交互分隔符，所以标记内部的 `]`、`|`、`//`、`...` 都保留原样。
+只有交互开头的绑定会设置该交互的变量名，正文其他位置的标记按普通变量引用处理。
 未闭合的标记会占据剩余文本，不会从它内部的 `?[` 重新解析出交互。
 
 在文档层面，完整的行内代码、数学公式、链接资源、尖括号 URI 或邮箱自动链接、缩进代码以及
@@ -690,9 +704,9 @@ CRLF、LF、CR 换行使用原始偏移，变量标记的原文不会被重写�
 文档中被反斜杠转义的开头属于普通文本。真正的原始变量标记先占据整个名字，
 名字内部的代码或 HTML 不会改变该边界；交互正文继续使用原始变量标记语法。
 
-使用 `markdown_flow.variable_names` 的 `format_variable_reference(name)` 和
-`format_variable_assignment(name)` 生成带外围空格的标记，例如
-`{{ 你的性别是？ }}`、`%{{ a} }}`；这些空格使末尾单个花括号也能无损表示。
+使用 `markdown_flow.variable_names` 的 `format_variable_reference(name)`
+生成供引用和交互开头绑定使用的带外围空格标记，例如
+`{{ 你的性别是？ }}`、`{{ a} }}`；这些空格使末尾单个花括号也能无损表示。
 变量提取和替换使用同一个去掉外围空白的键，不会自动重命名或迁移已有数据。
 
 共享兼容测试数据在 `scripts/variable-name-contract.json`，运行
@@ -703,16 +717,16 @@ CRLF、LF、CR 换行使用原始偏移，变量标记的原文不会被重写�
 from markdown_flow import extract_variables_from_text, replace_variables_in_text
 
 def demonstrate_variable_system():
-    # 包含两种变量类型的复杂文档
+    # Document with an answer binding and ordinary references
     document = """
     欢迎 {{user_name}} 来到 {{course_title}} 课程！
 
-    请为你的体验评分：?[%{{rating}} 1 | 2 | 3 | 4 | 5]
+    请为你的体验评分：?[{{rating}} 1 | 2 | 3 | 4 | 5]
 
     当前进度：{{progress_percent}}%
     作业截止：{{due_date}}
 
-    你的 %{{rating}} 评分帮助我们改进课程内容。
+    你的 {{rating}} 评分帮助我们改进课程内容。
     """
 
     # 提取所有变量
@@ -720,21 +734,21 @@ def demonstrate_variable_system():
     print(f"找到的所有变量：{all_vars}")
     # 输出：{'user_name', 'course_title', 'rating', 'progress_percent', 'due_date'}
 
-    # 仅替换 {{variable}} 模式，保留 %{{variable}}
+    # Replace ordinary references while keeping the leading answer binding
     replacements = {
         'user_name': 'Alice',
         'course_title': 'Python 高级',
         'progress_percent': '75',
         'due_date': '2024-12-15',
-        'rating': '4'  # 由于 %{{}} 格式，这个不会被替换
+        'rating': '4'  # Used by the reference, not by the leading binding
     }
 
     result = replace_variables_in_text(document, replacements)
     print("\n替换后：")
     print(result)
 
-    # %{{rating}} 保持不变供 LLM 处理，
-    # 而 {{user_name}}、{{course_title}} 等被替换
+    # The leading {{rating}} stays intact for the next answer.
+    # The ordinary rating reference reads the current value, 4.
 
 demonstrate_variable_system()
 ```

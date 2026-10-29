@@ -34,7 +34,7 @@ from markdown_flow import MarkdownFlow, ProcessMode
 document = """
 Hello {{name}}! Let's explore your Python skills.
 
-?[%{{level}} Beginner | Intermediate | Expert]
+?[{{level}} Beginner | Intermediate | Expert]
 
 Based on your {{level}} level, here are some recommendations...
 """
@@ -81,11 +81,11 @@ for chunk in mf.process(
 document = """
 What's your preferred programming language?
 
-?[%{{language}} Python | JavaScript | Go | Other...]
+?[{{language}} Python | JavaScript | Go | Other...]
 
 Select your skills (multi-select):
 
-?[%{{skills}} Python||JavaScript||Go||Rust]
+?[{{skills}} Python||JavaScript||Go||Rust]
 
 ?[Continue | Skip]
 """
@@ -142,7 +142,7 @@ class MarkdownFlow:
 **Methods:**
 
 - `get_all_blocks()` - Parse document into structured blocks
-- `extract_variables()` - Extract all `{{variable}}` and `%{{variable}}` patterns
+- `extract_variables()` - Extract names from answer bindings and variable references
 - `process()` - Process blocks with LLM using unified interface
 
 **Example:**
@@ -151,7 +151,7 @@ class MarkdownFlow:
 mf = MarkdownFlow("""
 # Welcome {{name}}!
 
-Choose your experience: ?[%{{exp}} Beginner | Expert]
+Choose your experience: ?[{{exp}} Beginner | Expert]
 
 Your experience level is {{exp}}.
 """)
@@ -246,7 +246,7 @@ Hello {{name}}! Welcome to our platform.
 
 # Interaction blocks - user input required
 """
-?[%{{choice}} Option A | Option B | Enter custom option...]
+?[{{choice}} Option A | Option B | Enter custom option...]
 """
 
 # Preserved content - output as-is
@@ -271,7 +271,7 @@ Parsed interaction format types.
 ```python
 class InteractionType(NamedTuple):
     name: str                    # Type name
-    variable: Optional[str]      # Variable to assign (%{{var}})
+    variable: Optional[str]      # Leading answer binding ({{var}})
     buttons: List[str]          # Button options
     question: Optional[str]      # Text input question
     has_text_input: bool        # Whether text input is allowed
@@ -281,19 +281,19 @@ class InteractionType(NamedTuple):
 
 ```python
 # TEXT_ONLY: Text input with question
-"?[%{{name}} What is your name?]"
+"?[{{name}} What is your name?]"
 
 # BUTTONS_ONLY: Button selection only
-"?[%{{level}} Beginner | Intermediate | Expert]"
+"?[{{level}} Beginner | Intermediate | Expert]"
 
 # BUTTONS_WITH_TEXT: Buttons with fallback text input
-"?[%{{preference}} Option A | Option B | Please specify...]"
+"?[{{preference}} Option A | Option B | Please specify...]"
 
 # BUTTONS_MULTI_SELECT: Multi-select buttons
-"?[%{{skills}} Python||JavaScript||Go||Rust]"
+"?[{{skills}} Python||JavaScript||Go||Rust]"
 
 # BUTTONS_MULTI_WITH_TEXT: Multi-select with text fallback
-"?[%{{frameworks}} React||Vue||Angular||Please specify others...]"
+"?[{{frameworks}} React||Vue||Angular||Please specify others...]"
 
 # NON_ASSIGNMENT_BUTTON: No-variable interaction. Supports the same shapes as
 # variable interactions; the answer is not assigned to a variable but fed back
@@ -304,9 +304,26 @@ class InteractionType(NamedTuple):
 "?[Option A | Option B | ...Other, please specify]"
 ```
 
+### Variable bindings and references
+
+Start an interaction with `{{variable}}` to bind its answer, as in
+`?[{{level}} Beginner | Expert]`. The binding stays intact when the interaction
+is rendered, even when that variable already has a value. Submitting an answer
+stores it under the same variable name.
+
+Elsewhere, `{{variable}}` is an ordinary reference to the current value. For
+example, `Your level is {{level}}.` reads the saved answer. References later in
+an interaction's body also read values; only its leading marker is a binding.
+
+#### Legacy variable compatibility
+
+Existing `?[%{{level}} Beginner | Expert]` interactions remain accepted. Outside
+interactions, the old `%{{variable}}` spelling keeps its existing preserved-text
+behavior. Use the standard binding and reference syntax above for new documents.
+
 ### Non-assignment interactions
 
-Interactions without a `%{{variable}}` collect an answer that is not stored in
+Interactions without a leading variable binding collect an answer that is not stored in
 any variable — it flows back into the conversation context instead:
 
 1. Clients submit the answer under the canonical key `input`
@@ -335,16 +352,16 @@ any variable — it flows back into the conversation context instead:
 
 ```python
 def extract_variables_from_text(text: str) -> Set[str]:
-    """Extract all {{variable}} and %{{variable}} patterns."""
+    """Extract names from answer bindings and ordinary references."""
 
-def replace_variables_in_text(text: str, variables: dict) -> str:
-    """Replace {{variable}} patterns with values, preserve %{{variable}}."""
+def replace_variables_in_text(text: str, variables: dict, add_quotes: bool = True) -> str:
+    """Replace ordinary references while keeping leading interaction bindings."""
 
 # Example
-text = "Hello {{name}}! Choose: ?[%{{level}} Basic | Advanced]"
+text = "Hello {{name}}! Choose: ?[{{level}} Basic | Advanced]"
 vars = extract_variables_from_text(text)  # {'name', 'level'}
-result = replace_variables_in_text(text, {'name': 'Alice'})
-# Returns: "Hello Alice! Choose: ?[%{{level}} Basic | Advanced]"
+result = replace_variables_in_text(text, {'name': 'Alice'}, add_quotes=False)
+# Returns: "Hello Alice! Choose: ?[{{level}} Basic | Advanced]"
 ```
 
 #### Interaction Processing
@@ -360,11 +377,11 @@ def generate_smart_validation_template(interaction_type: InteractionType) -> str
     """Generate validation template for interaction."""
 
 # Example
-parser_result = InteractionParser.parse("%{{choice}} A | B | Enter custom...")
-print(parser_result.name)          # "BUTTONS_WITH_TEXT"
-print(parser_result.variable)      # "choice"
-print(parser_result.buttons)       # ["A", "B"]
-print(parser_result.question)      # "Enter custom..."
+parser_result = InteractionParser().parse("?[{{choice}} A | B | ...Enter custom]")
+print(parser_result["type"].name)   # "BUTTONS_WITH_TEXT"
+print(parser_result["variable"])   # "choice"
+print([button["display"] for button in parser_result["buttons"]])  # ["A", "B"]
+print(parser_result["question"])   # "Enter custom"
 ```
 
 ### Types and Models
@@ -436,13 +453,13 @@ result = mf.process(
 
 ```markdown
 <!-- Single select (traditional) -->
-?[%{{language}} Python|JavaScript|Go]
+?[{{language}} Python|JavaScript|Go]
 
 <!-- Multi-select (new) -->
-?[%{{skills}} Python||JavaScript||Go||Rust]
+?[{{skills}} Python||JavaScript||Go||Rust]
 
 <!-- Multi-select with text fallback -->
-?[%{{frameworks}} React||Vue||Angular||Please specify others...]
+?[{{frameworks}} React||Vue||Angular||Please specify others...]
 ```
 
 #### Variable Types
@@ -514,7 +531,7 @@ Hello {{user_name}}! I'm here to help you learn Python.
 
 What's your current experience level?
 
-?[%{{experience}} Complete Beginner | Some Experience | Experienced]
+?[{{experience}} Complete Beginner | Some Experience | Experienced]
 
 ---
 
@@ -659,10 +676,10 @@ template = """
 Welcome! Let's create a personalized learning plan.
 
 What's your name?
-?[%{{name}} Enter your name]
+?[{{name}} Enter your name]
 
 Hi {{name}}! What would you like to learn?
-?[%{{subject}} Python | JavaScript | Data Science | Machine Learning]
+?[{{subject}} Python | JavaScript | Data Science | Machine Learning]
 
 Great choice, {{name}}! {{subject}} is an excellent field to study.
 """
@@ -684,10 +701,10 @@ of the name.
 
 The first literal `}}` closes a marker. A name cannot contain that pair. Quotes
 and backslashes are literal characters with no decoding rule, and nested `{{`
-inside a name is not another marker. Every complete `{{ ... }}` or `%{{ ... }}`
+inside a name is not another marker. Every complete `{{ ... }}` marker
 is read before interaction delimiters, so internal `]`, `|`, `//`, and `...` stay
-literal. Only a leading assignment marker sets the interaction's variable;
-markers elsewhere in its body remain literal option text. An unterminated
+literal. Only a leading binding sets the interaction's variable;
+markers elsewhere in its body are ordinary value references. An unterminated
 marker keeps the remaining text opaque, without restarting at an inner `?[`.
 
 At document level, complete inline code, inline math, link resources, URI/email
@@ -701,9 +718,9 @@ document openers stay literal. A true raw marker owns its entire name before any
 code or HTML inside that name is considered; interaction bodies keep the raw
 marker grammar.
 
-Use `format_variable_reference(name)` and `format_variable_assignment(name)` from
-`markdown_flow.variable_names` to emit padded markers such as
-`{{ What is your gender? }}` and `%{{ a} }}`. Padding lets a name end in a single
+Use `format_variable_reference(name)` from `markdown_flow.variable_names` to emit
+padded markers for references and leading bindings, such as
+`{{ What is your gender? }}` and `{{ a} }}`. Padding lets a name end in a single
 brace. Extraction and replacement use the same trimmed key; existing stored keys
 are not renamed or migrated.
 
@@ -715,16 +732,16 @@ offline parser, document, replacement, translation, and answer round trips with
 from markdown_flow import extract_variables_from_text, replace_variables_in_text
 
 def demonstrate_variable_system():
-    # Complex document with both variable types
+    # Document with an answer binding and ordinary references
     document = """
     Welcome {{user_name}} to the {{course_title}} course!
 
-    Please rate your experience: ?[%{{rating}} 1 | 2 | 3 | 4 | 5]
+    Please rate your experience: ?[{{rating}} 1 | 2 | 3 | 4 | 5]
 
     Current progress: {{progress_percent}}%
     Assignment due: {{due_date}}
 
-    Your rating of %{{rating}} helps us improve the course content.
+    Your rating of {{rating}} helps us improve the course content.
     """
 
     # Extract all variables
@@ -732,21 +749,21 @@ def demonstrate_variable_system():
     print(f"All variables found: {all_vars}")
     # Output: {'user_name', 'course_title', 'rating', 'progress_percent', 'due_date'}
 
-    # Replace only {{variable}} patterns, preserve %{{variable}}
+    # Replace ordinary references while keeping the leading answer binding
     replacements = {
         'user_name': 'Alice',
         'course_title': 'Python Advanced',
         'progress_percent': '75',
         'due_date': '2024-12-15',
-        'rating': '4'  # This won't be replaced due to %{{}} format
+        'rating': '4'  # Used by the reference, not by the leading binding
     }
 
     result = replace_variables_in_text(document, replacements)
     print("\nAfter replacement:")
     print(result)
 
-    # The %{{rating}} remains unchanged for LLM processing,
-    # while {{user_name}}, {{course_title}}, etc. are replaced
+    # The leading {{rating}} stays intact for the next answer.
+    # The reference in "Your rating of {{rating}}" reads the current value, 4.
 
 demonstrate_variable_system()
 ```

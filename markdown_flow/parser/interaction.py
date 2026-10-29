@@ -24,11 +24,11 @@ from ..variable_names import find_interaction_spans, normalize_variable_name
 class InteractionType(Enum):
     """Interaction input type enumeration."""
 
-    TEXT_ONLY = "text_only"  # Text input only: ?[%{{var}}...question]
-    BUTTONS_ONLY = "buttons_only"  # Button selection only: ?[%{{var}} A|B]
-    BUTTONS_WITH_TEXT = "buttons_with_text"  # Buttons + text: ?[%{{var}} A|B|...question]
-    BUTTONS_MULTI_SELECT = "buttons_multi_select"  # Multi-select buttons: ?[%{{var}} A||B]
-    BUTTONS_MULTI_WITH_TEXT = "buttons_multi_with_text"  # Multi-select + text: ?[%{{var}} A||B||...question]
+    TEXT_ONLY = "text_only"  # Text input only: ?[{{var}}...question]
+    BUTTONS_ONLY = "buttons_only"  # Button selection only: ?[{{var}} A|B]
+    BUTTONS_WITH_TEXT = "buttons_with_text"  # Buttons + text: ?[{{var}} A|B|...question]
+    BUTTONS_MULTI_SELECT = "buttons_multi_select"  # Multi-select buttons: ?[{{var}} A||B]
+    BUTTONS_MULTI_WITH_TEXT = "buttons_multi_with_text"  # Multi-select + text: ?[{{var}} A||B||...question]
     NON_ASSIGNMENT_BUTTON = "non_assignment_button"  # Display buttons: ?[Continue|Cancel]
 
 

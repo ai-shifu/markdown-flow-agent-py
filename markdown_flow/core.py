@@ -1105,7 +1105,7 @@ class MarkdownFlow:
                 return stream_generator()
             return result
 
-        # Text-only input type: ?[%{{sys_user_nickname}}...question]
+        # Text-only input type: ?[{{sys_user_nickname}}...question]
         if target_values:
             # Check if text validation is enabled
             if not self._enable_text_validation:
@@ -1650,6 +1650,9 @@ class MarkdownFlow:
         if marker:
             body_at = 2 + marker.start(2)
             prefix, reconstructed = original_content[:body_at], original_content[body_at:]
+            marker_at = prefix.index("{{")
+            if prefix[marker_at - 1] == "%":
+                prefix = prefix[: marker_at - 1] + prefix[marker_at:]
 
         # Replace button display text (smart value handling)
         if "buttons" in translated and interaction_info.get("buttons"):

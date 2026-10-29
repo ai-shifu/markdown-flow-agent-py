@@ -96,7 +96,7 @@ MarkdownFlow Agent (Python) is a specialized library designed to parse and proce
 ### Key Features
 
 - **Three-Layer Parsing Architecture**: Document → Block → Interaction level parsing
-- **Variable System**: Support for `{{variable}}` (replaceable) and `%{{variable}}` (preserved) formats
+- **Variable System**: Use `{{variable}}` for leading answer bindings and ordinary value references
 - **LLM Integration**: Abstract provider interface with multiple processing modes
 - **Interactive Elements**: Parse and handle `?[]` syntax for user interactions
 - **Stream Processing**: Support for real-time streaming responses
@@ -275,7 +275,7 @@ python -c "import markdown_flow; print(f'Version: {markdown_flow.__version__}')"
 # Test core functionality
 python -c "
 from markdown_flow import MarkdownFlow, ProcessMode
-doc = 'Hello {{name}}!\n\n?[%{{response}} Yes|No]'
+doc = 'Hello {{name}}!\n\n?[{{response}} Yes|No]'
 mf = MarkdownFlow(doc)
 print('Blocks:', len(mf.get_all_blocks()))
 print('Variables:', mf.extract_variables())
@@ -385,7 +385,7 @@ from markdown_flow.parser import (
 
 # Each parser module is focused and maintainable
 parser = InteractionParser()
-result = parser.parse("?[%{{choice}} Yes|No]")
+result = parser.parse("?[{{choice}} Yes|No]")
 ```
 
 **Migration Note**: Replace `from markdown_flow.utils import ...` with `from markdown_flow.parser import ...`
@@ -440,11 +440,11 @@ result = mf.process(0, mode=ProcessMode.COMPLETE, variables=vars)
 
 **InteractionType** - Interaction format enumeration
 
-- `TEXT_ONLY`: `?[%{{var}}...question]` - Text input with question
-- `BUTTONS_ONLY`: `?[%{{var}} A|B]` - Button selection only
-- `BUTTONS_WITH_TEXT`: `?[%{{var}} A|B|...question]` - Buttons with fallback text input
-- `BUTTONS_MULTI_SELECT`: `?[%{{var}} A||B||C]` - Multi-select buttons using `||` separator
-- `BUTTONS_MULTI_WITH_TEXT`: `?[%{{var}} A||B||...question]` - Multi-select buttons with text fallback
+- `TEXT_ONLY`: `?[{{var}}...question]` - Text input with question
+- `BUTTONS_ONLY`: `?[{{var}} A|B]` - Button selection only
+- `BUTTONS_WITH_TEXT`: `?[{{var}} A|B|...question]` - Buttons with fallback text input
+- `BUTTONS_MULTI_SELECT`: `?[{{var}} A||B||C]` - Multi-select buttons using `||` separator
+- `BUTTONS_MULTI_WITH_TEXT`: `?[{{var}} A||B||...question]` - Multi-select buttons with text fallback
 - `NON_ASSIGNMENT_BUTTON`: `?[Continue|Cancel]` - No-variable interaction; supports the same shapes as variable interactions (`?[A|B]`, `?[A||B]`, `?[...question]`, `?[A|B|...question]`). The answer is not assigned to a variable; `process()` normalizes it (button display -> value, free text passed through) into `metadata["answer"]`, and callers feed it back through the `user_answer` context message field, which `_transform_context_messages` expands into `{user: answer}` + `{assistant: "ok"}` (empty answer skips the turn; absent field keeps legacy `{user: "ok"}`).
 
 ### Utility Functions
@@ -476,26 +476,30 @@ stay literal. Keep these document-stage rules out of the raw marker helper APIs.
 Run the shared corpus and document regressions with `python -m pytest scripts -q`
 when changing any of these paths. Do not migrate historical keys implicitly.
 
-### Two Variable Formats
+### Binding and Reference Roles
 
-**Replaceable Variables: `{{variable}}`**
+**Ordinary References: `{{variable}}`**
 
 - Get substituted with actual values during processing
 - Used for content personalization
 - Example: `Hello {{name}}!` → `Hello John!`
 
-**Preserved Variables: `%{{variable}}`**
+**Leading Answer Bindings: `?[{{variable}} ...]`**
 
-- Kept in original format for LLM understanding
-- Used in interaction blocks for assignment
-- Example: `?[%{{level}} Beginner|Expert]` stays as-is
+- A variable marker at the start of an interaction binds the submitted answer
+- The binding remains intact during rendering, even when a value already exists
+- Example: `?[{{level}} Beginner|Expert]` stays as-is
+
+References elsewhere, including later in an interaction's body, read current
+values. Keep new author examples in the standard syntax. Existing syntax remains
+compatible as described in [the README compatibility note](README.md#legacy-variable-compatibility).
 
 ### Variable Extraction
 
 ```python
 from markdown_flow import extract_variables_from_text
 
-text = "Hello {{name}}! Your level: ?[%{{level}} Beginner|Expert]"
+text = "Hello {{name}}! Your level: ?[{{level}} Beginner|Expert]"
 variables = extract_variables_from_text(text)
 # Returns: {'name', 'level'}
 ```
@@ -506,7 +510,7 @@ variables = extract_variables_from_text(text)
 from markdown_flow import replace_variables_in_text
 
 text = "Hello {{name}}! You are {{age}} years old."
-result = replace_variables_in_text(text, {'name': 'John', 'age': '25'})
+result = replace_variables_in_text(text, {'name': 'John', 'age': '25'}, add_quotes=False)
 # Returns: "Hello John! You are 25 years old."
 ```
 
@@ -554,31 +558,31 @@ user_input = {
 **Text Input Only**
 
 ```markdown
-?[%{{variable}} What is your question?]
+?[{{variable}} What is your question?]
 ```
 
 **Button Selection Only**
 
 ```markdown
-?[%{{level}} Beginner|Intermediate|Expert]
+?[{{level}} Beginner|Intermediate|Expert]
 ```
 
 **Buttons with Text Fallback**
 
 ```markdown
-?[%{{preference}} Option A|Option B|Please specify your preference]
+?[{{preference}} Option A|Option B|Please specify your preference]
 ```
 
 **Multi-Select Buttons**
 
 ```markdown
-?[%{{skills}} Python||JavaScript||Go||Rust]
+?[{{skills}} Python||JavaScript||Go||Rust]
 ```
 
 **Multi-Select with Text Fallback**
 
 ```markdown
-?[%{{frameworks}} React||Vue||Angular||Please specify other frameworks]
+?[{{frameworks}} React||Vue||Angular||Please specify other frameworks]
 ```
 
 **Display-Only Buttons**
@@ -592,7 +596,7 @@ user_input = {
 Support for display text different from stored value:
 
 ```markdown
-?[%{{choice}} Yes//1|No//0|Maybe//2]
+?[{{choice}} Yes//1|No//0|Maybe//2]
 ```
 
 ### Button Translation Best Practices ⭐
@@ -600,8 +604,8 @@ Support for display text different from stored value:
 **Problem Scenario:** When interaction blocks need translation, button text changes, causing validation failures.
 
 ```markdown
-Original interaction: ?[%{{fruit}} Apple|Banana|Pear]
-Translated (French): ?[%{{fruit}} Pomme|Banane|Poire]
+Original interaction: ?[{{fruit}} Apple|Banana|Pear]
+Translated (French): ?[{{fruit}} Pomme|Banane|Poire]
 
 User sees "Pomme" in frontend and selects it
 Returns user_input: {"fruit": ["Pomme"]}
@@ -614,10 +618,10 @@ MarkdownFlow supports **automatic translation detection and value addition**, no
 
 ```markdown
 # Original document (unchanged)
-?[%{{fruit}} Apple|Banana|Pear]
+?[{{fruit}} Apple|Banana|Pear]
 
 # After translation (automatic value addition)
-?[%{{fruit}} Pomme//Apple|Banane//Banana|Poire//Pear]
+?[{{fruit}} Pomme//Apple|Banane//Banana|Poire//Pear]
 ```
 
 **How It Works:**
@@ -642,10 +646,10 @@ Manually specify stable values (for scenarios requiring custom values):
 
 ```markdown
 # Recommended format
-?[%{{fruit}} Apple//apple|Banana//banana|Pear//pear]
+?[{{fruit}} Apple//apple|Banana//banana|Pear//pear]
 
 # After translation
-?[%{{fruit}} Pomme//apple|Banane//banana|Poire//pear]
+?[{{fruit}} Pomme//apple|Banane//banana|Poire//pear]
 
 # User selects "Pomme", but returns stable value: "apple"
 user_input: {"fruit": ["apple"]}  ✅ Validation succeeds
@@ -673,13 +677,13 @@ provider = create_provider(ProviderConfig(
 ))
 
 # Original document (no value separation)
-document = "?[%{{fruit}} Apple|Banana|Pear]"
+document = "?[{{fruit}} Apple|Banana|Pear]"
 mf = MarkdownFlow(document, llm_provider=provider)
 mf.set_prompt("document", "Please use French")
 
 # Render phase: Automatically add value
 render_result = mf.process(0)
-# Result: ?[%{{fruit}} Pomme//Apple|Banane//Banana|Poire//Pear]
+# Result: ?[{{fruit}} Pomme//Apple|Banane//Banana|Poire//Pear]
 print(render_result.content)
 
 # Input phase: User selects "Pomme", frontend extracts value = "Apple"
@@ -691,13 +695,13 @@ print(validation_result.variables["fruit"])  # Output: ['Apple']
 
 ```python
 # Python version - Manual display//value format
-document = "?[%{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]"
+document = "?[{{level}} Beginner//beginner|Intermediate//intermediate|Advanced//advanced]"
 mf = MarkdownFlow(document, llm_provider=provider)
 mf.set_prompt("document", "Please use French")
 
 # Render phase: Translate Display, keep Value
 render_result = mf.process(0)
-# Result: ?[%{{level}} Débutant//beginner|Intermédiaire//intermediate|Avancé//advanced]
+# Result: ?[{{level}} Débutant//beginner|Intermédiaire//intermediate|Avancé//advanced]
 
 # Input phase: User selects "Débutant", returns value: "beginner"
 user_input = {"level": ["beginner"]}
@@ -761,9 +765,9 @@ print(mf.is_text_validation_enabled())  # False
 
 The text validation toggle affects these three interaction types that include text input:
 
-1. **TEXT_ONLY** - Pure text input: `?[%{{var}} ...question]`
-2. **BUTTONS_WITH_TEXT** - Buttons + text fallback: `?[%{{var}} A|B|...question]`
-3. **BUTTONS_MULTI_WITH_TEXT** - Multi-select + text fallback: `?[%{{var}} A||B||...question]`
+1. **TEXT_ONLY** - Pure text input: `?[{{var}} ...question]`
+2. **BUTTONS_WITH_TEXT** - Buttons + text fallback: `?[{{var}} A|B|...question]`
+3. **BUTTONS_MULTI_WITH_TEXT** - Multi-select + text fallback: `?[{{var}} A||B||...question]`
 
 **Not affected:**
 
@@ -782,7 +786,7 @@ The text validation toggle affects these three interaction types that include te
 **Example 1: Default Behavior (Validation Disabled)**
 
 ```python
-document = "?[%{{answer}} ...What is your favorite fruit?]"
+document = "?[{{answer}} ...What is your favorite fruit?]"
 mf = MarkdownFlow(document, llm_provider=provider)
 
 # Submit any input, directly accepted
@@ -797,7 +801,7 @@ result = mf.process(0, user_input=user_input)
 **Example 2: Enable Validation**
 
 ```python
-document = "?[%{{fruit}} ...What is your favorite fruit?]"
+document = "?[{{fruit}} ...What is your favorite fruit?]"
 mf = MarkdownFlow(document, llm_provider=provider)
 mf.set_text_validation_enabled(True)  # Enable validation
 
@@ -815,7 +819,7 @@ result2 = mf.process(0, user_input=user_input2)
 **Example 3: Buttons + Custom Text (Validation Disabled)**
 
 ```python
-document = "?[%{{level}} Beginner|Advanced|...Please specify your level]"
+document = "?[{{level}} Beginner|Advanced|...Please specify your level]"
 mf = MarkdownFlow(document, llm_provider=provider)
 
 # Mixed input: button value + custom text
@@ -906,7 +910,7 @@ Parsed Block Structure
 ```markdown
 # MarkdownFlow Syntax Tutorial
 
-?[%{{ready}} Ready|Need Help]
+?[{{ready}} Ready|Need Help]
 
 ---
 
@@ -915,18 +919,18 @@ Parsed Block Structure
 Below shows how to use interaction syntax:
 
 ` + "```markdown" + `
-?[%{{choice}} Option A|Option B|Option C]
+?[{{choice}} Option A|Option B|Option C]
 ` + "```" + `
 
 ---
 
-?[%{{next}} Continue Learning|Exit]
+?[{{next}} Continue Learning|Exit]
 ```
 
 **Parse Results:**
 
 - ✅ Recognizes 2 interaction blocks (outside code blocks)
-- ✅ `?[%{{choice}}...]` inside code block not parsed
+- ✅ `?[{{choice}}...]` inside code block not parsed
 - ✅ Recognizes 2 block separators (`---` inside code blocks ignored)
 
 **API Documentation Example:**
@@ -934,7 +938,7 @@ Below shows how to use interaction syntax:
 ```markdown
 # API Request Example
 
-?[%{{format}} JSON|XML]
+?[{{format}} JSON|XML]
 
 ---
 
@@ -1013,12 +1017,12 @@ from markdown_flow import MarkdownFlow
 
 document = """
 ` + "```markdown" + `
-?[%{{example}} Should not be parsed]
+?[{{example}} Should not be parsed]
 ` + "```" + `
 
 ---
 
-?[%{{real}} Will be parsed]
+?[{{real}} Will be parsed]
 """
 
 mf = MarkdownFlow(document)
@@ -1111,7 +1115,7 @@ class TestMarkdownFlow:
         return """
         Ask {{name}} about their experience.
 
-        ?[%{{level}} Beginner|Intermediate|Expert]
+        ?[{{level}} Beginner|Intermediate|Expert]
 
         The user chose {{level}} level.
         """
@@ -1166,16 +1170,16 @@ class TestMarkdownFlow:
     def test_interaction_parsing(self):
         """Test interaction format parsing"""
         # Arrange
-        from markdown_flow.utils import InteractionParser
-        content = "%{{level}} Beginner|Intermediate|Expert"
+        from markdown_flow import InteractionParser
+        content = "?[{{level}} Beginner|Intermediate|Expert]"
 
         # Act
-        interaction_type = InteractionParser.parse(content)
+        interaction_type = InteractionParser().parse(content)
 
         # Assert
-        assert interaction_type.name == "BUTTONS_ONLY"
-        assert len(interaction_type.buttons) == 3
-        assert interaction_type.variable == "level"
+        assert interaction_type["type"].name == "BUTTONS_ONLY"
+        assert len(interaction_type["buttons"]) == 3
+        assert interaction_type["variable"] == "level"
 
     def test_variable_replacement(self):
         """Test variable replacement functionality"""
@@ -1185,23 +1189,23 @@ class TestMarkdownFlow:
         variables = {"name": "Alice", "age": "30"}
 
         # Act
-        result = replace_variables_in_text(text, variables)
+        result = replace_variables_in_text(text, variables, add_quotes=False)
 
         # Assert
         assert result == "Hello Alice! You are 30 years old."
 
-    def test_preserved_variables_not_replaced(self):
-        """Test that preserved variables are not replaced"""
+    def test_leading_bindings_not_replaced(self):
+        """Keep the answer binding intact while replacing ordinary references."""
         # Arrange
         from markdown_flow import replace_variables_in_text
-        text = "Select: ?[%{{level}} High|Low] and name: {{name}}"
+        text = "Select: ?[{{level}} High|Low] and name: {{name}}"
         variables = {"level": "High", "name": "Bob"}
 
         # Act
         result = replace_variables_in_text(text, variables)
 
         # Assert
-        assert "%{{level}}" in result  # Preserved
+        assert "{{level}}" in result  # Binding remains intact
         assert "{{name}}" not in result  # Replaced
         assert "Bob" in result
 ```
@@ -1618,7 +1622,7 @@ git status
 # Test document parsing
 python -c "
 from markdown_flow import MarkdownFlow
-mf = MarkdownFlow('Hello {{name}}!\n\n?[%{{response}} Yes|No]')
+mf = MarkdownFlow('Hello {{name}}!\n\n?[{{response}} Yes|No]')
 print('Blocks:', len(mf.get_all_blocks()))
 print('Variables:', mf.extract_variables())
 "
@@ -1646,7 +1650,7 @@ doc = '''Hello {{name}}!
 
 ---
 
-?[%{{level}} Beginner|Expert]
+?[{{level}} Beginner|Expert]
 
 ---
 
@@ -1979,9 +1983,9 @@ mf = ValidatedMarkdownFlow(document, llm_provider, validators)
 
 ### Variable Handling Philosophy
 
-- **Replaceable variables** (`{{var}}`) are meant for content personalization
-- **Preserved variables** (`%{{var}}`) are meant for LLM understanding and assignment
-- Variable extraction includes both types but processes them differently
+- **Ordinary references** (`{{var}}`) read values for content personalization
+- **Leading bindings** (`?[{{var}} ...]`) name where the next answer is stored
+- Variable extraction includes both roles; replacement keeps leading bindings intact
 - Default value for undefined variables is "UNKNOWN"
 
 ### Validation System

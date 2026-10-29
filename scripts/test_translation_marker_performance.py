@@ -59,14 +59,16 @@ def test_single_pass_restoration_keeps_existing_token_validation(corruption):
     assert _restore_translation_markers(original, translated, markers) == expected
 
 
+@pytest.mark.parametrize("prefix", ["", "%"])
 @pytest.mark.parametrize("literal", ["_" * 50000 + "MDFLOW_VARIABLE_", "".join(f"__MDFLOW_VARIABLE_N{index}_" for index in range(1024)), "__MDFLOW_VARIABLE_N" + "9" * 5000 + "_"])
-def test_translation_collision_namespace_stays_short_and_preserves_author_text(literal):
-    source = "?[%{{answer}} " + literal + " %{{key}} | Go]"
+def test_translation_collision_namespace_stays_short_and_preserves_author_text(literal, prefix):
+    source = "?[" + prefix + "{{answer}} " + literal + " %{{key}} | Go]"
     flow = MarkdownFlow(source)
     original, info = flow._extract_translatable_content(source)
     assert literal in json.loads(original)["buttons"][0]
     assert all(len(token) < 50 for token in info["_translation_markers"])
-    assert flow._reconstruct_with_translation(source, original, original, info) == source
+    expected = "?[{{answer}} " + literal + " %{{key}} | Go]"
+    assert flow._reconstruct_with_translation(source, original, original, info) == expected
 
 
 def test_many_distinct_button_markers_share_the_interaction_lookup_index():

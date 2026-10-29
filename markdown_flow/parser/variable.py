@@ -8,11 +8,12 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from ..constants import (
+    COMPILED_LAYER2_VARIABLE_REGEX,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
     VARIABLE_DEFAULT_VALUE,
 )
-from .document_context import find_document_variable_markers
+from .document_context import find_document_interaction_spans, find_document_variable_markers
 
 
 class _PreserveTagState:
@@ -48,9 +49,8 @@ def extract_variables_from_text(text: str) -> list[str]:
     """
     Extract all variable names from text.
 
-    Recognizes two variable formats:
-    - %{{variable_name}} format (preserved variables)
-    - {{variable_name}} format (replaceable variables)
+    Recognizes ordinary references and leading interaction bindings, keeping
+    their existing document boundaries and compatibility handling.
 
     Args:
         text: Text content to analyze
@@ -97,12 +97,21 @@ def replace_variables_in_text(
     if not text or not isinstance(text, str):
         return text or ""
 
+    # Protect the original leading occurrence, while body references still read values.
+    bindings: set[int] = set()
+    if "?[" in text and "]" in text:
+        for start, end in find_document_interaction_spans(text):
+            binding = COMPILED_LAYER2_VARIABLE_REGEX.match(text[start + 2 : end - 1])
+            if binding is not None:
+                bindings.add(start + 2 + binding.start(1) - 2)
+
     values = dict(variables or {})
     segments: list[_ReplacementSegment] = []
     at = 0
     for marker in find_document_variable_markers(text):
         segments.append(_ReplacementSegment(text[at : marker.start]))
-        name = marker.name if not (marker.start and text[marker.start - 1] == "%") else None
+        assignment = marker.start in bindings or (marker.start and text[marker.start - 1] == "%")
+        name = marker.name if not assignment else None
         segments.append(_ReplacementSegment(text[marker.start : marker.end], name, opaque=True))
         if name is not None:
             values.setdefault(name, VARIABLE_DEFAULT_VALUE)
