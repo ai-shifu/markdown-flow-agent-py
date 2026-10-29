@@ -85,6 +85,34 @@ def test_padded_binding_and_leading_whitespace_keep_the_trimmed_key(marker, mode
     assert result.variables == {"choice": ["b"]}
 
 
+@pytest.mark.parametrize("marker", MARKERS)
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+def test_multiline_body_keeps_its_binding_and_saves_the_answer(marker, mode, newline):
+    source = f"?[{marker} A |{newline}B]"
+    flow = MarkdownFlow(source)
+    assert InteractionParser().parse(source)["variable"] == "choice"
+    assert process(flow, mode, variables={"choice": "Old answer"}).content == source
+    result = process(flow, mode, variables={"choice": "Old answer"}, user_input={"choice": ["B"]})
+    assert result.variables == {"choice": ["B"]}
+
+
+@pytest.mark.parametrize("marker", MARKERS)
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("newline", ["\n", "\r\n", "\r"])
+def test_multiline_body_reference_does_not_expose_the_binding(marker, mode, newline):
+    source = f"?[{marker} {{{{label}}}}]"
+    memory = {"label": f"A |{newline}B", "choice": "Old answer"}
+    flow = MarkdownFlow(source)
+    rendered = process(flow, mode, variables=memory)
+    assert rendered.content == f'?[{marker} """A |{newline}B"""]'
+    parsed = InteractionParser().parse(rendered.content)
+    assert parsed["variable"] == "choice"
+    selected = parsed["buttons"][-1]["value"]
+    result = process(flow, mode, variables=memory, user_input={"choice": [selected]})
+    assert result.variables == {"choice": [selected]}
+
+
 @pytest.mark.parametrize(
     "source,expected",
     [
