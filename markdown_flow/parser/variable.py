@@ -9,6 +9,8 @@ from collections.abc import Mapping
 
 from ..constants import (
     COMPILED_BRACE_VARIABLE_REGEX,
+    COMPILED_INTERACTION_REGEX,
+    COMPILED_LAYER2_VARIABLE_REGEX,
     COMPILED_PERCENT_VARIABLE_REGEX,
     OUTPUT_INSTRUCTION_PREFIX,
     OUTPUT_INSTRUCTION_SUFFIX,
@@ -136,10 +138,20 @@ def replace_variables_in_text(
         # Use negative lookbehind assertion to exclude %{{var_name}} format
         pattern = f"(?<!%){{{{{re.escape(var_name)}}}}}"
 
+        # Only a leading binding belongs to the next answer. References in the
+        # same interaction still read the supplied values, including this key.
+        binding_starts = set()
+        for interaction in COMPILED_INTERACTION_REGEX.finditer(result):
+            binding = COMPILED_LAYER2_VARIABLE_REGEX.match(interaction.group(1))
+            if binding is not None:
+                binding_starts.add(interaction.start(1) + binding.start(1) - 2)
+
         # Replace each match individually, checking if it's inside a preserve tag
         # Use default parameters to capture loop variables (fixes B023)
-        def replace_match(match, _value_str=value_str, _result=result, _add_quotes=add_quotes):
+        def replace_match(match, _value_str=value_str, _result=result, _add_quotes=add_quotes, _binding_starts=binding_starts):
             start = match.start()
+            if start in _binding_starts:
+                return match.group(0)
 
             # If add_quotes is False, never add quotes (for preserved content blocks)
             if not _add_quotes:

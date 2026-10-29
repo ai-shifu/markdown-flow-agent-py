@@ -1,8 +1,12 @@
+## Unreleased
+
+- Use leading `{{var}}` answer bindings in interactions while accepting the legacy spelling.
+
 ## v0.3.0 (2026-07-29)
 
 ### Feat
 
-- non-assignment interactions (`?[...]` without `%{{var}}`) now support the full shape set: multi-select (`?[A||B]`), text input (`?[...question]`), and buttons with text (`?[A|B|...question]`); parse results carry `question` and `is_multi_select`
+- non-assignment interactions (`?[...]` without a leading variable binding) now support the full shape set: multi-select (`?[A||B]`), text input (`?[...question]`), and buttons with text (`?[A|B|...question]`); parse results carry `question` and `is_multi_select`
 - `process()` normalizes non-assignment answers (button display -> value, free text passed through) and returns them in `metadata["answer"]`; input values are merged from any user_input key (canonical key: `input`, exported as `DEFAULT_NON_ASSIGNMENT_INPUT_KEY`)
 - context messages accept a `user_answer` extension field (exported as `USER_ANSWER_CONTEXT_KEY`) so the answer to a no-variable interaction reaches the next LLM request; empty answer skips the turn, absent field keeps the legacy `{user: "ok"}` behavior
 - next-interaction preview distinguishes single/multi select and text input for non-assignment blocks

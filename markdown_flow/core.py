@@ -13,6 +13,7 @@ from typing import Any
 from .constants import (
     BLOCK_INDEX_OUT_OF_RANGE_ERROR,
     BLOCK_SEPARATOR,
+    COMPILED_LAYER2_VARIABLE_REGEX,
     CONTEXT_BUTTON_OPTIONS_TEMPLATE,
     CONTEXT_QUESTION_TEMPLATE,
     DEFAULT_INTERACTION_ERROR_PROMPT,
@@ -1018,7 +1019,7 @@ class MarkdownFlow:
                 return stream_generator()
             return result
 
-        # Text-only input type: ?[%{{sys_user_nickname}}...question]
+        # Text-only input type: ?[{{sys_user_nickname}}...question]
         if target_values:
             # Check if text validation is enabled
             if not self._enable_text_validation:
@@ -1536,7 +1537,15 @@ class MarkdownFlow:
         except (json.JSONDecodeError, ValueError):
             return original_content
 
-        reconstructed = original_content
+        # Translate only the body, keeping the binding key out of text replacement.
+        binding = COMPILED_LAYER2_VARIABLE_REGEX.match(original_content[2:-1]) if original_content.startswith("?[") else None
+        body_at = 2 + binding.start(2) if binding is not None else 0
+        prefix = original_content[:body_at]
+        if binding is not None:
+            marker_at = prefix.index("{{")
+            if prefix[marker_at - 1] == "%":
+                prefix = prefix[: marker_at - 1] + prefix[marker_at:]
+        reconstructed = original_content[body_at:]
 
         # Replace button display text (smart value handling)
         if "buttons" in translated and interaction_info.get("buttons"):
@@ -1586,7 +1595,7 @@ class MarkdownFlow:
             new_question = translated["question"]
             reconstructed = reconstructed.replace(f"...{old_question}", f"...{new_question}", 1)
 
-        return reconstructed
+        return prefix + reconstructed
 
     def _build_validation_messages(
         self,

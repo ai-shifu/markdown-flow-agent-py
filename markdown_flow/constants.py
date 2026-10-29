@@ -29,7 +29,7 @@ INTERACTION_PATTERN_SPLIT = rf"((?<!\\)\?\[{_INTERACTION_CONTENT}\](?!\())"  # P
 # InteractionParser specific regex patterns
 COMPILED_INTERACTION_REGEX = re.compile(INTERACTION_PATTERN)  # Main interaction pattern matcher
 COMPILED_LAYER1_INTERACTION_REGEX = COMPILED_INTERACTION_REGEX  # Layer 1: Basic format validation (alias)
-COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^%\{\{([^}]+)\}\}(.*)$")  # Layer 2: Variable detection
+COMPILED_LAYER2_VARIABLE_REGEX = re.compile(r"^\s*%?\{\{([^}]+)\}\}(.*)$")  # Leading interaction binding
 COMPILED_LAYER3_ELLIPSIS_REGEX = re.compile(r"^(.*)\.\.\.(.*)")  # Layer 3: Split content around ellipsis
 COMPILED_LAYER3_BUTTON_VALUE_REGEX = re.compile(r"^(.+)//(.+)$")  # Layer 3: Parse Button//value format
 COMPILED_BRACE_VARIABLE_REGEX = re.compile(
